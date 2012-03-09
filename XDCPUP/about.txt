@@ -1,0 +1,3 @@
+A Python program that reads in JCPDS files and plots the corresponding peaks according to the desired pressure.
+
+XDCPUP is X-ray Diffraction Crystal Parameters Under Pressure

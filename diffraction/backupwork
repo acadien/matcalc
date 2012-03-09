@@ -1,0 +1,18 @@
+#!/bin/bash
+SVNDIR=/home/acadien/Documents/ascwork
+cd ${SVNDIR}
+for i in `find . -name "*~"`
+do
+    rm $i
+done
+for i in `find . -name "#*#"`
+do    
+    rm $i
+done
+for i in `find . -name "*.o"`
+do
+    rm $i
+done
+svn add `svn status .|grep "^?"|awk '{print $2}'`
+svn ci -m "nightly backup"
+cd -

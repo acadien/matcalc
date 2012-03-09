@@ -1,0 +1,26 @@
+SYSTEM = DOSCAR generation
+PREC   = HIGH
+ISMEAR = 0        
+SIGMA  = 0.05
+LREAL  = Auto 
+ENCUT  = 650 
+ISTART = 1        
+ALGO   = F        !Converge Speed
+IALGO  = 48
+
+ISMEAR = -5
+
+EDIFF  = 1E-4
+
+IBRION = -1
+ISIF   = 0 
+
+#Paralellisation switches para cluster 
+LPLANE = .TRUE. 
+NPAR = 4
+
+LORBIT = 12
+LSCALU = .FALSE. 
+LCHARG = .TRUE. 
+LAECHG = .TRUE.
+LELF = .TRUE.

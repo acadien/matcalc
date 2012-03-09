@@ -1,0 +1,29 @@
+SYSTEM = DOSCAR generation
+PREC   = HIGH
+ISMEAR = 0        
+SIGMA  = 0.05
+LREAL  = Auto 
+ENCUT  = 650 
+ISTART = 0        
+ICHARG = 2        !12 No charge update
+LCHARG = .FALSE.  !Do not write charge density to save time
+LORBIT = 12 
+ALGO   = F        !Converge Speed
+IALGO  = 48
+
+NELM   = 150 
+NELMIN = 8 
+EDIFF  = 1E-4
+
+IBRION = -1
+ISIF   = 0 
+
+#Paralellisation switches para cluster 
+LPLANE = .TRUE. 
+
+#NPAR sqrt of nodes 
+NPAR   = 64 
+NSIM   = 4 
+LSCALU = .FALSE. 
+LCHARG = .TRUE. 
+LWAVE  = .TRUE. 

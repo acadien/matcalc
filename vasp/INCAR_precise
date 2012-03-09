@@ -1,0 +1,28 @@
+# Static Settings
+SYSTEM	= Ge2Sb2Te5 amorphous system under pressure (see volume)
+PREC	= HIGH
+ISMEAR	= 1; SIGMA = 0.2 #partial occupancy calculations, width of smearing
+IALGO	= 48
+EDIFF	= 0.0001
+EDIFFG	= 0.001
+NELM	= 200	#Max number of Self Consistent steps
+LREAL	= Auto
+#Parallelism
+NPAR	   = 16
+LPLANE	   = .TRUE.
+LSCALAPACK = .TRUE.
+LSCALU 	   = .TRUE.
+
+PSTRESS = 0.001
+
+#MD Settings
+IBRION = 2    #0=standard MD (verlet),1=quasi-Newton relaxation,2=conjugate gradient
+NSW    = 100        #number of ionic steps
+LREAL  = .TRUE.	    #Real space or recip-space calculations
+ISIF   = 3          #ionic relaxation, shape and volume optimization
+#Stress tensor calculation (slow!). 0=no stress scal, 2=yes calc stress, keeps cell volume/shape the same
+NBLOCK = 1    #scale temperature every NBLOCK timesteps. Always =1!!
+#KBLOCK default setting is fine
+NPACO  = 256  #number of bins for pair correlation calculation
+APACO  = 10   #maximum length of PC calculation in Aangstoms
+

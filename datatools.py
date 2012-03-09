@@ -1,0 +1,86 @@
+#!/usr/bin/python
+
+from numpy import *
+from scipy.signal import freqz
+from numpy.fft import *
+import pylab as pl
+from itertools import chain
+
+def windowavg(a,n=10):
+    #a: the list/array to run the window average over
+    #n: the size of the window
+    
+    winavg=list()
+    window=list()
+    for i in a:
+        if len(winavg)<n:
+            window.append(i)
+        else:
+            window.pop(0)
+            window.append(i)
+        winavg.append(sum(window)/len(window))
+    return winavg
+
+def FIR(n,wl,wh):
+    return (sin(wh*n) - sin(wl*n))/pi/n
+
+def bandpass(x,y,bandlow,bandhigh):
+    #x/y: the lists/arrays to perform the bandpass on, assumes evenly spaced
+    #bandlow/bandhigh: the frequency range to work in
+
+    N=len(y)
+    dx=x[1]-x[0]
+
+    y=[sin(i) for i in x]
+    wl=2*dx*bandlow*pi
+    wh=2*dx*bandhigh*pi
+
+    M=N
+    bn = [(wh-wl)/pi]
+    bn += [FIR(i-M/2,wl,wh) for i in range(1,M)]
+    bn = array(bn)
+    bn = bn*kaiser(M,5.2)
+    
+
+    [w,h]=freqz(bn,1)
+
+    filtered=convolve(bn,array(y))
+    pl.plot(y)
+    pl.plot(filtered)
+    pl.show()
+    exit()
+
+def wsmooth(x,window_len=11,window='hanning'):
+    if type(x) != type(array(1)):
+        x=array(x)
+    
+    if x.ndim != 1:
+        raise ValueError, "smooth only accepts 1 dimension arrays."
+
+    if x.size < window_len:
+        raise ValueError, "Input vector needs to be bigger than window size."
+
+
+    if window_len<3:
+        return x
+
+
+    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+        raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+
+
+    s=r_[x[window_len-1:0:-1],x,x[-1:-window_len:-1]]
+    #print(len(s))
+    if window == 'flat': #moving average
+        w=ones(window_len,'d')
+    else:
+        w=eval(window+'(window_len)')
+
+    y=convolve(w/w.sum(),s,mode='valid')
+    M=window_len/2
+    return y[M:-M+1]
+
+#Takes a 2D list and turns it into a 1D list
+def flatten(listOfLists):
+    "Flatten one level of nesting"
+    return chain.from_iterable(listOfLists)
