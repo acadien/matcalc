@@ -6,6 +6,8 @@ from numpy.fft import *
 import pylab as pl
 from itertools import chain
 
+def gaussSmooth(a,n=10):
+
 def windowavg(a,n=10):
     #a: the list/array to run the window average over
     #n: the size of the window

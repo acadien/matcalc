@@ -110,6 +110,10 @@ def partpaircor(atoms,types,type1,type2,inloop=0,cutoff=10.0,nbins=1000):
     #cutoff: float, max radius to measure radial distro out to
     #nbins: number of bins to store in radial distro
 
+    print "ERROR: This method (partpaircor) needs to be re-written using the PCPcode shortcut."
+    print "Maybe somebody should get off their lazy ass and write it. *cough*"
+    exit(0)
+    """
     rdist=[0]*nbins
     dr=float(cutoff)/nbins
     N=len(atoms)
@@ -136,7 +140,7 @@ def partpaircor(atoms,types,type1,type2,inloop=0,cutoff=10.0,nbins=1000):
         else:
             vol=4.0*pi*rad*rad*dr
         rdist[i]/=vol
-        
+    """ 
     return [rbins,rdist]
 
 #==================================================================

@@ -5,18 +5,20 @@ import pylab as pl
 from scipy import *
 
 def usage():
-    print "Usage: %s <PCDAT file> <optional:start iter(0)> <optional:end iter(-1)>"%sys.argv[0]
+    print "Usage: %s <PCDAT file> <optional:start iter(0)> <optional:end iter(-1)> <1:smoothing enabled>"%sys.argv[0]
 
 starti=0
 endi=None
+smoothEnabled=False
 if len(sys.argv)<1:
     usage()
     exit(0)
 elif len(sys.argv)==3:
     starti=int(sys.argv[2])
-elif len(sys.argv)==3:
     endi=int(sys.argv[3])
-
+elif len(sys.argv)==4:
+    if sys.argv[4]=='1':
+        smoothEnabled=True
 pcfile=sys.argv[1]
 pcdat=open(pcfile,"r").readlines()
 head=pcdat[:12]

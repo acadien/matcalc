@@ -23,7 +23,7 @@ def dist(a,b):
     return weave.inline(distcode,['a','b'])
 
 distcodeP = """
-double c=0.0,d=0.0;x
+double c=0.0,d=0.0;
 for(int i=0;i<3;i++){
   d = a[i]-b[i];
   if(d>lengths[i]/2.0) d -= lengths[i];
@@ -53,7 +53,9 @@ for(int tx=-1;tx<2;tx++){
     }
 }
 """
-def distsp(a,b,l,rs):
+def distsp(a,b,l,rs=None):
+    if rs==None:
+        rs=zeros(27)
     weave.inline(distSPcode,['a','b','l','rs'])
     return rs
 

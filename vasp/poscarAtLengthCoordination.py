@@ -23,23 +23,32 @@ atoms=array(zip(ax,ay,az))
 basis=[v1,v2,v3]
 bounds=array([v1[0],v2[1],v3[2]])
 
-#halfNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='half')
-halfNeighbors=neighbors(atoms,[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]],max([l+2*w for l,w in zip(lengths,widths)]),style='half')
+#vhalfNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='half')
+halfNeighbors=neighbors(atoms,array([[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]),max([l+2*w for l,w in zip(lengths,widths)]),style='half')
+
 fullNeighbors=half2full(halfNeighbors)
 coordNumbers=map(len,fullNeighbors)
-
+print coordNumbers
 for l,w in zip(lengths,widths):
     atomPairs=atomsAtLength(atoms,halfNeighbors,l,w,periodic=True,bounds=bounds)
 
-    CNhist=zeros(50)
+    CNhist=zeros(100)
+    cns=list()
     for [a1,a2] in atomPairs:
         c1=coordNumbers[a1]
         c2=coordNumbers[a2]
+        cns.append(c1)
+        cns.append(c2)
         CNhist[c1]+=1
         CNhist[c2]+=2
 
-    pl.plot(CNhist,label=str(l)+"$\pm$"+str(w))
+        #pl.plot(CNhist,label=str(l)+"$\pm$"+str(w))
+    mn=max(min(cns)-5,0)
+    mx=min(max(cns)+5,len(CNhist))
+                         
+    pl.plot(range(mn,mx+1),CNhist[mn:mx+1],label=str(l)+"$\pm$"+str(w))
 pl.xlabel("Coordination Number")
+#pl.xlim([i
 pl.ylabel("Count")
 pl.legend(title="Atoms with Bond Length")
 pl.show()

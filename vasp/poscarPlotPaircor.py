@@ -4,12 +4,11 @@ import sys
 import pylab as pl
 #mine
 from poscarIO import readposcar
-from paircor import paircor,partpaircor
-from duplicate import duplicate26
+from paircor import paircor_periodic,partpaircor
 from datatools import wsmooth
 
 def usage():
-    print "%s <poscar/BestPOSCARs file> <nbins=1000> <smooth=0> <type1> <type2>"%sys.argv[0]
+    print "%s <poscar/BestPOSCARs file> <cutoff=10.0> <nbins=256> <smooth=0> <type1> <type2>"%sys.argv[0]
     print "For parital pair-correlation indicate the desired types (1,2,3...) as defined by the ordering of the POTCAR." 
     print "Note: Periodicity of the system is accounted for."
 
@@ -19,20 +18,24 @@ if len(sys.argv) not in [2,3,4,6]:
 
 poscar=open(sys.argv[1],"r").readlines()
 
-nbins=1000
+cutoff=10.
 if len(sys.argv)>=3:
-    nbins=int(sys.argv[2])
+    cutoff=float(sys.argv[2])
+
+nbins=256
+if len(sys.argv)>=4:
+    nbins=int(sys.argv[3])
 
 smooth=0
-if len(sys.argv)>=4:
-    smooth=int(sys.argv[3])
+if len(sys.argv)>=5:
+    smooth=int(sys.argv[4])
 
 type1=-1
 type2=-1
 part=0
-if len(sys.argv)==6:
-    type1=int(sys.argv[4])
-    type2=int(sys.argv[5])
+if len(sys.argv)==7:
+    type1=int(sys.argv[5])
+    type2=int(sys.argv[6])
     part=1
 
 
@@ -61,15 +64,15 @@ while True:
             exit()
 
     N=len(types)
-
+    lengths=[v1[0],v2[1],v3[2]]
     #Duplicate
-    datoms,dtypes,dbasis=duplicate26(zip(ax,ay,az),types,zip(v1,v2,v3))
+    #datoms,dtypes,dbasis=duplicate26(zip(ax,ay,az),types,zip(v1,v2,v3))
 
     #Correlate
     if part==1:
         [rbins,rdist]=partpaircor(datoms,types,type1,type2,inloop=N,nbins=nbins)
     else:
-        [rbins,rdist]=paircor(datoms,inloop=N,nbins=nbins)
+        [rbins,rdist]=paircor_periodic(atoms,lengths,cutoff=cutoff,nbins=nbins)
     
     rdist=[i/(27.0**0.5) for i in rdist]
 
