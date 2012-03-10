@@ -4,9 +4,9 @@ import pylab as pl
 
 if len(sys.argv)<2:
     print "Usage:"
-    print sys.argv[0]+" <directory that contains OUTCAR file>"
+    print sys.argv[0]+" <OUTCAR file>"
 
-outcar = open(sys.argv[1]+"/OUTCAR","r")
+outcar = open(sys.argv[1],"r")
 
 tmpt=list()
 PE=list()

@@ -11,10 +11,10 @@ if len(sys.argv)<2:
     usage()
     exit(0)
 
-enable_avg=False
+enableAvg=False
 if sys.argv[-1]=="1":
     sys.argv.pop(-1)
-    enable_avg=True
+    enableAvg=True
 
 nys=list()
 yys=list()
@@ -43,7 +43,7 @@ Niter=sum(nys)
 #yys=[[sum(j)/len(j) for j in zip(*i)] for i in yys]
 for x,y in zip(xxs,yys):
     pl.plot(x,y)
-if enable_avg:
+if enableAvg:
     try:
         yavg=[sum(array(yy)*nys)/Niter for i,yy in enumerate(zip(*yys))]
         pl.plot(xxs[0],yavg,lw=4)
@@ -58,7 +58,7 @@ else:
 
 pl.xlabel("r ($\AA$)")
 pl.ylabel("g(r)")
-if enable_avg:
+if enableAvg:
     pl.title("%d Total Iterations"%(Niter))
 pl.show()
 

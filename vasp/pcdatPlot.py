@@ -3,22 +3,24 @@
 import sys
 import pylab as pl
 from scipy import *
-
+#mine
+from datatools import gaussSmooth
 def usage():
-    print "Usage: %s <PCDAT file> <optional:start iter(0)> <optional:end iter(-1)> <1:smoothing enabled>"%sys.argv[0]
+    print "Usage: %s <PCDAT file> <optional:start iter(0)> <optional:end iter(-1)> <1:write average>"%sys.argv[0]
 
 starti=0
 endi=None
-smoothEnabled=False
+enableAvg=False
 if len(sys.argv)<1:
     usage()
     exit(0)
-elif len(sys.argv)==3:
+elif len(sys.argv)>3:
     starti=int(sys.argv[2])
     endi=int(sys.argv[3])
-elif len(sys.argv)==4:
-    if sys.argv[4]=='1':
-        smoothEnabled=True
+if len(sys.argv) in [3,5]:
+    if sys.argv[2]=='1' or sys.argv[4]=='1':
+        enableAvg=True
+
 pcfile=sys.argv[1]
 pcdat=open(pcfile,"r").readlines()
 head=pcdat[:12]
@@ -37,12 +39,23 @@ while len(pcdat)>Nbins:
 
 Ntot=len(yy)
 Nused=len(yy[starti:endi])
-yy = [sum(y)/len(y) for y in zip(*yy[starti:endi])]
+yy1 = [sum(y)/len(y) for y in zip(*yy[starti:endi])]
+#yys = gaussSmooth([sum(y)/len(y) for y in zip(*yy[starti:endi])],20,mode='valid')
 
 print "Using %d iterations of %d possible"%(Nused,Ntot)
 
+pl.plot(xx,yy1)
+#pl.plot(xx[10:-10],yys)
 
-pl.plot(xx,yy)
+if enableAvg:
+    if endi==None:
+        a=open("PCDATAVG_%d_%d"%(0,Nused),"w")
+    else:
+        a=open("PCDATAVG_%d_%d"%(starti,endi),"w")
+    a.write("".join(head))
+    a.write("\n".join(map(str,yy1)))
+    a.close()
+
 pl.xlabel("r ($\AA$)")
 pl.ylabel("g(r)")
 if endi==None:

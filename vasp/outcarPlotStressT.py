@@ -2,13 +2,13 @@
 import sys
 import pylab as pl
 #mine
-from datatools import windowavg
+from datatools import windowAvg
 
 if len(sys.argv)<2:
     print "Usage:"
-    print sys.argv[0]+" <directory that contains OUTCAR file>"
+    print sys.argv[0]+" <OUTCAR file>"
 
-outcar = open(sys.argv[1]+"/OUTCAR","r")
+outcar = open(sys.argv[1],"r")
 
 tmpt=list()
 strsx=list()

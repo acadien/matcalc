@@ -2,13 +2,13 @@
 import sys,os
 import pylab as pl
 #mine
-from datatools import windowavg
+from datatools import windowAvg
 
 if len(sys.argv)<2:
     print "Usage:"
-    print sys.argv[0]+" <directory that contains OUTCAR file>"
+    print sys.argv[0]+" <OUTCAR file>"
 
-outcar = open(sys.argv[1]+"/OUTCAR","r")
+outcar = open(sys.argv[1],"r")
 
 strsx=list()
 strsy=list()
@@ -27,7 +27,7 @@ for line in outcar:
 strsavg=[(strsx[i]+strsy[i]+strsz[i])/3 for i in range(len(strsx))]
 
 #A windowed average
-winavg=windowavg(strsavg,n=3)
+winavg=windowAvg(strsavg,n=3)
 
 #Plotting
 pl.figure()
@@ -39,5 +39,5 @@ pl.plot(winavg,c="black",lw=2)
 pl.legend(["StressX","StressY","StressZ","Avg","Windowed Avg"],loc=2)
 pl.xlabel("Timestep")
 pl.ylabel("Stress (kB)")
-pl.title(os.getcwd().split("/")[-1])
+pl.title(sys.argv[1])
 pl.show()

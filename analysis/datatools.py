@@ -3,12 +3,20 @@
 from numpy import *
 from scipy.signal import freqz
 from numpy.fft import *
+from numpy import convolve
 import pylab as pl
 from itertools import chain
+#mine
+from functions import *
 
-def gaussSmooth(a,n=10):
+def gaussSmooth(a,n=9,mode='same'):
+    if n%2==0:
+        n+=1
+    center=(n-1)/2.
+    gWeight=[gaussNorm1D(float(i),center,float(1)) for i in range(n)]
+    return convolve(a,gWeight,mode=mode)#[center-1:-center-1]
 
-def windowavg(a,n=10):
+def windowAvg(a,n=10):
     #a: the list/array to run the window average over
     #n: the size of the window
     
