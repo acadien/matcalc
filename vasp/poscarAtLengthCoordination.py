@@ -23,32 +23,54 @@ atoms=array(zip(ax,ay,az))
 basis=[v1,v2,v3]
 bounds=array([v1[0],v2[1],v3[2]])
 
-#vhalfNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='half')
-halfNeighbors=neighbors(atoms,array([[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]),max([l+2*w for l,w in zip(lengths,widths)]),style='half')
+vhalfNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='half')
+halfNeighbors=neighbors(atoms,array([[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]),max([l+w for l,w in zip(lengths,widths)]),style='half')
 
+vfullNeighbors=half2full(vhalfNeighbors)
 fullNeighbors=half2full(halfNeighbors)
-coordNumbers=map(len,fullNeighbors)
-print coordNumbers
-for l,w in zip(lengths,widths):
-    atomPairs=atomsAtLength(atoms,halfNeighbors,l,w,periodic=True,bounds=bounds)
 
-    CNhist=zeros(100)
-    cns=list()
+print set(flatten(fullNeighbors))
+
+vCoordNumbers=map(len,vfullNeighbors)
+coordNumbers=map(len,fullNeighbors)
+
+for l,w in zip(lengths,widths):
+    atomPairs=atomsAtLength(atoms,halfNeighbors,l,w,periodic=True,bounds=bounds) 
+    vAtomPairs=atomsAtLength(atoms,vhalfNeighbors,l,w,periodic=True,bounds=bounds)
+
+    #For the bond length in question, how many bonds of length in question?
+    CNblqhist=zeros(100)
+    cnsblq=list()
     for [a1,a2] in atomPairs:
         c1=coordNumbers[a1]
         c2=coordNumbers[a2]
-        cns.append(c1)
-        cns.append(c2)
-        CNhist[c1]+=1
-        CNhist[c2]+=2
+        cnsblq.append(c1)
+        cnsblq.append(c2)
+        CNblqhist[c1]+=1
+        CNblqhist[c2]+=1
+    mnblq=max(min(cnsblq)-3,0)
+    mxblq=min(max(cnsblq)+3,len(CNblqhist))                   
+    pl.plot(range(mnblq,mxblq+1),CNblqhist[mnblq:mxblq+1],label=str(l)+"$\pm$"+str(w))
 
-        #pl.plot(CNhist,label=str(l)+"$\pm$"+str(w))
-    mn=max(min(cns)-5,0)
-    mx=min(max(cns)+5,len(CNhist))
-                         
-    pl.plot(range(mn,mx+1),CNhist[mn:mx+1],label=str(l)+"$\pm$"+str(w))
+
+    #For atoms with a bond of length in question, how many total bonds?
+    CNtothist=zeros(100)
+    cnstot=list()
+    for [a1,a2] in vAtomPairs:
+        c1=vCoordNumbers[a1]
+        c2=vCoordNumbers[a2]
+        cnstot.append(c1)
+        cnstot.append(c2)
+        CNtothist[c1]+=1
+        CNtothist[c2]+=1
+    mntot=max(min(cnstot)-3,0)
+    mxtot=min(max(cnstot)+3,len(CNtothist))                   
+    pl.plot(range(mntot,mxtot+1),CNtothist[mntot:mxtot+1],label=str(l)+"$\pm$"+str(w))
+
+
+pl.legend(["Atoms with Bond Length, how many bonds of length in question.","Atoms with Bond Length, how many total bonds."])
 pl.xlabel("Coordination Number")
-#pl.xlim([i
 pl.ylabel("Count")
-pl.legend(title="Atoms with Bond Length")
 pl.show()
+
+

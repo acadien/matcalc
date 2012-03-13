@@ -2,6 +2,7 @@
 
 import sys
 import pylab as pl
+from scipy import array
 #mine
 from poscarIO import readposcar
 from paircor import paircor_periodic,partpaircor
@@ -42,6 +43,8 @@ if len(sys.argv)==7:
 while True:
     [v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar)
 
+    atoms=array(zip(ax,ay,az))
+
     if v1==v2==v3==-1:
         break
 
@@ -64,14 +67,15 @@ while True:
             exit()
 
     N=len(types)
-    lengths=[v1[0],v2[1],v3[2]]
+    lengths=array([v1[0],v2[1],v3[2]])
     #Duplicate
     #datoms,dtypes,dbasis=duplicate26(zip(ax,ay,az),types,zip(v1,v2,v3))
 
     #Correlate
     if part==1:
-        [rbins,rdist]=partpaircor(datoms,types,type1,type2,inloop=N,nbins=nbins)
+        [rbins,rdist]=partpaircor(atoms,types,type1,type2,inloop=N,nbins=nbins)
     else:
+        print atoms
         [rbins,rdist]=paircor_periodic(atoms,lengths,cutoff=cutoff,nbins=nbins)
     
     rdist=[i/(27.0**0.5) for i in rdist]

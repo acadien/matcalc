@@ -18,7 +18,7 @@ def plot_atoms(atoms,types,basis=[],dup=0):
         #Type sorted atoms lists
         tatoms=[list() for i in range(Ntypes)]
 	for i,j in enumerate(types):
-		tatoms[j].append(atoms[i])
+		tatoms[j-1].append(atoms[i])
 
 	fig=pl.figure()
         aa = fig.add_subplot(111,projection='3d')

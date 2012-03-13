@@ -2,15 +2,18 @@
 
 import sys
 import pylab as pl
+from scipy import array
+from mpl_toolkits.mplot3d import Axes3D
 #mine
 from poscarIO import readposcar
 from duplicate import duplicate26
 from datatools import wsmooth
-from struct_tools import neighbors
+from struct_tools import neighbors,dist
+from voronoiNeighbors import voronoiNeighbors
 from paircor import paircor_ang
 
 def usage():
-    print "%s <poscar/BestPOSCARs file> <nbins=1000> <smooth=0>"%sys.argv[0]
+    print "%s <poscar/BestPOSCARs file> <nbins=360> <smooth=0>"%sys.argv[0]
     print "Note: Periodicity of the system is accounted for."
 
 if len(sys.argv) not in [2,3,4]:
@@ -19,7 +22,7 @@ if len(sys.argv) not in [2,3,4]:
 
 poscar=open(sys.argv[1],"r").readlines()
 
-nbins=1000
+nbins=360
 if len(sys.argv)>=3:
     nbins=int(sys.argv[2])
 
@@ -41,18 +44,35 @@ while True:
     thetypes=str(set(types))
 
     N=len(types)
-    atoms=zip(ax,ay,az)
+    atoms=array(zip(ax,ay,az))
+    basis=array([v1,v2,v3])
 
     #Duplicate
-    datoms,dtypes,dbasis=duplicate26(atoms,types,zip(v1,v2,v3))
+    #datoms,dtypes,dbasis=duplicate26(atoms,types,basis)
 
     #Neighbors needed for angular distribution
-    neighbs=neighbors(datoms,5.0,style="full")
 
-    #Correlate
-    [rbins,rdist]=paircor_ang(datoms,neighbs,nbins=nbins,inloop=N)
+    bounds=[[0.0,basis[0][0]],[0.0,basis[1][1]],[0.,basis[2][2]]]
+    #dbounds=[[0.0,dbasis[0][0]],[0.0,dbasis[1][1]],[0.,dbasis[2][2]]]
+    #neighbs=voronoiNeighbors(atoms=datoms,atypes=dtypes,basis=dbasis,style='full')
+    neighbs=voronoiNeighbors(atoms=atoms,atypes=atypes,basis=basis,style='full')
+
+    """
+    fig=pl.figure()
+    aa = fig.add_subplot(111,projection='3d')
+    [aa.scatter(*atom,c='blue') for atom in atoms]
+    for i in range(len(atoms)):
+        for j in neighbs[i]:
+            if dist(datoms[i],datoms[j])>4.8: continue
+            aa.plot(*zip(datoms[i],datoms[j]),c="black")
+    pl.title(sys.argv[1])
+    pl.show()    
+    """
     
-    #rdist=[i/(27.0**0.5) for i in rdist]
+    #Correlate
+    #[rbins,rdist]=paircor_ang(datoms,neighbs,nbins=nbins,inloop=N)
+    [rbins,rdist]=paircor_ang(atoms,neighbs,basis,nbins=nbins,inloop=N)
+    
     #Smooth
     if smooth==1:
         #rdist=windowavg(rdist,50)
@@ -70,5 +90,6 @@ while True:
 
     pl.xlabel("Angle (deg)")
     pl.ylabel("Count")
-    pl.title("Distribution of Angles")
+    pl.title("Distribution of Angles %s"%sys.argv[1])
     pl.show()
+    

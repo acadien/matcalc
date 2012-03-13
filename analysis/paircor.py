@@ -81,8 +81,9 @@ def paircor_periodic(atoms,lengths,cutoff=10.0,nbins=1000):
     #atoms: list of atoms[N][3]
     #cutoff: float, max radius to measure radial distro out to
     #nbins: number of bins to store in radial distro
+    if sum(atoms[:,0])/len(atoms) < 1.0:
+        atoms=array(map(lambda x: [x[i]*lengths[i] for i in range(3)],atoms))
 
-    atoms=array(map(lambda x: [x[i]*lengths[i] for i in range(3)],atoms))
     rdist=zeros(nbins)
     dr=float(cutoff)/nbins
     N=len(atoms)
@@ -144,27 +145,102 @@ def partpaircor(atoms,types,type1,type2,inloop=0,cutoff=10.0,nbins=1000):
     return [rbins,rdist]
 
 #==================================================================
-def paircor_ang(atoms,neighbs,inloop=0,nbins=1000,angtype='deg'):
+PCAcode="""
+double aix,ajx,akx,aiy,ajy,aky,aiz,ajz,akz;
+double dij,dik,djk,x,a,d;
+int jn,kn,cn=0;
+double dang=180./nbins;
+
+double pi2=2.0*3.14159265;
+for(int i=0; i<inloop; i++){
+    ajx=atoms[i*3];
+    ajy=atoms[i*3+1];
+    ajz=atoms[i*3+2];
+    for(int j=0;j<nneighbsf[i];j++){
+        jn=neighbsf[cn+j];
+        aix=atoms[jn*3];
+        aiy=atoms[jn*3+1];
+        aiz=atoms[jn*3+2];
+
+        //Periodic Bounds
+        d = aix-ajx;
+        if(d>l[0]/2.0) aix -= l[0];
+        if(d<-l[0]/2.0) aix += l[0];
+        d = aiy-ajy;
+        if(d>l[1]/2.0) aiy -= l[1];
+        if(d<-l[1]/2.0) aiy += l[1];
+        d = aiz-ajz;
+        if(d>l[2]/2.0) aiz -= l[2];
+        if(d<-l[2]/2.0) aiz += l[2];
+
+        if(i==jn) 
+          continue;
+        for(int k=0; k<nneighbsf[i];k++){
+            kn=neighbsf[cn+k];
+            if(i==kn || kn==jn) 
+              continue;
+            akx=atoms[kn*3];
+            aky=atoms[kn*3+1];
+            akz=atoms[kn*3+2];
+
+            //Periodic Bounds
+            d = akx-ajx;
+            if(d>l[0]/2.0) akx -= l[0];
+            if(d<-l[0]/2.0) akx += l[0];
+            d = aky-ajy;
+            if(d>l[1]/2.0) aky -= l[1];
+            if(d<-l[1]/2.0) aky += l[1];
+            d = akz-ajz;
+            if(d>l[2]/2.0) akz -= l[2];
+            if(d<-l[2]/2.0) akz += l[2];
+
+            //Calculate Angle
+            dij = (aix-ajx)*(aix-ajx) + (aiy-ajy)*(aiy-ajy) + (aiz-ajz)*(aiz-ajz);
+            dik = (aix-akx)*(aix-akx) + (aiy-aky)*(aiy-aky) + (aiz-akz)*(aiz-akz);
+            djk = (ajx-akx)*(ajx-akx) + (ajy-aky)*(ajy-aky) + (ajz-akz)*(ajz-akz);  
+            x=(dij + djk - dik)/(2.0*sqrt(dij)*sqrt(djk));
+            if(fabs(fabs(x)-1.0) <= 1e-9)
+              a=0.0;
+            else
+              a=(360*(acos(x)/pi2+1.0));
+            a-= static_cast<double>( static_cast<int>( a / 180.0 ) ) * 180.0;
+            bins[(int)(a/dang)]+=1;
+        }
+    }
+    cn+=nneighbsf[i];
+}
+"""
+
+def paircor_ang(atoms,neighbs,basis,inloop=0,nbins=360,angtype='deg'):
     #atoms: list of atoms[N][3]
     #neighbs: the *full* neighbor list for atoms
     #angtype: 'deg' or 'rad'
     #nbins: number of bins to store in radial distro
     #The angular range is always 0-180 deg and angles are taken modulo 180
 
-    ascale = 180.0/nbins
-    aang = [0]*nbins
+    bins = zeros(nbins)
 
     if inloop==0:
         inloop=len(atoms)
+    
+    natoms=len(atoms)
+    atoms.shape=natoms*3
+    nneighbsf=array([len(i) for i in neighbs])
+    neighbsf=array([i for i in flatten(neighbs)])
+    l=array([basis[0][0],basis[1][1],basis[2][2]])
+    weave.inline(PCAcode,['atoms','neighbsf','nneighbsf','bins','nbins','inloop','l'])
+    atoms.shape=[len(atoms)/3,3]
+    
+    """
+    ascale = 180.0/nbins
     for i in range(inloop):
         for ind,j in enumerate(neighbs[i]):
-            for k in neighbs[i][ind+1:]:
-                a = (degrees(ang(atoms[i],atoms[j],atoms[k]))+360.0)%180.0
-                if a<0.0 or a>180.0:
-                    print "Warning, angle out of range."
-                aang[int(a/ascale)]+=1
-
-    abins = [(i+0.5)*ascale for i in range(nbins)]
-
-    return [abins,aang]
+            for k in neighbs[i]:
+                if k==j or j==i or k==i: continue
+                a = (degrees(ang(atoms[j],atoms[i],atoms[k]))+360.0)%180.0
+                bins[int(a/ascale)]+=1
+    """
+    abins = [(i+0.5)*180./nbins for i in range(nbins)]
+    
+    return [abins,bins]
     

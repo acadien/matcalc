@@ -21,9 +21,9 @@ def duplicate26(atoms,types,basis):
     axp=[x+v1[0]+v2[0]+v3[0] for x in ax]
     ayp=[y+v1[1]+v2[1]+v3[1] for y in ay]
     azp=[z+v1[2]+v2[2]+v3[2] for z in az]
-    axm=[x-v1[0]-v2[0]-v3[0] for x in ax]
-    aym=[y-v1[1]-v2[1]-v3[1] for y in ay]
-    azm=[z-v1[2]-v2[2]-v3[2] for z in az]
+    axm=[x+2*v1[0]+2*v2[0]+2*v3[0] for x in ax]
+    aym=[y+2*v1[1]+2*v2[1]+2*v3[1] for y in ay]
+    azm=[z+2*v1[2]+2*v2[2]+2*v3[2] for z in az]
 
     #Make new basis
     v1=[i*3 for i in v1]

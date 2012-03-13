@@ -20,7 +20,7 @@ def roundify(atom):
 
 def voronoiNeighbors(**kwargs):
     #Possible Args:
-    #Option1: Poscar,[style(full/half)]
+    #Option1: poscar,[style(full/half)]
     #Option2: atoms,basis,atypes,[style(full/half)]
 
     if "style" in kwargs: style=kwargs["style"]

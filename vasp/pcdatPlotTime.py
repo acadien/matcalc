@@ -11,7 +11,7 @@ starti=0
 endi=None
 divs=10
 enableAvg=False
-if len(sys.argv)<1:
+if len(sys.argv)<2:
     usage()
     exit(0)
 elif len(sys.argv)>=3:
