@@ -15,6 +15,7 @@ import pylab as pl
 import subprocess
 #mine
 from poscarIO import readposcar
+from colors import float2rgb
 
 def usage():
     print "Usage:"
@@ -170,13 +171,6 @@ def keypress(event):
         pl.title("%d ELF, use < and > to change plots"%pos)
     pl.draw()
         
-def float2rgb(val, cmin, cmax):
-    x = float(val-cmin)/float(cmax-cmin)
-    r = min(max(4*fabs(x-0.5)-1., 0.), 1.)
-    g = min(max(4*(x-0.25), 0.), 1.)
-    b = min(max(4*(0.75-x), 0.), 1.)
-    return (r,g,b)
-
 global fig,pos,ticks,colors
 ticks=[float(i)/10 for i in range(10)]#20
 mxc=sqrt(len(ticks)+1)

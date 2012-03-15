@@ -12,6 +12,7 @@ from matplotlib import pyplot as P
 import pylab as pl
 #mine
 from poscarIO import readposcar
+from colors import float2rgb
 
 def usage():
     print "Usage:"
@@ -88,13 +89,6 @@ def keypress(event):
         pl.title("%d Vacancy in Red, use < and > to change plots"%pos)
     pl.draw()
         
-def float2rgb(val, cmin, cmax):
-    x = float(val-cmin)/float(cmax-cmin)
-    r = min(max(4*fabs(x-0.5)-1., 0.), 1.)
-    g = min(max(4*(x-0.25), 0.), 1.)
-    b = min(max(4*(0.75-x), 0.), 1.)
-    return (r,g,b)
-
 global fig,pos,ticks,colors
 ticks=[1e-3,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0,6.0,7.0,8.0,9.0,10.0,15.0,20.0,25.0,30.0,50.0,70.0,100.0,300.0]
 mxc=sqrt(len(ticks)+1)

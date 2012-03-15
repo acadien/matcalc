@@ -13,8 +13,8 @@ def readposcar(poscar,frac_coord=False):
     v1=[float(i) for i in poscar.pop(0).split()]
     v2=[float(i) for i in poscar.pop(0).split()]
     v3=[float(i) for i in poscar.pop(0).split()]
-    types=[int(i) for i in poscar.pop(0).split()]
-
+    atypes=[int(i) for i in poscar.pop(0).split()]
+    N=sum(atypes)
     poscar.pop(0)
 
     ax=list()
@@ -22,13 +22,13 @@ def readposcar(poscar,frac_coord=False):
     az=list()
 
     if frac_coord:
-        for line in poscar[:sum(types)]:
+        for line in poscar[:N]:
             [x,y,z]=[float(i) for i in line.split()]
             ax.append(x)
             ay.append(y)
             az.append(z)
     else:
-        for line in poscar[:sum(types)]:
+        for line in poscar[:N]:
             [x,y,z]=[float(i) for i in line.split()]
             x1=v1[0]*x+v2[0]*y+v3[0]*z
             y1=v1[1]*x+v2[1]*y+v3[1]*z
@@ -36,9 +36,9 @@ def readposcar(poscar,frac_coord=False):
             ax.append(x1)
             ay.append(y1)
             az.append(z1)
-    poscar=poscar[sum(types):]    
+    poscar=poscar[N:]    
         
-    return v1,v2,v3,types,ax,ay,az,head,poscar
+    return v1,v2,v3,atypes,ax,ay,az,head,poscar
 
 #Takes 1 valid poscar from the input and returns it with the input poscar
 def splitposcar(poscarin):

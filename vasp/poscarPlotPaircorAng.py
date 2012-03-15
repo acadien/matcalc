@@ -57,21 +57,9 @@ while True:
     #neighbs=voronoiNeighbors(atoms=datoms,atypes=dtypes,basis=dbasis,style='full')
     neighbs=voronoiNeighbors(atoms=atoms,atypes=atypes,basis=basis,style='full')
 
-    """
-    fig=pl.figure()
-    aa = fig.add_subplot(111,projection='3d')
-    [aa.scatter(*atom,c='blue') for atom in atoms]
-    for i in range(len(atoms)):
-        for j in neighbs[i]:
-            if dist(datoms[i],datoms[j])>4.8: continue
-            aa.plot(*zip(datoms[i],datoms[j]),c="black")
-    pl.title(sys.argv[1])
-    pl.show()    
-    """
-    
     #Correlate
     #[rbins,rdist]=paircor_ang(datoms,neighbs,nbins=nbins,inloop=N)
-    [rbins,rdist]=paircor_ang(atoms,neighbs,basis,nbins=nbins,inloop=N)
+    [rbins,rdist]=paircor_ang(atoms,neighbs,basis,nbins=nbins)
     
     #Smooth
     if smooth==1:

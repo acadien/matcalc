@@ -51,7 +51,7 @@ while i < len(xdatcar):
         i-=1
         Na=len(atoms)
         types=[1]*Na
-        pcors.append(paircor_periodic(atoms,lengths,cutoff=cutoff,nbins=numbins)[1])
+        pcors.append(paircor_periodic(array(atoms),array(lengths),cutoff=cutoff,nbins=numbins)[1])
     i+=1
 
 
