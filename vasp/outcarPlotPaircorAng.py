@@ -10,7 +10,7 @@ from voronoiNeighbors import *
 #Calculates the pair-correlation function for a set of atoms in an XDATCAR file and writes it to a file
 
 def usage():
-    print "Usage: %s <Outcar> <optional:numbins=360> <optional:bondlen,err>"%sys.argv[0]
+    print "Usage: %s <Outcar> <optional:numbins=360> <optional:minBondLen,maxBondLen>"%sys.argv[0]
     print "If a bondlen is given only bonds of length bondeln+/-err will be evaluated"
 
 def outcarPairCorAng(outcarfile,nbins,bl=-1.0,bw=-1.0):
@@ -47,9 +47,9 @@ def outcarPairCorAng(outcarfile,nbins,bl=-1.0,bw=-1.0):
                     if bl!=bw!=-1:
                         specbonds=[list() for i in range(len(atoms))]
                         for i in range(len(atoms)):
-                            ai=atoms[i]
+                            ai=dot(atoms[i],basis)
                             for j in neighbs[i]:
-                                aj=atoms[j]
+                                aj=dot(atoms[j],basis)
                                 d=dist(ai,aj)
                                 if d!=dist_periodic(ai,aj,lengths):
                                     for c in range(3):
@@ -86,8 +86,10 @@ if __name__=="__main__":
     if len(sys.argv)>=3:
         nbins=int(sys.argv[2])
         if len(sys.argv)==4:
-            bl,bw=map(float,sys.argv[3].split(","))
-    print bl,bw
+            bmin,bmax=map(float,sys.argv[3].split(","))
+        bl=(bmin+bmax)/2.
+        bw=bmax-bl
+
     outcarfile=sys.argv[1]
 
     angs,tbinvals=outcarPairCorAng(outcarfile,nbins,bl,bw)
