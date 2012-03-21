@@ -47,9 +47,9 @@ def outcarPairCorAng(outcarfile,nbins,bl=-1.0,bw=-1.0):
                     if bl!=bw!=-1:
                         specbonds=[list() for i in range(len(atoms))]
                         for i in range(len(atoms)):
-                            ai=dot(atoms[i],basis)
+                            ai=atoms[i]#dot(atoms[i],basis)
                             for j in neighbs[i]:
-                                aj=dot(atoms[j],basis)
+                                aj=atoms[j]#dot(atoms[j],basis)
                                 d=dist(ai,aj)
                                 if d!=dist_periodic(ai,aj,lengths):
                                     for c in range(3):
@@ -63,9 +63,9 @@ def outcarPairCorAng(outcarfile,nbins,bl=-1.0,bw=-1.0):
                     [angs,abins]=paircor_ang(atoms,specbonds,basis,nbins=nbins)
                     tbinvals.append(abins)
                     print count
-                    if count > 1000:
+                    #if count > 1000:
                         #tbinvals/=float(count)
-                        break
+                    #    break
                     posit=False
             else:
                 atoms.append(map(float,line.split()[:3]))
@@ -85,6 +85,7 @@ if __name__=="__main__":
     nbins=360
     if len(sys.argv)>=3:
         nbins=int(sys.argv[2])
+    if len(sys.argv)>=4:
         if len(sys.argv)==4:
             bmin,bmax=map(float,sys.argv[3].split(","))
         bl=(bmin+bmax)/2.
