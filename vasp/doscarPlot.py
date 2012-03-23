@@ -58,6 +58,21 @@ pl.ylabel("DOS")
 pl.legend()
 pl.xlim([min(min(poDOSenergy),min(tDOSenergy)),max(max(poDOSenergy),max(tDOSenergy))+8])
 pl.title(sys.argv[1])
+pl.figure()
+for i in range(len(orbs)):
+    for io,o in enumerate(range(orbs[i][0],orbs[i][1])):
+        if io==0:
+            pl.plot(poDOSenergy,poDOS[o],c=colors[i],label=labels[i])
+        else:
+            pl.plot(poDOSenergy,poDOS[o],c=colors[i])
+pl.plot(tDOSenergy,tDOS,c=colors[-2],label=labels[-2])
+pl.plot(tDOSenergy,tDOSinteg,c=colors[-1],label=labels[-1],ls='--')
+pl.xlabel("Energy")
+pl.ylabel("DOS")
+pl.legend()
+pl.xlim([5.5,9.0])
+pl.ylim([0.0,500.0])
+pl.title("Zoomed "+sys.argv[1])
 pl.show()
 
 
