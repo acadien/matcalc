@@ -152,7 +152,7 @@ int jn,kn,cn=0;
 double dang=180./nbins;
 
 double pi2=2.0*3.14159265;
-for(int i=0; i<inloop; i++){
+for(int i=0; i<natoms; i++){
     ajx=atoms[i*3];
     ajy=atoms[i*3+1];
     ajz=atoms[i*3+2];
@@ -211,7 +211,7 @@ for(int i=0; i<inloop; i++){
 }
 """
 
-def paircor_ang(atoms,neighbs,basis,inloop=0,nbins=360,angtype='deg'):
+def paircor_ang(atoms,neighbs,basis,nbins=360,angtype='deg'):
     #atoms: list of atoms[N][3]
     #neighbs: the *full* neighbor list for atoms
     #angtype: 'deg' or 'rad'
@@ -220,15 +220,12 @@ def paircor_ang(atoms,neighbs,basis,inloop=0,nbins=360,angtype='deg'):
 
     bins = zeros(nbins)
 
-    if inloop==0:
-        inloop=len(atoms)
-    
     natoms=len(atoms)
     atoms.shape=natoms*3
     nneighbsf=array([len(i) for i in neighbs])
     neighbsf=array([i for i in flatten(neighbs)])
     l=array([basis[0][0],basis[1][1],basis[2][2]])
-    weave.inline(PCAcode,['atoms','neighbsf','nneighbsf','bins','nbins','inloop','l'])
+    weave.inline(PCAcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','l'])
     atoms.shape=[len(atoms)/3,3]
     
     """
