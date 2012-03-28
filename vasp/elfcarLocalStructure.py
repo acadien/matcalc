@@ -16,7 +16,7 @@ from scipy import *
 from elfcarAnalyze import elfNeighbors
 from voronoiNeighbors import voronoiNeighbors
 from struct_tools import *
-from poscarIO import *
+from elfcarIO import readelfcar
 
 if __name__=="__main__":
 
@@ -32,7 +32,7 @@ if __name__=="__main__":
 
     #Parse ELFCAR
     elfcar=open(sys.argv[1],"r").readlines()
-    v1,v2,v3,atypes,axs,ays,azs,header,elfcar = readposcar(elfcar)
+    (v1,v2,v3,atypes,axs,ays,azs,header),gridSize,elf = readelfcar(elfcar)
     basis=asarray([v1,v2,v3])
     bounds=[[0.,v1[0]],[0.,v2[1]],[0.,v3[2]]]
     atoms=asarray(zip(axs,ays,azs))
@@ -48,12 +48,10 @@ if __name__=="__main__":
         vHalfNeighbors=voronoiNeighbors(poscar=poscar,style='half')
 
     #Read in Grid properties
-    elfcar.pop(0)
-    gridSize=[int(i) for i in elfcar.pop(0).split()]
     nGridPoints=reduce(operator.mul,gridSize)
 
     #Read in ELF data
-    elf=asarray([float(i) for i in ("".join(elfcar)).split()])
+    elf=asarray(elf)
     elf.shape=gridSize
 
     Nneighbs=30 #max number of neighbors
