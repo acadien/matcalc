@@ -5,15 +5,22 @@ import pylab as pl
 from scipy import *
 
 def usage():
-    print "doscarPlot.py <DOSCAR> <opt:OUTCAR (Efermi)>"
+    print "doscarPlot.py <DOSCAR,opt:OUTCAR (Efermi)> <DOSCAR,opt:OUTCAR (Efermi)> ..."
 
 if len(sys.argv)<2:
     usage()
     exit(0)
 
-doscar=open(sys.argv[1]).readlines()
-
 enableFermi=False
+doscars=list()
+efermis=list()
+if "," in sys.argv[1]:
+    
+    for i in range(1,len(sys.argv)):
+        d=open(sys.argv[1]).readlines()
+        doscars.append(d)
+
+
 if len(sys.argv)==3:
     try:
         efermi=float([line for line in open(sys.argv[2]).readlines() if "E-fermi" in line][-1].split()[2])
