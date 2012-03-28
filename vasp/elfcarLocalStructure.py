@@ -26,7 +26,7 @@ if __name__=="__main__":
         print "Note POSCAR & ELFCAR must be part of a cubic/rectangular simulation"
         print "If POSCAR is given, the voronoi neighbors are generated for comparison with ELFCAR."
 
-    if len(sys.argv)<2:
+    if len(sys.argv)<3:
         usage()
         exit(0)
 

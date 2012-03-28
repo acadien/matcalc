@@ -76,6 +76,27 @@ else
 def ang(a,b,c):
     return weave.inline(angcode,['a','b','c'])
 
+angdegcode = """
+double ang,x,dab=0.0,dac=0.0,dbc=0.0;
+double pi2=2.0*3.14159265;
+
+for(int i=0;i<3;i++)
+  dab = dab + (a[i]-b[i])*(a[i]-b[i]);
+for(int i=0;i<3;i++)
+  dac = dac + (a[i]-c[i])*(a[i]-c[i]);
+for(int i=0;i<3;i++)
+  dbc = dbc + (b[i]-c[i])*(b[i]-c[i]);
+x=(dab + dbc - dac)/(2.0*sqrt(dab)*sqrt(dbc));
+if(fabs(fabs(x)-1.0) <= 1e-9)
+  return_val=0.0;
+else {
+  ang=360*(acos(x)/pi2+1.0);
+  return_val = ang - static_cast<double>( static_cast<int>( ang / 180.0 ) ) * 180.0;
+}
+"""
+def ang_deg(a,b,c):
+    return weave.inline(angdegcode,['a','b','c'])
+
 def mag(vec):
     return sqrt(dot(vec,vec))
 
