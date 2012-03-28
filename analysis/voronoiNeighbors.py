@@ -56,17 +56,17 @@ def voronoiNeighbors(**kwargs):
     qvatoms=array(qvatoms)
 
     #Shift ghosts back into simulation-box and re-form neighborlist
-<<<<<<< HEAD
+#<<<<<<< HEAD
     boundedAtoms=array(map(lambda x:applyPeriodicBounds(x,bounds),qvatoms))
-    #realAtoms=#[list(roundify(atom)) for atom in qvatoms[:nRealAtoms]]
+#    #realAtoms=#[list(roundify(atom)) for atom in qvatoms[:nRealAtoms]]
     realAtoms=qvatoms[:nRealAtoms]
     ghost2real=range(nRealAtoms)+[findatom(array(atom),realAtoms) for atom in boundedAtoms[nRealAtoms:]]
 
-=======
-    boundedAtoms=map(lambda x:list(roundify(applyPeriodicBounds(x,bounds))),qvatoms)
+#=======
+#    boundedAtoms=map(lambda x:list(roundify(applyPeriodicBounds(x,bounds))),qvatoms)
     #realAtoms=map(list(roundify(atom)),boundedAtoms)
-    realAtoms=boundedAtoms[:nRealAtoms]
-    ghost2real=range(nRealAtoms)+[realAtoms.index(atom) for atom in boundedAtoms[nRealAtoms:]]
+#    realAtoms=boundedAtoms[:nRealAtoms]
+#    ghost2real=range(nRealAtoms)+[realAtoms.index(atom) for atom in boundedAtoms[nRealAtoms:]]
     """except ValueError:
         for atom in boundedAtoms[nRealAtoms:]:
             try:
@@ -79,7 +79,7 @@ def voronoiNeighbors(**kwargs):
             exit(0)
         exit(0)
     """
->>>>>>> bf58e679a7f844f24dc34b9bd39c1cb31c60e3a5
+#>>>>>>> bf58e679a7f844f24dc34b9bd39c1cb31c60e3a5
     #Build the real neighbor list
     
     neighbors=[list() for i in range(nRealAtoms)]
