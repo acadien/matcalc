@@ -38,10 +38,6 @@ atoms=asarray(zip(axs,ays,azs))
 #Grid properties
 nGridPoints=reduce(operator.mul,gridSize)
 
-#Read in ELF data
-elf=asarray(elf)
-elf.shape=gridSize
-
 #Neighbors
 halfNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='half')
 

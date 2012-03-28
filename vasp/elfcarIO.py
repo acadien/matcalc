@@ -17,5 +17,8 @@ def readelfcar(elfcar):
     Tot_pnts = reduce(operator.mul,gridsz)
 
     elfdata=map(float,"".join(elfcar).split()[:Tot_pnts])
+    elfdata=asarray(elfdata)
+    elfdata.shape=gridsz
+    elfdata=swapaxes(elfdata,0,2)
 
     return poscardata,gridsz,elfdata

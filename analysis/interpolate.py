@@ -2,6 +2,11 @@
 from scipy import *
 from scipy import weave
 from scipy.weave import converters
+from scipy.interpolate import InterpolatedUnivariateSpline
+
+def interp1d(x,y,xi):
+    ius = InterpolatedUnivariateSpline(x,y)
+    return ius(xi)
 
 #interpolation in 2 variables: x,y
 #zxy is how z12 should be read.
@@ -55,11 +60,7 @@ double z2val= (q11 * (x2 - ipnt[0]) * (y2 - ipnt[1]) +  q21 * (ipnt[0] - x1) * (
 
 return_val=(z1val*fabs(z2-ipnt[2])+z2val*fabs(ipnt[2]-z1))/fabs(z2-z1);
 """
-
     [xp,yp,zp]=points
     nps=array(map(len,points))
-    bnds.shape=6
-    data.shape=nps[0]*nps[1]*nps[2]
-    
     return weave.inline(interp3dcode,['ipnt','bnds','data','xp','yp','zp','nps']);
 

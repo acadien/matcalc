@@ -3,8 +3,11 @@
 import sys,operator
 from scipy import *
 #mine
-from struct_tools import dist_periodic
-from interpolate import interp3d
+from struct_tools import dist_periodic,dist
+from interpolate import interp1d,interp3d
+
+#delete me
+import pylab as pl
 
 #Returns True if any point in lgrids is out of 'bounds'
 def outOfBounds(lgrids,bounds):
@@ -30,6 +33,10 @@ def linePoints(a,b,N):
     eqn=lambda t: a+t*(b-a)
     return [eqn(float(i)/N) for i in range(N)]
 
+def addline(xx,yy,xadd,yadd):
+    yyadd=interp1d(xadd,yadd,xx)
+    return yy+yyadd
+
 #Loop over neighbors provided (otherwise use vornoiNeighbors)
 #Interpolate the 3D Field between each of these neighbors
 #Note: it is much more efficient to do the bondcutoff comparision within the grid loop, as weird as it may be to work with.
@@ -51,12 +58,9 @@ def fieldNeighbors(atoms,atypes,basis,field,gridSize,halfNeighbors=None,Ninterp=
         halfNeighbors=voronoiNeighbors(atoms=latoms,basis=basis,atypes=atypes,style='half')
 
     #Interpolation and summation properties
-        #avgfields=zeros([len(bondCutoffs),Ninterp])
-        #avgfails=zeros([len(bondCutoffs),Ninterp])
-        #naes=zeros(len(bondCutoffs))
-        #nafs=zeros(len(bondCutoffs))
-    lines=list()
-    avgline=zeros(Ninterp)
+    xlines=list()
+    ylines=list()
+    avgyline=zeros(Ninterp)
     nlines=float(sum(map(len,halfNeighbors)))
 
     #Local Grid size
@@ -64,7 +68,8 @@ def fieldNeighbors(atoms,atypes,basis,field,gridSize,halfNeighbors=None,Ninterp=
     lGridSize=gridSize
     nlGridPoints=reduce(operator.mul,lGridSize)
     for iNeighb,jNeighbors in enumerate(halfNeighbors):
-        lines.append(list())
+        xlines.append(list())
+        ylines.append(list())
         if len(jNeighbors)==0:
             continue
 
@@ -118,7 +123,8 @@ def fieldNeighbors(atoms,atypes,basis,field,gridSize,halfNeighbors=None,Ninterp=
 
         #Loop over Neighboring atoms within the local grid
         for jNeighb in jNeighbors:
-            lines[-1].append(zeros([Ninterp]))
+            xlines[-1].append(zeros([Ninterp]))
+            ylines[-1].append(zeros([Ninterp]))
             atomj=latoms[jNeighb]
             for i,aj in enumerate(atomj):
                 if aj < lGridPoints[i][0]:
@@ -146,36 +152,11 @@ def fieldNeighbors(atoms,atypes,basis,field,gridSize,halfNeighbors=None,Ninterp=
             #This is where the magic happens, finally do some computing...
             #Interpolate on local FIELD grid between these two atoms 75% of time spent here
             pnts2interp=linePoints(array([0,0,0]),atomj-atomi,Ninterp) 
+            yys=array([interp3d(i+atomi,lGridBoundPoints,lGridPoints,lfield) for i in pnts2interp])
+            xxs=map(lambda x: dist(pnts2interp[0],x),pnts2interp)
+            xlines[-1][-1]=xxs
+            ylines[-1][-1]=yys
+            avgyline+=yys
 
-            vals=array([interp3d(i+atomi,lGridBoundPoints,lGridPoints,lfield) for i in pnts2interp])
-            lines[-1][-1]=vals
-            avgline+=vals
-            """
-            for j,bondCutoff in enumerate(bondCutoffs):
-                bb=False
-                for i in vals:
-                    if i<bondCutoff:
-                        cnt+=1
-                        bb=True
-                        break
-                if bb:
-                    nafs[j]+=1
-                    avgfails[j]+=array(vals)                   
-                else:
-                    naes[j]+=1
-                    eHNs[j][iNeighb].append(jNeighb)
-                    avgfields[j]+=array(vals)
-            """
-    """
-    for naf,avgfail,nae,avgfield in zip(nafs,avgfails,naes,avgfields):
-        if naf==0:
-            avgfail=zeros(len(avgfail))
-        else:
-            avgfail/=naf
-        if nae==0:
-            avgfield=zeros(len(avgfield))
-        else:
-            avgfield/=nae
-    """
-    avgline/=nlines
-    return avgline,lines,halfNeighbors
+    avgyline/=nlines
+    return avgyline,xlines,ylines,halfNeighbors

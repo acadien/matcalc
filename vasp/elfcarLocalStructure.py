@@ -50,10 +50,6 @@ if __name__=="__main__":
     #Read in Grid properties
     nGridPoints=reduce(operator.mul,gridSize)
 
-    #Read in ELF data
-    elf=asarray(elf)
-    elf.shape=gridSize
-
     Nneighbs=30 #max number of neighbors
 
     """
