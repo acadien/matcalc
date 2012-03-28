@@ -14,7 +14,7 @@ from matplotlib import pyplot as P
 import pylab as pl
 import subprocess
 #mine
-from poscarIO import readposcar
+from elfcarIO import readelfcar
 from colors import float2rgb
 
 def usage():
@@ -30,17 +30,10 @@ elfcar = open(sys.argv[1],"r").readlines()
 cutev = float(sys.argv[2])
 pstyle = int(sys.argv[3])
 
-v1,v2,v3,types,cxs,cys,czs,header,elfcar = readposcar(elfcar)
-
-elfcar.pop(0)
-gridsz=[int(i) for i in elfcar.pop(0).split()]
-Tot_pnts = reduce(operator.mul,gridsz)
-
 global dataset
-dataset=list()
-for line in elfcar:
-    dataset+=[float(i) for i in line.split()]
-dataset=dataset[:Tot_pnts] #chop off extra, invalid values
+(v1,v2,v3,types,cxs,cys,czs,header),gridsz,dataset = readelfcar(elfcar)
+
+Tot_pnts = reduce(operator.mul,gridsz)
 
 #Convert the dataset from charge density to vacancy
 def vval(a,b): return 1 if a<b else 0
