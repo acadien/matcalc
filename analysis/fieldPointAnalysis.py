@@ -153,7 +153,9 @@ def fieldNeighbors(atoms,atypes,basis,field,gridSize,halfNeighbors=None,Ninterp=
             #Interpolate on local FIELD grid between these two atoms 75% of time spent here
             pnts2interp=linePoints(array([0,0,0]),atomj-atomi,Ninterp) 
             yys=array([interp3d(i+atomi,lGridBoundPoints,lGridPoints,lfield) for i in pnts2interp])
-            xxs=map(lambda x: dist(pnts2interp[0],x),pnts2interp)
+            xwid=dist(pnts2interp[0],pnts2interp[-1])
+            xdel=xwid/Ninterp
+            xxs=[xdel*x-xwid/2 for x in range(Ninterp)]
             xlines[-1][-1]=xxs
             ylines[-1][-1]=yys
             avgyline+=yys

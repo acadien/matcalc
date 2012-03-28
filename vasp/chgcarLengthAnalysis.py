@@ -54,15 +54,18 @@ nibl=zeros(nBLs)
 nobl=zeros(nBLs)
 
 cnt=0
+pl.figure()
 for a,jNeighbors in enumerate(halfNeighbors):
     atoma=atoms[a]
     for b,jNeighb in enumerate(jNeighbors):
         atomb=atoms[jNeighb]
         d=dist_periodic(atoma,atomb,lengths)
         vals=ychglines[a][b]
+        xx=xchglines[a][b]
         for j,bl in enumerate(BLs):
             [blmin,blmax]=bl
             if d>=blmin and d<blmax:
+                pl.plot(xx,vals)
                 nibl[j]+=1
                 avgIBL[j]+=array(vals)                   
             else:
