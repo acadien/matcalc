@@ -5,13 +5,14 @@ import pylab as pl
 from scipy import *
 #mine
 from datatools import gaussSmooth
+
 def usage():
     print "Usage: %s <PCDAT file> <optional:start iter(0)> <optional:end iter(-1)> <1:write average>"%sys.argv[0]
 
 starti=0
 endi=None
 enableAvg=False
-if len(sys.argv)<1:
+if len(sys.argv)<2:
     usage()
     exit(0)
 elif len(sys.argv)>3:

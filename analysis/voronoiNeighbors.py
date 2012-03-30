@@ -19,11 +19,6 @@ def applyPeriodicBounds(pnt,bnds):
     }
     """
     weave.inline(code,['pnt','bnds'])      
-    #for i in range(3):
-    #    if pnt[i]>=bnds[i]:
-    #        pnt[i]-=bnds[i]
-    #    elif pnt[i]<0:
-    #        pnt[i]+=bnds[i]
     return pnt
 
 def roundify(atom):
@@ -56,32 +51,11 @@ def voronoiNeighbors(**kwargs):
     qvatoms=array(qvatoms)
 
     #Shift ghosts back into simulation-box and re-form neighborlist
-#<<<<<<< HEAD
     boundedAtoms=array(map(lambda x:applyPeriodicBounds(x,bounds),qvatoms))
-#    #realAtoms=#[list(roundify(atom)) for atom in qvatoms[:nRealAtoms]]
     realAtoms=qvatoms[:nRealAtoms]
     ghost2real=range(nRealAtoms)+[findatom(array(atom),realAtoms) for atom in boundedAtoms[nRealAtoms:]]
 
-#=======
-#    boundedAtoms=map(lambda x:list(roundify(applyPeriodicBounds(x,bounds))),qvatoms)
-    #realAtoms=map(list(roundify(atom)),boundedAtoms)
-#    realAtoms=boundedAtoms[:nRealAtoms]
-#    ghost2real=range(nRealAtoms)+[realAtoms.index(atom) for atom in boundedAtoms[nRealAtoms:]]
-    """except ValueError:
-        for atom in boundedAtoms[nRealAtoms:]:
-            try:
-                realAtoms.index(roundify(atom))
-            except ValueError:
-                for i in realAtoms:
-                    print i
-                print atom
-                print roundify(atom)
-            exit(0)
-        exit(0)
-    """
-#>>>>>>> bf58e679a7f844f24dc34b9bd39c1cb31c60e3a5
     #Build the real neighbor list
-    
     neighbors=[list() for i in range(nRealAtoms)]
     for i,neighbs in enumerate(allNeighbors[:nRealAtoms]):
         ir=ghost2real[i]

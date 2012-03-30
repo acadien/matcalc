@@ -6,14 +6,15 @@ import pylab as pl
 #mine
 from paircor import paircor_ang
 from voronoiNeighbors import *
+from angularpaircorIO import writeAngularPairCor
 
 #Calculates the pair-correlation function for a set of atoms in an XDATCAR file and writes it to a file
 
 def usage():
     print "Usage: %s <Outcar> <optional:numbins=360> <optional:minBondLen,maxBondLen>"%sys.argv[0]
-    print "If a bondlen is given only bonds of length bondeln+/-err will be evaluated"
+    print "If a bondlen is given only bonds with a length between minlen and maxlen will be evaluated."
 
-def outcarPairCorAng(outcarfile,nbins,bl=-1.0,bw=-1.0):
+def outcarAngularPairCor(outcarfile,nbins,bl=-1.0,bw=-1.0):
     outcar=open(outcarfile,"r")
     tbinvals=list()
 
@@ -83,6 +84,8 @@ if __name__=="__main__":
     bl=-1.
     bw=-1.
     nbins=360
+    bmin=0.0
+    bmax=10.0
     if len(sys.argv)>=3:
         nbins=int(sys.argv[2])
     if len(sys.argv)>=4:
@@ -92,13 +95,21 @@ if __name__=="__main__":
         bw=bmax-bl
 
     outcarfile=sys.argv[1]
+    
+    try:
+        num=sys.argv[1].split("_")[1]
+    except IndexError:
+        num=None
 
-    angs,tbinvals=outcarPairCorAng(outcarfile,nbins,bl,bw)
-    pl.plot(angs,map(lambda x:sum(x)/len(x),zip(*tbinvals)))
-    if bl==bw==-1.:
-        pl.title("Angular Distribution of %s"%sys.argv[1])
+    angs,tbinvals=outcarAngularPairCor(outcarfile,nbins,bl,bw)
+    avgvals=map(lambda x:sum(x)/len(x),zip(*tbinvals))
+
+    if num:
+        apcfile="angularPairCor_%s_%g-%g.data"%(num,bmin,bmax)
     else:
-        pl.title("Angular Distribution of %s %g$\pm$%g"%(sys.argv[1],bl,bw))
-    pl.show()
+        apcfile="angularPairCor_%g-%g.data"%(bmin,bmax)
 
+    header="Angular Distribution from file %s."%(sys.argv[0])
 
+    print "Writing %s."%apcfile
+    writeAngularPairCor(apcfile,bmin,bmax,header,angs,avgvals)

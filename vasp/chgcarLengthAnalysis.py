@@ -72,7 +72,7 @@ for a,jNeighbors in enumerate(halfNeighbors):
                 cnt+=1
                 nobl[j]+=1
                 avgOBL[j]+=array(vals)                   
-
+pl.title(sys.argv[1])
 for i in range(nBLs):
     if nibl[i]==0:
         nibl[i]=1
