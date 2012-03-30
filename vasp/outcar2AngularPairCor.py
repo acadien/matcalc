@@ -36,7 +36,7 @@ def outcarAngularPairCor(outcarfile,nbins,bl=-1.0,bw=-1.0):
     #Grab atom positions and perform paircorang analysis
     count=0
     posit=False
-    for line in outcar.readlines():
+    for line in outcar:
         if posit:
             if "--" in line:
                 if len(atoms)==0:
@@ -64,9 +64,6 @@ def outcarAngularPairCor(outcarfile,nbins,bl=-1.0,bw=-1.0):
                     [angs,abins]=paircor_ang(atoms,specbonds,basis,nbins=nbins)
                     tbinvals.append(abins)
                     print count
-                    #if count > 1000:
-                        #tbinvals/=float(count)
-                    #    break
                     posit=False
             else:
                 atoms.append(map(float,line.split()[:3]))
