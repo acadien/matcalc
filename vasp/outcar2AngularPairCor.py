@@ -112,4 +112,4 @@ if __name__=="__main__":
     header="Angular Distribution from file %s."%(sys.argv[0])
 
     print "Writing %s."%apcfile
-    writeAngularPairCor(apcfile,bmin,bmax,header,angs,avgvals)
+    writeAngularPairCor(apcfile,header,bmin,bmax,angs,avgvals)
