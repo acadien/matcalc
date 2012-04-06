@@ -45,7 +45,7 @@ def outcarAngularPairCor(outcarfile,nbins,bl=-1.0,bw=-1.0):
                     #Analysis
                     atoms=array(atoms)
                     neighbs=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='full')
-                    if bl!=bw!=-1:
+                    if bl!=-1 and bw!=-1:
                         specbonds=[list() for i in range(len(atoms))]
                         for i in range(len(atoms)):
                             ai=atoms[i]#dot(atoms[i],basis)
@@ -61,6 +61,7 @@ def outcarAngularPairCor(outcarfile,nbins,bl=-1.0,bw=-1.0):
                                     specbonds[i].append(j)
                     else:
                         specbonds=neighbs
+                        print "here"
                     [angs,abins]=paircor_ang(atoms,specbonds,basis,nbins=nbins)
                     tbinvals.append(abins)
                     print count
