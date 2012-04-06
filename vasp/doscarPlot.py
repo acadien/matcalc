@@ -3,8 +3,8 @@
 import sys
 
 #for saving figures remotely
-import matplotlib
-matplotlib.use('Agg')
+#import matplotlib
+#matplotlib.use('Agg')
 
 import pylab as pl
 from scipy import *
@@ -56,10 +56,20 @@ for a in range(Natoms):
 poDOSenergy/=Natoms
 poDOS=poDOS.T
 
-
-orbs=[[0,1],[1,4],[4,9],[9,16]]
-labels=['s','p','d','f','total','integ']
+if len(poDOS)==16:#s,p,d,f
+    orbs=[[0,1],[1,4],[4,9],[9,16]]
+    labels=['s','p','d','f','total','integ']
+elif len(poDOS)==9:#s,p,d
+    orbs=[[0,1],[1,4],[4,9]]
+    labels=['s','p','d','total','integ']
+elif len(poDOS)==4:#s,p
+    orbs=[[0,1],[1,4]]
+    labels=['s','p','total','integ']
+else:#s
+    orbs=[[0,1]]
+    labels=['s','total','integ']
 colors=['blue','green','purple','red','black','black']
+    
 pl.figure()
 for i in range(len(orbs)):
     for io,o in enumerate(range(orbs[i][0],orbs[i][1])):
@@ -90,11 +100,11 @@ pl.ylabel("DOS")
 if enableFermi:
     pl.plot([efermi,efermi],[0,max(tDOSinteg)],c='black',ls=':',lw=2,label="$E_{fermi}=%4.4g$"%efermi)
 pl.legend(loc=0)
-pl.xlim([5.0,13.0])
-pl.ylim([0.0,500.0])
+#pl.xlim([5.0,13.0])
+#pl.ylim([0.0,500.0])
 pl.title("Zoomed "+sys.argv[1])
-pl.savefig("DOSCARplot")
-#pl.show()
+#pl.savefig("DOSCARplot")
+pl.show()
 
 
 
