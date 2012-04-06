@@ -17,7 +17,8 @@ def readchgcar(chgcar):
     Tot_pnts = reduce(operator.mul,gridsz)
     vol=dot(v1,cross(v2,v3))/Tot_pnts
 
-    chgdata=array([float(i)*vol for i in "".join(chgcar).split()[:Tot_pnts]])
+    #*vol
+    chgdata=array([float(i) for i in "".join(chgcar).split()[:Tot_pnts]])
     chgdata=asarray(chgdata)
     chgdata.shape=gridsz
     chgdata=swapaxes(chgdata,0,2)

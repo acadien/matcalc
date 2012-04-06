@@ -66,7 +66,8 @@ for k,coordNumbers in enumerate(atLCoordNumbers):
     #For the bond length in question, how many bonds of length in question?
     CNhist=zeros(absMax)
     for cn in coordNumbers:
-        CNhist[cn]+=1
+        if cn>0:
+            CNhist[cn]+=1
     avgs.append(sum([i*v for i,v in enumerate(CNhist)])/sum(CNhist))
     header+="For bonds of type %s : CN=%g.  "%(labels[k],avgs[-1])
     atLCNhist.append(list(CNhist))

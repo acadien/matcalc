@@ -1,6 +1,11 @@
 #!/usr/bin/python
 
 import sys
+
+#for saving figures remotely
+import matplotlib
+matplotlib.use('Agg')
+
 import pylab as pl
 from scipy import *
 
@@ -51,6 +56,7 @@ for a in range(Natoms):
 poDOSenergy/=Natoms
 poDOS=poDOS.T
 
+
 orbs=[[0,1],[1,4],[4,9],[9,16]]
 labels=['s','p','d','f','total','integ']
 colors=['blue','green','purple','red','black','black']
@@ -87,7 +93,8 @@ pl.legend(loc=0)
 pl.xlim([5.0,13.0])
 pl.ylim([0.0,500.0])
 pl.title("Zoomed "+sys.argv[1])
-pl.show()
+pl.savefig("DOSCARplot")
+#pl.show()
 
 
 

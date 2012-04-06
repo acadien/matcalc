@@ -61,7 +61,8 @@ def outcarAngularPairCor(outcarfile,nbins,bl=-1.0,bw=-1.0):
                                     specbonds[i].append(j)
                     else:
                         specbonds=neighbs
-                    [angs,abins]=paircor_ang(atoms,specbonds,basis,nbins=nbins)
+                    #[angs,abins]=paircor_ang(atoms,specbonds,basis,nbins=nbins)
+                    [angs,abins]=zeros([2,10])
                     tbinvals.append(abins)
                     print count
                     posit=False

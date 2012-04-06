@@ -6,7 +6,7 @@ import pylab as pl
 from coordinationIO import readCoordination
 
 def usage():
-    print "Usage: %s <coordination file>"
+    print "Usage: %s <coordination file>"%sys.argv[0].split("/")[-1]
 
 if len(sys.argv)<2:
     usage()
