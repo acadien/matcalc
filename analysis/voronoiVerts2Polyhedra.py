@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys
+from scipy import array,ravel
 #mine
 from voronoiIO import *
 from poscarIO import readposcar
@@ -27,10 +28,8 @@ vM1_0 ...
 v0_0 ...
 ...
 vMN_0 ...
-<Nv> //Number of Vertices
-<v0xyz>
-<v1xyz>
-<v2xyz>
+
+#instead of vertices, writing vertex coordinates
 """
 
 if len(sys.argv)<4:
@@ -60,11 +59,12 @@ polyplanes,neighbors=readQVFi(qvfidata)
 polyhedra=[points2polyhedron(verts,planes,plotting=False) for verts,planes in zip(polyverts[0:100],polyplanes[0:100])]
 
 data=[str(len(polyhedra))]#Number of polyhedra, should be # of atoms
-verts=list(set([i for i in polyhedra]))
+#verts=list(set([i for i in polyhedra]))
 for polyhedron in polyhedra:
     data.append(str(len(polyhedron)))#Number of polygons
     for polygon in polyhedron:
-        data.append(" ".join(map(str,polygon)))
+#        for point in polygon
+        data.append(" ".join(map(str,array(polygon).ravel())))
 
 open("polyhedra.dat","w").writelines([i+"\n" for i in data])
     
