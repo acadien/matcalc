@@ -8,18 +8,7 @@ from scipy.weave import converters
 from poscar2qvoronoi import poscar2qvoronoi
 from voronoiIO import readQVFi,readQVo
 from struct_tools import *
-
-def applyPeriodicBounds(pnt,bnds):
-    code = """
-    for(int i=0;i<3;i++){
-        if(pnt[i]>=bnds[i])
-            pnt[i]-=bnds[i];
-        if(pnt[i]<0)
-            pnt[i]+=bnds[i];
-    }
-    """
-    weave.inline(code,['pnt','bnds'])      
-    return pnt
+from geometry import applyPeriodicBounds
 
 def roundify(atom):
     return map(lambda x:trunc(x*10.01),atom)

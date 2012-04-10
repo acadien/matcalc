@@ -11,7 +11,7 @@ from poscarsPlot import plotsimulation
 from struct_tools import *
 
 def usage():
-    print "Usage: %s <qvoronoi o-file (QVo_output)> <qvoronoi Fi-file (QVFi_output)> <POSCAR>"%(sys.argv[0])
+    print "Usage: %s <qvoronoi o-file (Qo_output)> <qvoronoi Fi-file (QFi_output)> <POSCAR>"%(sys.argv[0])
     
 def plot_polyhedron(polys,ax=None):
     #Polys is a multidimensional list such that:
@@ -21,7 +21,7 @@ def plot_polyhedron(polys,ax=None):
         fig=pl.figure()
         ax = p3.Axes3D(fig)
 
-    poly3d=art3d.Poly3DCollection(polys)   
+    poly3d=art3d.Poly3DCollection(polys)#,facecolor="none",edgecolor="black")   
     ax.add_collection3d(poly3d)
 
 if __name__=="__main__":
@@ -37,14 +37,18 @@ if __name__=="__main__":
     ax3d = p3.Axes3D(fig)
 
     [v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar)
-    basis=[v1,v2,v3]
+    basis=array([v1,v2,v3])
     atoms=zip(ax,ay,az)
+    bounds=array([basis[0][0],basis[1][1],basis[2][2]])
 
-    polyverts=readQVo(qvodata)
+    polyverts=readQVo(qvodata)#,bounds)
     polyplanes,neighbors=readQVFi(qvfidata)
 
-    polyhedra=[points2polyhedron(verts,planes) for verts,planes in zip(polyverts[0:100],polyplanes[0:100])]
+    #Chop off polyhedra of points outside simulation
+    polyplanes=polyplanes[:len(atoms)]
 
+    polyhedra=[points2polyhedron(verts,planes,plotting=True) for verts,planes in zip(polyverts,polyplanes)]
+    #polyhedra=zip(polyverts,polyplanes)
     #plotsimulation(basis,atoms,atypes,ax3d)
         
     #plot_polyhedron(polyhedra,ax3d)
@@ -53,11 +57,13 @@ if __name__=="__main__":
     ax3d.set_ylabel('Y')
     ax3d.set_zlabel('Z')
 
-    for poly in polyhedra:
+    print len(polyhedra)
+
+    for poly in polyhedra[:108]:
         plot_polyhedron(poly,ax3d)
 
-    ax3d.set_xlim3d([0,16])
-    ax3d.set_ylim3d([0,16])
-    ax3d.set_zlim3d([0,16])
+    ax3d.set_xlim3d([-5,20])
+    ax3d.set_ylim3d([-5,20])
+    ax3d.set_zlim3d([-5,20])
     pl.show()
 
