@@ -63,7 +63,7 @@ data=[str(len(polyhedra))]#Number of polyhedra, should be # of atoms
 for polyhedron in polyhedra:
     data.append(str(len(polyhedron)))#Number of polygons
     for polygon in polyhedron:
-#        for point in polygon
+        data.append(str(len(polygon)))
         data.append(" ".join(map(str,array(polygon).ravel())))
 
 open("polyhedra.dat","w").writelines([i+"\n" for i in data])
