@@ -8,6 +8,7 @@ import sys,operator,os
 import pickle
 from numpy import *
 import scipy
+from matplotlib import cm
 from matplotlib import ticker
 from matplotlib import pyplot as P
 import pylab as pl
@@ -35,10 +36,8 @@ global dataset
 Tot_pnts = reduce(operator.mul,gridsz)
 vol=dot(v1,cross(v2,v3))/Tot_pnts
 
-def clearoutlier(i,a): return log(a) if i>a else log(i)
-avgval=scipy.sum(dataset)/Tot_pnts
-vclearout=vectorize(clearoutlier)
 dataset=vclearout(dataset,avgval*3)
+dataset=array([log(i/avgval) for i in dataset])
 #dataset is 1d
 #dhist=pl.hist(dataset,bins=10000,range=(0,1000),normed=True,histtype='step')[0]
 #f=open("CHGDENS_HIST","w")
@@ -73,7 +72,7 @@ def plotter(X,Y,z):
     P.contourf(X,Y,z)
 
 def keypress(event):
-    global pos,cb,fig,dataset,nticks,ticks,colors
+    global pos,cb,fig,dataset,nticks,ticks,colors,cmap
     if event.key==",":
         pos -= 1
     if event.key==".":
@@ -95,13 +94,16 @@ def keypress(event):
     elif pstyle==2:
         plotter(X,Y,dataset[pos,:,:])
         pl.title("%d Vacancy in Red, use < and > to change plots"%pos)
+    elif pstyle==3:
+        pl.imshow(dataset[pos,:,:],extent=[0,gridsz[0],0,gridsz[1]],cmap=cmap)
     pl.draw()
         
-global fig,cb,pos,nticks,ticks,colors
+global fig,cb,pos,nticks,ticks,colors,cmap
 #ticks=[1e-3,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0,6.0,7.0,8.0,9.0,10.0,15.0,20.0,25.0,30.0,50.0,70.0,100.0,300.0]
 nticks=30
 mx=max(dataset.ravel())
 mn=min(dataset.ravel())
+#ticks=[round(i/float(nticks)*(mx-mn)+mn,2) for i in range(nticks)]
 ticks=[i/float(nticks)*(mx-mn)+mn for i in range(nticks)]
 mxc=sqrt(len(ticks)+1)
 mic=0
@@ -123,10 +125,13 @@ if pstyle!=0:
     if pstyle==1:
         ax=logplotter(X,Y,dataset[pos,:,:],ticks,colors)
         pl.title("%d Log plot energy density, use < and > to change plots"%pos)
-        cb=P.colorbar(ax,ticks=ticks,drawedges=True)
+        cb=P.colorbar(ax,ticks=ticks[::5],drawedges=True,fraction=0.05)
     elif pstyle==2:
         plotter(X,Y,dataset[pos,:,:])
         pl.title("%d Vacancy in Red, use < and > to change plots"%pos)
+    elif pstyle==3:
+        cmap=m.hot
+        pl.imshow(dataset[pos,:,:],extent=[0,gridsz[0],0,gridsz[1]],cmap=cmap)
 P.show()
 
 

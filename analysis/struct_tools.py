@@ -119,13 +119,6 @@ def rotmatx(vec1,vec2):#Rotates vector1 into vector2 and returns the rotation ma
 
     return RM
 
-def init():
-    #atoms=map(array,[[0.5, 1.5, 2.5], [4.9, 4, 2], [1.1, 1.5, 2.5]])
-    atoms=map(array,[[0.5,0.5,0.5], [1.0, 0.5, 0.5], [0.5, 1.0, 0.5], [0.5,0.5,1.0],[0.5,1.0,1.0],[1.0,0.5,1.0],[1.0,1.0,0.5],[1.0,1.0,1.0]])
-    bounds=[[0,5],[0,5],[0,5]]
-    r=0.99
-    return atoms,bounds,r
-
 def volume(a,b,c):
     return dot(a,cross(b,c))
 

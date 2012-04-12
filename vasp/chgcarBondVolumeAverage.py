@@ -1,9 +1,7 @@
 #!/usr/bin/python
 
-#The CHGCARs analyzed by this script need to be part of rectangular simulations
-#parallepiped simulations can be changed to cubic/rectangular using the script
-#poscarRectify.py
-#This greatly simplifies the application of periodic boundary conditions
+#CHGCAR is read in, along with a desired bond length to look for
+#
 
 #This script loops over atomic bonds and pulls out the charge density between atoms
 #at specific lengths (user defined).  Then plots the average density.
@@ -15,7 +13,7 @@ import pylab as pl
 from struct_tools import dist_periodic
 from chgcarIO import readchgcar
 from voronoiNeighbors import voronoiNeighbors
-from fieldPointAnalysis import fieldNeighbors1D
+from fieldPointAnalysis import fieldNeighbors3D
 
 def chgcarBondAnalysis(chgcarfile,bondLengths,normalize=False,verbose=False):
 
@@ -41,7 +39,7 @@ def chgcarBondAnalysis(chgcarfile,bondLengths,normalize=False,verbose=False):
         print "Average CHG value:",AvgChg
 
     #Evaluate the CHG between each nieghbor pair
-    avgchgline,xchglines,ychglines,halfNeighbors=fieldNeighbors1D(atoms,atypes,basis,chg,gridSize,halfNeighbors)
+    avgchgline,xchglines,ychglines,halfNeighbors=fieldNeighbors3D(atoms,atypes,basis,chg,gridSize,halfNeighbors)
 
     #Cutoff neighbors that fall below the thresh-hold
     Ninterp=len(avgchgline)
@@ -110,37 +108,8 @@ if __name__=="__main__":
     avgIBLs=list()
     nibls=list()
     for chgcarfile in chgcarfiles:
-        avgOBL,nobl,avgIBL,nibl=chgcarBondAnalysis(chgcarfile,bondLengths,normalize,verbose)
-        avgOBLs.append(avgOBL)
-        nobls.append(nobl)
-        avgIBLs.append(avgIBL)
-        nibls.append(nibl)
+        avgGrid,neighbs=chgcarBondAnalysis(chgcarfile,bondLengths,normalize,verbose)
+        #WRITE THIS TO FILE
+        print avgGrid
 
-    colors=["red","blue","green","purple","orange","black"]
-    styles=["-","-.","--","o"]
-    widths=[1,2,2,1]
-    #Plotting results
-    pl.figure()
-    for bl in range(len(bondLengths)):
-        ls=styles[bl]
-        lw=widths[bl]
-        #for i,(avgo,avgi) in enumerate(zip(list(avgOBLs[j]),list(avgIBLs[j]))):
-        for cf in range(len(chgcarfiles)):
-            c=colors[cf]
-            avgi=avgIBLs[cf][bl]
-            L=len(avgi)
-            print "%s: <%g nm Charge at halfway point is: %g"%(chgcarfiles[cf],bondLengths[bl],(avgi[24]+avgi[25])/2.0)
-            pl.plot([bondLengths[bl]*(x+0.5)/L for x in range(-L/2,L/2,1)],avgi,label="<"+str(bondLengths[bl])+" #B="+str(int(nibl[bl]))+", "+fileLabels[cf],c=c,ls=ls,lw=lw)
-
-    pl.xlabel("Distance $\AA$")
-    if normalize:
-        pl.ylabel(r"Charge Density $\rho / \rho_{avg}$")
-    else:
-        pl.ylabel(r"Charge Density $e/\AA^3$")
-    pl.legend(title="Bond Len (nm)",loc=0)
-    if len(chgcarfiles)==1:
-        pl.title(chgcarfile)
-    else:
-        pl.title(", ".join(chgcarfiles))
-    pl.show()
 
