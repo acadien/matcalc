@@ -93,7 +93,7 @@ def chgcarBondAnalysis(chgcarfile,bondLengths,normalize=False,verbose=False,Nint
 if __name__=="__main__":
     def usage():
         print "Usage:"
-        print "%s <CHGCAR0,CHGCAR1...> <maxL0,maxL1,maxL2...> <[N,n]ormalize by total avg charge>"%(sys.argv[0])
+        print "%s <CHGCAR0,CHGCAR1...> <maxL0,maxL1,maxL2...> <[N,n]ormalize by total avg charge> <Ninterps: x,y,z>"%(sys.argv[0])
         print "Note, CHGCAR must be part of a cubic/rectangular simulation"
 
     if len(sys.argv)<3:
@@ -108,9 +108,13 @@ if __name__=="__main__":
             normalize=True
     verbose=True
 
+    Ninterps=[15,15,15]
+    if len(sys.argv)>4:
+        Ninterps=map(int,sys.argv[5].split(","))
+
     for chgcarfile in chgcarfiles:
 
-        avgGrids,bondCounts=chgcarBondAnalysis(chgcarfile,bondLengths,normalize,verbose,Ninterps=[15,15,15])
+        avgGrids,bondCounts=chgcarBondAnalysis(chgcarfile,bondLengths,normalize,verbose,Ninterps=Ninterps)
 
         chgcar=open(chgcarfile,"r").readlines()
         poscardata,gridSize,chg = readchgcar(chgcar)
