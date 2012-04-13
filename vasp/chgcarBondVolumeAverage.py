@@ -11,11 +11,11 @@ from scipy import *
 import pylab as pl
 #mine
 from struct_tools import dist_periodic
-from chgcarIO import readchgcar
+from chgcarIO import readchgcar,writeVTK
 from voronoiNeighbors import voronoiNeighbors
 from fieldPointAnalysis import fieldNeighbors3D
 
-def chgcarBondAnalysis(chgcarfile,bondLengths,normalize=False,verbose=False):
+def chgcarBondAnalysis(chgcarfile,bondLengths,normalize=False,verbose=False,Ninterps=None):
 
     BLs=bondLengths
     nBLs=len(BLs)
@@ -39,8 +39,18 @@ def chgcarBondAnalysis(chgcarfile,bondLengths,normalize=False,verbose=False):
         print "Average CHG value:",AvgChg
 
     #Evaluate the CHG between each nieghbor pair
-    avgchgline,xchglines,ychglines,halfNeighbors=fieldNeighbors3D(atoms,atypes,basis,chg,gridSize,halfNeighbors)
+    if Ninterps==None:
+        avgGrids,bondcounts=fieldNeighbors3D(atoms,atypes,basis,chg,gridSize,halfNeighbors,cutoffs=bondLengths)
+    else:
+        avgGrids,bondcounts=fieldNeighbors3D(atoms,atypes,basis,chg,gridSize,halfNeighbors,cutoffs=bondLengths,Ninterps=Ninterps)
 
+    #Normalize if necessary
+    if normalize:
+        avgGrids=[avgGrid/AvgChg for avgGrid in avgGrids]
+            
+    return avgGrids,bondcounts
+
+    """
     #Cutoff neighbors that fall below the thresh-hold
     Ninterp=len(avgchgline)
     avgIBL=zeros([nBLs,Ninterp]) #avg line inside the bond length
@@ -78,6 +88,7 @@ def chgcarBondAnalysis(chgcarfile,bondLengths,normalize=False,verbose=False):
     avgOBL=[avgOBL[i]/nobl[i] for i in range(nBLs)]
     avgIBL=[avgIBL[i]/nibl[i] for i in range(nBLs)]
     return avgOBL,nobl,avgIBL,nibl
+    """
 
 if __name__=="__main__":
     def usage():
@@ -97,19 +108,13 @@ if __name__=="__main__":
             normalize=True
     verbose=True
 
-
-    try:
-        fileLabels=[i.split("_")[1] for i in chgcarfiles]
-    except:
-        fileLabels=chgcarfiles
-
-    avgOBLs=list()
-    nobls=list()
-    avgIBLs=list()
-    nibls=list()
     for chgcarfile in chgcarfiles:
-        avgGrid,neighbs=chgcarBondAnalysis(chgcarfile,bondLengths,normalize,verbose)
-        #WRITE THIS TO FILE
-        print avgGrid
 
+        avgGrids,bondCounts=chgcarBondAnalysis(chgcarfile,bondLengths,normalize,verbose,Ninterps=[15,15,15])
 
+        chgcar=open(chgcarfile,"r").readlines()
+        poscardata,gridSize,chg = readchgcar(chgcar)
+        
+        for avgGrid,bondCount,cutoff in zip(avgGrids,bondCounts,bondLengths):
+            vtkfname=chgcarfile+"_cut%2.2f_NBond%d.vtk"%(cutoff,bondCount)
+            writeVTK(vtkfname,poscardata,avgGrid.shape,avgGrid)

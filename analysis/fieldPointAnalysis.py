@@ -7,9 +7,6 @@ from scipy.interpolate import griddata
 from struct_tools import dist_periodic,dist,rotmatx,mag
 from interpolate import interp1d,interp3d
 
-#delete me
-import pylab as pl
-
 #Returns True if any point in lgrids is out of 'bounds'
 def outOfBounds(lgrids,bounds):
     for lgrid in lgrids:
@@ -56,7 +53,6 @@ def volumePoints(box,Ns):
 
 #Loop over neighbors provided (otherwise use vornoiNeighbors)
 #Interpolate the 3D Field between each of these neighbors
-#Note: it is much more efficient to do the bondcutoff comparision within the grid loop, as weird as it may be to work with.
 def fieldNeighbors1D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninterp=50):
     [v1,v2,v3]=basis
     latoms=array(atoms)
@@ -181,9 +177,10 @@ def fieldNeighbors1D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninte
     return avgyline,xlines,ylines,halfNeighbors
 
 #Loop over neighbors provided (otherwise use vornoiNeighbors)
-#Interpolate the 3D Field between each of these neighbors on to a 3D Grid
+#Interpolate the 3D Field between each of these neighbors on to a 3D Grid about the atom pairs
 #Note: it is much more efficient to do the bondcutoff comparision within the grid loop, as weird as it may be to work with.
-def fieldNeighbors3D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninterps=[5,5,20]):
+def fieldNeighbors3D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninterps=[7,7,15],cutoffs=None):
+
     [v1,v2,v3]=basis
     latoms=array(atoms)
 
@@ -194,6 +191,12 @@ def fieldNeighbors3D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninte
         print "Error: simulation axes are not sufficiently orthogonal.  Use script poscarRectify.py and regenerate doscar"
         exit(0)
     
+    cutFlag=True
+    if cutoffs==None:
+        cutFlag=False
+    else: #ensure cutoffs is a list and not just a float
+        cutoffs=list(cutoffs)
+
     bounds=[[0.,v1[0]],[0.,v2[1]],[0.,v3[2]]]
     simSize=asarray([v1[0],v2[1],v3[2]])
 
@@ -201,19 +204,22 @@ def fieldNeighbors3D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninte
         halfNeighbors=voronoiNeighbors(atoms=latoms,basis=basis,atypes=atypes,style='half')
 
     #Interpolation and summation properties
-    avgGrid=zeros(Ninterps)
-    nlines=float(sum(map(len,halfNeighbors)))
-    delx=1.0/Ninterps[0]
-    dely=1.0/Ninterps[1]
+    if cutFlag:
+        avgGrids=[zeros(Ninterps) for i in range(len(cutoffs))]
+        bondcnts=zeros(len(cutoffs))
+    else:
+        avgGrid=zeros(Ninterps)
+        bondcnt=0
 
+    nlines=float(sum(map(len,halfNeighbors)))
+    delx=2.0/Ninterps[0]
+    dely=2.0/Ninterps[1]
 
     #Local Grid size
     delGrids=simSize/fieldSize
     lGridSize=fieldSize
     nlGridPoints=reduce(operator.mul,lGridSize)
     for iNeighb,jNeighbors in enumerate(halfNeighbors):
-        #xlines.append(list())
-        #ylines.append(list())
         if len(jNeighbors)==0:
             continue
 
@@ -223,17 +229,14 @@ def fieldNeighbors3D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninte
                 atomi[i]+=simSize[i]
             if ai > simSize[i]:
                 atomi[i]-=simSize[i]
-
+        
+        #Make the local grid about the central atom
         lGridCenter = map(int,atomi/simSize*fieldSize)
         lGridBounds = [[lGridCenter[i]-lGridSize[i]/2,lGridCenter[i]+lGridSize[i]/2] for i in range(3)]
         lGridBoundPoints = array([[lGridBounds[i][0]*delGrids[i],lGridBounds[i][1]*delGrids[i]] for i in range(3)])
-        lGridPoints = array([map(lambda x: x*delGrids[i],range(lGridCenter[i]-lGridSize[i]/2,lGridCenter[i]+lGridSize[i]/2)) for i in range(3)])
-
-#        xps=array([i for i in lGridPoints[0]]*lGridSize[1]*lGridSize[2]).ravel()
-#        yps=array([[i]*lGridSize[0] for i in lGridPoints[1]]*lGridSize[2]).ravel()
-#        zps=array([[i]*lGridSize[0]*lGridSize[1] for i in lGridPoints[2]]).ravel()
-#        lpoints=array(zip(xps,yps,zps))
-        #Stitch together field in local field (lfield) to enforce periodicity, use bounds to simplify
+        lGridPoints = array( [ \
+                map(lambda x: x*delGrids[i],range(lGridCenter[i]-lGridSize[i]/2,lGridCenter[i]+lGridSize[i]/2)) \
+                    for i in range(3) ] )
         bnds=list()
         lbnds=list()
         bnds.append(list(lGridBounds))
@@ -263,6 +266,7 @@ def fieldNeighbors3D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninte
                     bnds[a][i][0]   = 0
                     break
 
+        #Now make the field
         lfield=zeros(lGridSize)
         for lbnd,bnd in zip(lbnds,bnds):
             [[lxa,lxb],[lya,lyb],[lza,lzb]]=lbnd
@@ -271,100 +275,41 @@ def fieldNeighbors3D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninte
 
         #Loop over Neighboring atoms within the local grid
         for jNeighb in jNeighbors:
-            #xlines[-1].append(zeros([Ninterp]))
-            #ylines[-1].append(zeros([Ninterp]))
             atomj=latoms[jNeighb]
             for i,aj in enumerate(atomj):
                 if aj < lGridPoints[i][0]:
                     atomj[i]+=simSize[i]
                 if aj > lGridPoints[i][-1]:
                     atomj[i]-=simSize[i]
-
-            #Error detection
-            if  atomj[0]>lGridPoints[0][-1] or atomj[1]>lGridPoints[1][-1] or atomj[2]>lGridPoints[2][-1] or \
-                atomj[0]<lGridPoints[0][0]  or atomj[1]<lGridPoints[1][0]  or atomj[2]<lGridPoints[2][0]:
-                d=dist_periodic(atomi,atomj,array(zip([0,0,0],simSize)))
-                if d>7.5: continue
-                print "="*50
-                print "Start Error Report:"
-                print "AtomI(%d):"%iNeighb,atomi
-                print "AtomJ(%d):"%jNeighb,atomj
-                print "Distance:",dist_periodic(atomi,atomj,array(zip([0,0,0],simSize)))
-                print "GridX Min,Max:","% 5.5f % 5.5f"%(min(lGridPoints[0]),max(lGridPoints[0]))
-                print "GridY Min,Max:","% 5.5f % 5.5f"%(min(lGridPoints[1]),max(lGridPoints[1]))
-                print "GridZ Min,Max:","% 5.5f % 5.5f"%(min(lGridPoints[2]),max(lGridPoints[2]))
-
-                print "Error: AtomJ seems to be lying outside the local grid, which should not be possible."
-                exit(0)
+            d=dist(atomj,atomi)
             
-            #This is where the magic happens, finally do some computing...
-            #Interpolate on local FIELD grid between these two atoms... 75% of time spent here
-            #pnts2interp=linePoints(array([0,0,0]),atomj-atomi,Ninterp) 
-            R=rotmatx(array([0,0,1]),atomj-atomi) 
-            T=(atomj-atomi)/2+atomi
+            #If this bond is longer than all the cutoffs than don't bother with it
+            if cutFlag and len([1 for i in cutoffs if d<=i])==0:
+                continue
+
             delz=mag(atomj-atomi)/Ninterps[2]
 
             #Change of coordinate systems into atomj-atomi basis.
-            #Translate so center of cube is at 0.
-            #Perform rotation on points
-            #Translate back.
-            xps=array([(i-Ninterps[0]/2+0.5)*delx for i in range(Ninterps[0])]*Ninterps[1]*Ninterps[2]).ravel()
-            yps=array([[(i-Ninterps[1]/2+0.5)*dely]*Ninterps[0] for i in range(Ninterps[1])]*Ninterps[2]).ravel()
-            zps=array([[(i-Ninterps[2]/2+0.5)*delz]*Ninterps[0]*Ninterps[1] for i in range(Ninterps[2])]).ravel()
-            ipnts=array([dot(R,array(pnt))+T for pnt in zip(xps,yps,zps)])
-            #xps,yps,zps=zip(*ipnts)
-            #lGridPoints=lGridPoints.T#array(zip(*lGridPoints))
-            #lGridPoints.shape=len(lGridPoints),3
-            #print lGridPoints.shape
-            #print ipnts.shape
-            avgGrid+=array([interp3d(ipnts[i],lGridBoundPoints,lGridPoints,lfield) for i in range(len(ipnts))]).reshape(Ninterps)
-            #print avgGrid    
-            #avgGrid+=griddata(lGridPoints,lfield,ipnts)
-            #print avgGrid
-            
-            """
-            print min(xps),max(xps)
-            print min(yps),max(yps)
-            print min(zps),max(zps)
-            import matplotlib as mpl
-            from mpl_toolkits.mplot3d import Axes3D
-            import matplotlib.pyplot as plt
+            Rota=rotmatx(array([0,0,1]),atomj-atomi) 
+            Tran=(atomj-atomi)/2+atomi
 
-            fig = plt.figure()
-            ax = fig.gca(projection='3d')
-            print len(lpoints)
-            for i in range(0,len(lpoints),1500):
-                ax.scatter(*(lpoints[i]),c="blue")
-            for i in range(Ninterps[0]*Ninterps[1]*Ninterps[2]):
-                ax.scatter(xps[i],yps[i],zps[i],c="red")
-            plt.show()
-            #ax.scatter(*list(xps[1]),c="red")
-            #ax.scatter(*list(xps[2]),c="red")
-            #ax.scatter(*list(xps[3]),c="red")
+            xps=array([(i-Ninterps[0]/2)*delx for i in range(Ninterps[0])]*Ninterps[1]*Ninterps[2]).ravel()
+            yps=array([[(i-Ninterps[1]/2)*dely]*Ninterps[0] for i in range(Ninterps[1])]*Ninterps[2]).ravel()
+            zps=array([[(i-Ninterps[2]/2)*delz]*Ninterps[0]*Ninterps[1] for i in range(Ninterps[2])]).ravel()
+            ipnts=array([dot(Rota,array(pnt))+Tran for pnt in zip(xps,yps,zps)])
 
-            #ax.scatter(*atomj)
-            #ax.scatter(*atomi)
-
-            #plt.show()
-            #spec=lambda x:"array(["+",".join(map(str,x))+"])"
-            #print "xs="+spec(xps)
-            #print "ys="+spec([spec(i) for i in yps])
-            #print "zs="+spec([spec(i) for i in zps])
-                
-
-
-            
-            cx=atomj[x
-            wx=wy=3.0
-            boxi=[,x,0,y,0,z]
-            Xi,Yi,Zi=volumePoints(
-                yys=array([interp3d(i+atomi,lGridBoundPoints,lGridPoints,lfield) for i in pnts2interp])
-            xwid=dist(pnts2interp[0],pnts2interp[-1])
-            xdel=xwid/Ninterp
-            xxs=[xdel*x-xwid/2 for x in range(Ninterp)]
-            #xlines[-1][-1]=xxs
-            #ylines[-1][-1]=yys
-            avgyline+=yys
-            """
-    avgyline/=nlines
-    return avgGrid,halfNeighbors
+            #Do the interpolation
+            if cutFlag:
+                for j,cut in enumerate(cutoffs):
+                    if d <= cut: 
+                        bondcnts[j]+=1
+                        avgGrids[j]+=array([interp3d(ipnts[i],lGridBoundPoints,lGridPoints,lfield) for i in range(len(ipnts))]).reshape(Ninterps)
+            else:    
+                avgGrid+=array([interp3d(ipnts[i],lGridBoundPoints,lGridPoints,lfield) for i in range(len(ipnts))]).reshape(Ninterps)
+                bondcnt+=1
+    if cutFlag:
+        for i,v in enumerate(bondcnts):
+            if v==0:
+                bondcnts[i]=1
+        return [avgGrid/bc for bc,avgGrid in zip(bondcnts,avgGrids)],bondcnts
+    return avgGrid/bondcnt,bondcnt
