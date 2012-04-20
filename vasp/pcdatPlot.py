@@ -7,7 +7,7 @@ from scipy import *
 from datatools import gaussSmooth
 
 def usage():
-    print "Usage: %s <PCDAT file> <optional:start iter(0)> <optional:end iter(-1)> <1:write average>"%sys.argv[0]
+    print "Usage: %s <PCDAT file> <optional:start iter(0)> <optional:end iter(-1)> <1:write average>"%sys.argv[0].split("/")[-1]
 
 starti=0
 endi=None

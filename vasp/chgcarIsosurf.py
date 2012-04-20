@@ -29,6 +29,13 @@ vtkfile=sys.argv[1]
 reader = vtkStructuredPointsReader()
 reader.SetFileName(vtkfile)
 
+renWin = vtkRenderWindow()
+renWin.SetWindowName("%s"%vtkfile)
+renWin.SetPolygonSmoothing(1)
+#renWin.SetAAFrames(2)
+
+renWin.SetSize(500, 500)
+
 # Create an outline of the dataset (Cube lines)
 outline = vtkOutlineFilter()
 outline.SetInputConnection(reader.GetOutputPort())
@@ -67,7 +74,7 @@ isosurfaceActor.SetMapper(isosurfaceMapper)
 
 # Renderer and render window 
 ren = vtkRenderer()
-ren.SetBackground(0.9, .9, .9)
+ren.SetBackground(1.,1.,1.)
 
 #Create some text (the iso value)
 textActor = vtkTextActor()
@@ -86,10 +93,7 @@ ren.AddActor(outlineActor)
 ren.AddActor(isosurfaceActor)
 ren.AddActor(textActor)
 
-renWin = vtkRenderWindow()
-renWin.SetWindowName("%s"%vtkfile)
 
-renWin.SetSize(500, 500)
 renWin.AddRenderer(ren)
 
 # Python function for the keyboard interface
@@ -100,13 +104,13 @@ def Keypress(obj, event):
         print outlineActor.GetMapper().GetInputConnection()
     #Alter the iso-surface
     if key == "m":
-        isovalue = isovalue - 0.03
+        isovalue = isovalue - 0.01
     elif key == "comma":
-        isovalue = isovalue - 0.002
+        isovalue = isovalue - 0.001
     elif key == "period":
-        isovalue = isovalue + 0.002
+        isovalue = isovalue + 0.001
     elif key == "slash":
-        isovalue = isovalue + 0.03
+        isovalue = isovalue + 0.01
     if key in ["m","comma","period","slash"]:
         isosurface.SetValue(0,isovalue)
         textActor.SetInput("%4.3f" %(isovalue))
