@@ -43,7 +43,10 @@ def outcarAngularPairCor(outcarfile,nbins,bl=-1.0,bw=-1.0):
                     continue
                 else:
                     #Analysis
-                    atoms=dot(array(atoms),basis)
+                    if max(zip(*atoms)[0])<1.01:
+                        atoms=dot(array(atoms),basis)
+                    else:
+                        atoms=array(atoms)
                     neighbs=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='full')
                     if bl!=-1 and bw!=-1:
                         specbonds=[list() for i in range(len(atoms))]

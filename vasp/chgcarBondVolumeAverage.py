@@ -110,7 +110,7 @@ if __name__=="__main__":
 
     Ninterps=[15,15,15]
     if len(sys.argv)>4:
-        Ninterps=map(int,sys.argv[5].split(","))
+        Ninterps=map(int,sys.argv[4].split(","))
 
     for chgcarfile in chgcarfiles:
 

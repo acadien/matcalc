@@ -45,9 +45,6 @@ yy1 = [sum(y)/len(y) for y in zip(*yy[starti:endi])]
 
 print "Using %d iterations of %d possible"%(Nused,Ntot)
 
-pl.plot(xx,yy1)
-#pl.plot(xx[10:-10],yys)
-
 if enableAvg:
     if endi==None:
         a=open("PCDATAVG_%d_%d"%(0,Nused),"w")
@@ -57,6 +54,7 @@ if enableAvg:
     a.write("\n".join(map(str,yy1)))
     a.close()
 
+pl.plot(xx,yy1)
 pl.xlabel("r ($\AA$)")
 pl.ylabel("g(r)")
 if endi==None:
