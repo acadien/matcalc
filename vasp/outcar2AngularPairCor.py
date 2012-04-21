@@ -43,7 +43,7 @@ def outcarAngularPairCor(outcarfile,nbins,bl=-1.0,bw=-1.0):
                     continue
                 else:
                     #Analysis
-                    atoms=array(atoms)
+                    atoms=dot(array(atoms),basis)
                     neighbs=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='full')
                     if bl!=-1 and bw!=-1:
                         specbonds=[list() for i in range(len(atoms))]
@@ -51,13 +51,22 @@ def outcarAngularPairCor(outcarfile,nbins,bl=-1.0,bw=-1.0):
                             ai=atoms[i]#dot(atoms[i],basis)
                             for j in neighbs[i]:
                                 aj=atoms[j]#dot(atoms[j],basis)
+                                d=dist_periodic(ai,aj,lengths)
+                                """
                                 d=dist(ai,aj)
                                 if d!=dist_periodic(ai,aj,lengths):
                                     for c in range(3):
-                                        d = aj[c]-ai[c]
-                                        if d>lengths[c]/2.0: d -= lengths[c]
-                                        elif d<-lengths[c]/2.0: d += lengths[c]
+                                        g = aj[c]-ai[c]
+                                        if g>lengths[c]/2.0: d -= lengths[c]
+                                        elif g<-lengths[c]/2.0: d += lengths[c]
+                                """        
                                 if fabs(d-bl)<bw:
+                                    if d<1.0:
+                                        print d
+                                        print dist_periodic(ai,aj,lengths)
+                                        print ai
+                                        print aj
+                                        exit(0)
                                     specbonds[i].append(j)
                     else:
                         specbonds=neighbs
@@ -88,7 +97,7 @@ if __name__=="__main__":
     if len(sys.argv)>=4:
         if len(sys.argv)==4:
             bmin,bmax=map(float,sys.argv[3].split(","))
-    bl=(bmin+bmax)/2.
+    bl=float(bmin+bmax)/2.
     bw=bmax-bl
 
     outcarfile=sys.argv[1]
