@@ -6,11 +6,21 @@ import pylab as pl
 from angularpaircorIO import readAngularPairCor
 
 def usage():
-    print "Usage: %s <angular pair correlation files, space seperated>"
+    print "Usage: %s <angular pair correlation files, space seperated> <N=normalize>"
 
-fnames=sys.argv[1:]
+norm=False
+if sys.argv[-1] in ["n","N","normalize","Normalize"]:
+    norm=True
+    fnames=sys.argv[1:-1]
+else:
+    fnames=sys.argv[1:]
+
 for fname in fnames:
     header,minlen,maxlen,bins,vals=readAngularPairCor(fname)
+    if norm:
+        tvals=sum(vals)
+        vals=[i/tvals for i in vals]
+        pl.yticks([])
     pl.plot(bins,vals,label=" ".join(fname.strip(".data").split("_")[1:]))
 
 pl.xlabel("Angle")
