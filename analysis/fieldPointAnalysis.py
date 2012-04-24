@@ -179,10 +179,14 @@ def fieldNeighbors1D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninte
 #Loop over neighbors provided (otherwise use vornoiNeighbors)
 #Interpolate the 3D Field between each of these neighbors on to a 3D Grid about the atom pairs
 #Note: it is much more efficient to do the bondcutoff comparision within the grid loop, as weird as it may be to work with.
-def fieldNeighbors3D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninterps=[7,7,15],cutoffs=None):
+def fieldNeighbors3D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninterps=[7,7,15],cutoffs=None,loc=None):
+    #loc=["center","bond","half"]
 
     [v1,v2,v3]=basis
     latoms=array(atoms)
+
+    if loc==None:
+        loc="bond"
 
     #Ensure simulation box is orthorhombic
     if sum(map(fabs,v1))-fabs(v1[0]) > 1e-10 or \
@@ -204,6 +208,7 @@ def fieldNeighbors3D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninte
         halfNeighbors=voronoiNeighbors(atoms=latoms,basis=basis,atypes=atypes,style='half')
 
     #Interpolation and summation properties
+    grids=list()
     if cutFlag:
         avgGrids=[zeros(Ninterps) for i in range(len(cutoffs))]
         bondcnts=zeros(len(cutoffs))
@@ -287,11 +292,19 @@ def fieldNeighbors3D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninte
             if cutFlag and len([1 for i in cutoffs if d<=i])==0:
                 continue
 
-            delz=mag(atomj-atomi)/Ninterps[2]
+            #Change the location as requested
+            if loc=="bond":
+                delz=mag(atomj-atomi)/Ninterps[2]
+                Tran=(atomj-atomi)/2.+atomi
+            if loc=="half":
+                delz=mag(atomj-atomi)/(Ninterps[2]*2.)
+                Tran=(atomj-atomi)/4.+atomi
+            if loc=="center":
+                delz=dely
+                Tran=atomi
 
             #Change of coordinate systems into atomj-atomi basis.
-            Rota=rotmatx(array([0,0,1]),atomj-atomi) 
-            Tran=(atomj-atomi)/2+atomi
+            Rota=rotmatx(array([0.,0.,1.]),atomj-atomi) 
 
             xps=array([(i-Ninterps[0]/2)*delx for i in range(Ninterps[0])]*Ninterps[1]*Ninterps[2]).ravel()
             yps=array([[(i-Ninterps[1]/2)*dely]*Ninterps[0] for i in range(Ninterps[1])]*Ninterps[2]).ravel()
@@ -303,13 +316,20 @@ def fieldNeighbors3D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninte
                 for j,cut in enumerate(cutoffs):
                     if d <= cut: 
                         bondcnts[j]+=1
-                        avgGrids[j]+=array([interp3d(ipnts[i],lGridBoundPoints,lGridPoints,lfield) for i in range(len(ipnts))]).reshape(Ninterps)
+                        if Ninterps[0]!=1:
+                            grid=array([interp3d(ipnts[i],lGridBoundPoints,lGridPoints,lfield) for i in range(len(ipnts))]).reshape(Ninterps)
+                        else:
+                            grid=array([interp3d(ipnts[i],lGridBoundPoints,lGridPoints,lfield) for i in range(len(ipnts))]).reshape(Ninterps[1:])
+                        grids.append(grid)
+                        avgGrids[j]+=grid
             else:    
-                avgGrid+=array([interp3d(ipnts[i],lGridBoundPoints,lGridPoints,lfield) for i in range(len(ipnts))]).reshape(Ninterps)
+                grid=array([interp3d(ipnts[i],lGridBoundPoints,lGridPoints,lfield) for i in range(len(ipnts))]).reshape(Ninterps)
+                grids.append(grid)
+                avgGrid+=grid
                 bondcnt+=1
     if cutFlag:
         for i,v in enumerate(bondcnts):
             if v==0:
                 bondcnts[i]=1
-        return [avgGrid/bc for bc,avgGrid in zip(bondcnts,avgGrids)],bondcnts
-    return avgGrid/bondcnt,bondcnt
+        return [avgGrid/bc for bc,avgGrid in zip(bondcnts,avgGrids)],grids,bondcnts
+    return avgGrid/bondcnt,grids,bondcnt
