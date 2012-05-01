@@ -8,18 +8,53 @@ import operator
 from struct_tools import *
 
 #==================================================================
+PCcode="""
+double aix,ajx,aiy,ajy,aiz,ajz,c,d;
+double dr=cut/nbins;
+for(int i=0;i<inloop;i++){
+    aix=atoms[i*3];
+    aiy=atoms[i*3+1];
+    aiz=atoms[i*3+2];
+    for(int j=0;j<natoms;j++){
+        if(i==j) continue;
+        ajx=atoms[j*3];
+        ajy=atoms[j*3+1];
+        ajz=atoms[j*3+2];
+        d=aix-ajx;
+        c=d*d;
+        d=aiy-ajy;
+        c+=d*d;
+        d=aiz-ajz;
+        c+=d*d;
+        c=sqrt(c);
+        if(c<=cut)
+            bins[(int)(c/dr)]++;
+    }
+}
+"""
+def pairCorHelper(atoms,bins,cut,inloop):
+    natoms=len(atoms)
+    atoms.shape=len(atoms)*3
+    nbins=len(bins)
+    weave.inline(PCcode,['atoms','natoms','bins','nbins','cut','inloop'])
+    atoms.shape=[len(atoms)/3,3]
+    return bins
+
+#==================================================================
 def paircor(atoms,inloop=0,cutoff=10.0,nbins=1000):
     #atoms: list of atoms[N][3]
     #inloop: number of atoms to do the summation over
     #cutoff: float, max radius to measure radial distro out to
     #nbins: number of bins to store in radial distro
 
-    rdist=[0]*nbins
+    rdist=zeros(nbins)
     dr=float(cutoff)/nbins
     N=len(atoms)
     if inloop==0:
         inloop=N
 
+    rdist=pairCorHelper(atoms,rdist,cutoff,inloop)
+    """
     for i in range(inloop):
         ai=atoms[i]
         for j in range(i+1,N):
@@ -28,6 +63,7 @@ def paircor(atoms,inloop=0,cutoff=10.0,nbins=1000):
             if r>cutoff:
                 continue
             rdist[int(r/dr)]+=1
+    """
     rbins=[(i+0.5)*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
     for i,rad in enumerate(rbins):
@@ -69,7 +105,7 @@ for(int i=0;i<natoms;i++){
     }
 }
 """
-def paircorHelper(atoms,bins,cut,l):
+def pairCorPerHelper(atoms,bins,cut,l):
     natoms=len(atoms)
     atoms.shape=len(atoms)*3
     nbins=len(bins)
@@ -88,7 +124,7 @@ def paircor_periodic(atoms,lengths,cutoff=10.0,nbins=1000):
     dr=float(cutoff)/nbins
     N=len(atoms)
 
-    rdist=paircorHelper(array(atoms),rdist,cutoff,lengths)
+    rdist=pairCorPerHelper(atoms,rdist,cutoff,lengths)
     rbins=[i*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
     Ndensity=N/reduce(operator.mul,lengths)
@@ -158,6 +194,9 @@ for(int i=0; i<natoms; i++){
     ajz=atoms[i*3+2];
     for(int j=0;j<nneighbsf[i];j++){
         jn=neighbsf[cn+j];
+        if(i==jn) 
+          continue;
+
         aix=atoms[jn*3];
         aiy=atoms[jn*3+1];
         aiz=atoms[jn*3+2];
@@ -173,12 +212,11 @@ for(int i=0; i<natoms; i++){
         if(d>l[2]/2.0) aiz -= l[2];
         if(d<-l[2]/2.0) aiz += l[2];
 
-        if(i==jn) 
-          continue;
         for(int k=0; k<nneighbsf[i];k++){
             kn=neighbsf[cn+k];
             if(i==kn || kn==jn) 
               continue;
+
             akx=atoms[kn*3];
             aky=atoms[kn*3+1];
             akz=atoms[kn*3+2];
@@ -204,7 +242,9 @@ for(int i=0; i<natoms; i++){
             else
               a=(360*(acos(x)/pi2+1.0));
             a-= static_cast<double>( static_cast<int>( a / 180.0 ) ) * 180.0;
-            bins[(int)(a/dang)]+=1;
+
+            //Bin the bond angle
+            bins[(int)(a/dang)]++;
         }
     }
     cn+=nneighbsf[i];
@@ -222,22 +262,124 @@ def paircor_ang(atoms,neighbs,basis,nbins=360,angtype='deg'):
 
     natoms=len(atoms)
     atoms.shape=natoms*3
+
     nneighbsf=array([len(i) for i in neighbs])
     neighbsf=array([i for i in flatten(neighbs)])
+
     l=array([basis[0][0],basis[1][1],basis[2][2]])
+
     weave.inline(PCAcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','l'])
-    atoms.shape=[len(atoms)/3,3]
-    
-    """
-    ascale = 180.0/nbins
-    for i in range(inloop):
-        for ind,j in enumerate(neighbs[i]):
-            for k in neighbs[i]:
-                if k==j or j==i or k==i: continue
-                a = (degrees(ang(atoms[j],atoms[i],atoms[k]))+360.0)%180.0
-                bins[int(a/ascale)]+=1
-    """
+
+    atoms.shape=[len(atoms)/3,3]    
     abins = [(i+0.5)*180./nbins for i in range(nbins)]
     
     return [abins,bins]
     
+
+#==================================================================
+PCbyAcode="""
+double aix,ajx,akx,aiy,ajy,aky,aiz,ajz,akz;
+double dij,dik,djk,x,a,d;
+double bondij,bondjk;
+int jn,kn,cn=0;
+double dang=180./nbins;
+int binIndex;
+
+double pi2=2.0*3.14159265;
+for(int i=0; i<natoms; i++){
+    ajx=atoms[i*3];
+    ajy=atoms[i*3+1];
+    ajz=atoms[i*3+2];
+    for(int j=0;j<nneighbsf[i];j++){
+        jn=neighbsf[cn+j];
+        if(i==jn) 
+          continue;
+
+        aix=atoms[jn*3];
+        aiy=atoms[jn*3+1];
+        aiz=atoms[jn*3+2];
+
+        //Periodic Bounds
+        d = aix-ajx;
+        if(d>l[0]/2.0) aix -= l[0];
+        if(d<-l[0]/2.0) aix += l[0];
+        d = aiy-ajy;
+        if(d>l[1]/2.0) aiy -= l[1];
+        if(d<-l[1]/2.0) aiy += l[1];
+        d = aiz-ajz;
+        if(d>l[2]/2.0) aiz -= l[2];
+        if(d<-l[2]/2.0) aiz += l[2];
+
+        //Bond length i-j
+        bondij=sqrt((aix-ajx)*(aix-ajx)+(aiy-ajy)*(aiy-ajy)+(aiz-ajz)*(aiz-ajz));
+
+        for(int k=0; k<nneighbsf[i];k++){
+            kn=neighbsf[cn+k];
+            if(i==kn || kn==jn) 
+              continue;
+
+            akx=atoms[kn*3];
+            aky=atoms[kn*3+1];
+            akz=atoms[kn*3+2];
+
+            //Periodic Bounds
+            d = akx-ajx;
+            if(d>l[0]/2.0) akx -= l[0];
+            if(d<-l[0]/2.0) akx += l[0];
+            d = aky-ajy;
+            if(d>l[1]/2.0) aky -= l[1];
+            if(d<-l[1]/2.0) aky += l[1];
+            d = akz-ajz;
+            if(d>l[2]/2.0) akz -= l[2];
+            if(d<-l[2]/2.0) akz += l[2];
+
+            //Bond length j-k
+            bondjk=sqrt((ajx-akx)*(ajx-akx)+(ajy-aky)*(ajy-aky)+(ajz-akz)*(ajz-akz));
+
+            //Calculate Angle
+            dij = (aix-ajx)*(aix-ajx) + (aiy-ajy)*(aiy-ajy) + (aiz-ajz)*(aiz-ajz);
+            dik = (aix-akx)*(aix-akx) + (aiy-aky)*(aiy-aky) + (aiz-akz)*(aiz-akz);
+            djk = (ajx-akx)*(ajx-akx) + (ajy-aky)*(ajy-aky) + (ajz-akz)*(ajz-akz);  
+            x=(dij + djk - dik)/(2.0*sqrt(dij)*sqrt(djk));
+            if(fabs(fabs(x)-1.0) <= 1e-9)
+              a=0.0;
+            else
+              a=(360*(acos(x)/pi2+1.0));
+            a-= static_cast<double>( static_cast<int>( a / 180.0 ) ) * 180.0;
+
+            //Bin the bond length by the angle
+            binIndex=(int)(a/dang);
+            bins[binIndex*MAXNeighbs + bcounts[binIndex]++]=bondij;
+            bins[binIndex*MAXNeighbs + bcounts[binIndex]++]=bondjk;
+        }
+    }
+    cn+=nneighbsf[i];
+}
+"""
+
+def paircor_binByAng(atoms,neighbs,basis,nbins=360,angtype='deg'):
+    #atoms: list of atoms[N][3]
+    #neighbs: the *full* neighbor list for atoms
+    #angtype: 'deg' or 'rad'
+    #nbins: number of bins to store in radial distro
+    #The angular range is always 0-180 deg and angles are taken modulo 180
+    
+    #This function bins bond length by the angles to which they belong.
+
+    MAXNeighbs=100
+    bins = zeros(nbins*MAXNeighbs)
+    bcounts = zeros(nbins) #extra memory needed for C operation
+
+    natoms=len(atoms)
+    atoms.shape=natoms*3
+    nneighbsf=array([len(i) for i in neighbs])
+    neighbsf=array([i for i in flatten(neighbs)])
+    l=array([basis[0][0],basis[1][1],basis[2][2]])
+    weave.inline(PCbyAcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','MAXNeighbs','bcounts','l'])
+    atoms.shape=[len(atoms)/3,3]
+    
+    abins = [(i+0.5)*180./nbins for i in range(nbins)]
+    
+    print bins
+
+    return [abins,bins]

@@ -55,14 +55,7 @@ def outcarAngularPairCor(outcarfile,nbins,bl=-1.0,bw=-1.0):
                             for j in neighbs[i]:
                                 aj=atoms[j]#dot(atoms[j],basis)
                                 d=dist_periodic(ai,aj,lengths)
-                                """
-                                d=dist(ai,aj)
-                                if d!=dist_periodic(ai,aj,lengths):
-                                    for c in range(3):
-                                        g = aj[c]-ai[c]
-                                        if g>lengths[c]/2.0: d -= lengths[c]
-                                        elif g<-lengths[c]/2.0: d += lengths[c]
-                                """        
+                       
                                 if fabs(d-bl)<bw:
                                     if d<1.0:
                                         print d

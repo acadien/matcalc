@@ -35,18 +35,21 @@ atoms=array(zip(ax,ay,az))
 basis=[v1,v2,v3]
 lengths=array([v1[0],v2[1],v3[2]])
 
-vHalfNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='half')
-atLHalfNeighbors=[neighbors(atoms,array([[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]),maxlen,style='half') for maxlen in maxls]
-
-atLFullNeighbors=map(half2full,atLHalfNeighbors)
-vFullNeighbors=half2full(vHalfNeighbors)
+#vHalfNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='half')
+#atLHalfNeighbors=[neighbors(atoms,array([[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]),maxlen,style='half') for maxlen in maxls]
+atLFullNeighbors=[neighbors(atoms,array([[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]),maxlen,style='full') for maxlen in maxls]
+vFullNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='full')
+#atLFullNeighbors=map(half2full,atLHalfNeighbors)
+#vFullNeighbors=half2full(vHalfNeighbors)
 vFullNeighbors=[[j for j in vFullNeighbors[i] if dist_periodic(atoms[i],atoms[j],lengths)<voronCap] for i in range(len(vFullNeighbors))]
 
 atLCoordNumbers=map(lambda x:map(len,x),atLFullNeighbors)
 vCoordNumbers=map(len,vFullNeighbors)
-#Too include Voronoi (capped at max length) uncomment:
+
+#To include Voronoi (capped at max length) uncomment:
 if voronEnable:
     atLCoordNumbers.append(vCoordNumbers)
+
 absMin=0
 absMax=50
 mncn=max(min(map(min,atLCoordNumbers))-3,absMin)
@@ -65,9 +68,9 @@ avgs=list()
 for k,coordNumbers in enumerate(atLCoordNumbers):
     #For the bond length in question, how many bonds of length in question?
     CNhist=zeros(absMax)
+    
     for cn in coordNumbers:
-        if cn>0:
-            CNhist[cn]+=1
+        CNhist[cn]+=1
     avgs.append(sum([i*v for i,v in enumerate(CNhist)])/sum(CNhist))
     header+="For bonds of type %s : CN=%g.  "%(labels[k],avgs[-1])
     atLCNhist.append(list(CNhist))
