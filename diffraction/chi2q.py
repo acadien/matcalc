@@ -32,7 +32,7 @@ def theta2q(theta2,lamda):
     return [4.0*pi*sin(radians(i/2.0))/lamda for i in theta2] 
 
 
-if __name__=="main":
+if __name__=="__main__":
     if len(sys.argv) < 3:
         print("Bad arguments, proper usage:")
         print("./chi2q.py <chifile1..N> <lambda>")
