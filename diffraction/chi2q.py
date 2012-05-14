@@ -5,6 +5,7 @@ import re
 import os
 import numpy as np
 from numpy import *
+from math import asin
 
 def readchi(chifile):
     i=0
@@ -30,6 +31,10 @@ def readchi(chifile):
 
 def theta2q(theta2,lamda):
     return [4.0*pi*sin(radians(i/2.0))/lamda for i in theta2] 
+
+#Return 2theta in degrees
+def q2theta(q,lamda):
+    return degrees([2*asin(i*lamda/4.0/pi) for i in q])
 
 
 if __name__=="__main__":
