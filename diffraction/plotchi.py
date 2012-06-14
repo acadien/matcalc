@@ -5,6 +5,8 @@ import re
 import os
 import numpy as np
 from numpy import *
+#mine
+from theta2q import theta2q
 
 def smoothList(list,degree=5):  
     smoothed=np.zeros(len(list))  
@@ -56,9 +58,9 @@ def readchi(chifile):
         i+=1
     return xxs,yys
 
-def theta2q(theta2,lamda):
-    #return [4.0*pi*sin(radians(i/2.0))/lamda for i in theta2] 
-    return [lamda/2.0/sin(radians(i/2.0)) for i in theta2] 
+#def theta2q(theta2,lamda):
+    #return [4.0*pi*sin(radians(i/2.0))/lamda for i in theta2] #
+#    return [lamda/2.0/sin(radians(i/2.0)) for i in theta2] 
 
 ##################
 #Main Starts Here
@@ -87,7 +89,8 @@ for filename in filenames:
     yys.append(y)
 
 if lamda!=-1:
-    xxs=theta2q(xxs,lamda)
+    print type(xxs[0])
+    xxs=[map(lambda g:theta2q(g,lamda),xx) for xx in xxs]
 
 """
 #####################
@@ -115,7 +118,7 @@ for x,y in zip(xxs,yys):
     #if delta!=0:
     #    pl.scatter(xxp,yyp)
 if lamda!=-1:
-    pl.xlabel("Q ($\AA^{-1}$)")
+    pl.xlabel("Q ($radians / \AA^{-1}$)")
 else:
     pl.xlabel("2Theta (degrees)")
 pl.ylabel("Intensity")
