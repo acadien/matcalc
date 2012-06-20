@@ -33,7 +33,8 @@ def windowAvg(a,n=10):
         winavg.append(sum(window)/len(window))
     return winavg
 
-#A more advanced smoothing algorithm than windowed average
+#This function nabbed from www.scipy.org/Cookbook/SignalSmooth
+#Applies spectral methods (various convolution functions) to a window smoothing
 def wsmooth(x,window_len=11,window='hanning'):
     if type(x) != type(array(1)):
         x=array(x)
