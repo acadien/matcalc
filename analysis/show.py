@@ -1,17 +1,27 @@
 #!/usr/bin/python
 
-import sys
+import sys,Image
 import pylab as pl
-from matplotlib import image
+from numpy import *
 
 def usage():
-    print "%s <tif/png/jpeg/eps image> <optional: 0-grayscale, 1-color>"%(sys.argv[0])
+    print "%s <tif/png/jpeg/eps image> <optional:min,max>"%(sys.argv[0])
 
-picdata=image.imread(sys.argv[1])
-if len(sys.argv)==3 and sys.argv[2]=="1": 
-    imgplot=pl.imshow(picdata[:,:,0])
-    imgplot.set_cmap('spectral')
+
+def loadimg(name):
+    picdata=Image.open(name)
+    a,b,c,d=picdata.getbbox()
+    width=c-a
+    height=d-b+1
+    return array(picdata.getdata()).reshape([width,height])
+
+picdata=loadimg(sys.argv[1])
+if len(sys.argv)==3:
+    a,b=map(float,sys.argv[2].split(","))
+    imgplot=pl.imshow(picdata,vmin=a,vmax=b)
+    imgplot.set_cmap('gist_earth')
 else:
     imgplot=pl.imshow(picdata)
 
 pl.show()
+

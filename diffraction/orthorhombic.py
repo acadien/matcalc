@@ -6,7 +6,7 @@ import numpy as np
 from theta2q import d2theta,theta2q,d2q,q2d
 
 # alpha=beta=gamma=90
-orthohkls=["101","002","110","112","200","103","211","202","004"]
+orthohkls=["020","110","002","021","111","022","112","130","131","200","023","040","113","041","132","220","202","221","004","042"]
 
 def prephkl(hkl):
     seperate=list()
