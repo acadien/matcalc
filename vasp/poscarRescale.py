@@ -35,12 +35,21 @@ def rescaleposcar(poscar,ratio):
 
     open(poscar,"w").writelines(data)
 
+#The 2nd line of the poscar multiplies each of the lattice constants, 
+#altering this value changes the volume
+def setScaleMul(poscar,volRatio):
+    pcar=open(poscar,"r").readlines()
+    ratio=float(volRatio)**(1.0/3.0)
+    pcar[1]=str(ratio)+"\n"
+    open(poscar,"w").writelines(pcar)
+
 if __name__=="__main__":
-    if len(sys.argv)!=3:
+    if len(sys.argv)<3:
         print "Usage:"
-        print "%s <poscar> <volume ratio>"%sys.argv[0]
+        print "%s <poscars (space separated)> <volume ratio>"%sys.argv[0]
         exit(0)
 
-    poscar=sys.argv[1]
-    ratio=sys.argv[2]
+    for poscar in sys.argv[1:-1]:
+        setScaleMul(poscar,sys.argv[-1])
+
 

@@ -15,6 +15,10 @@ def loadimg(name):
     height=d-b+1
     return array(picdata.getdata()).reshape([width,height])
 
+if len(sys.argv)==0:
+    usage()
+    exit(0)
+
 picdata=loadimg(sys.argv[1])
 if len(sys.argv)==3:
     a,b=map(float,sys.argv[2].split(","))
