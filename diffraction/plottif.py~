@@ -1,6 +1,0 @@
-#!/usr/bin/python
-
-import sys
-import pylab as pl
-from matplotlib import image
-
