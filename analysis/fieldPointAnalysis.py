@@ -7,6 +7,9 @@ from scipy.interpolate import griddata
 from struct_tools import dist_periodic,dist,rotmatx,mag
 from interpolate import interp1d,interp3d
 
+#These functions interpolate 3D gridded fields about a set of points
+#Particularily useful for working with CHGCARs and neighbors.
+
 #Returns True if any point in lgrids is out of 'bounds'
 def outOfBounds(lgrids,bounds):
     for lgrid in lgrids:

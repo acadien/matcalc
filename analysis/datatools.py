@@ -7,7 +7,7 @@ from numpy import convolve
 import pylab as pl
 from itertools import chain
 #mine
-from mathfunctions import *
+from gaussFunctions import *
 
 #1D data
 def gaussSmooth(a,n=9,mode='same'):

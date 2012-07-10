@@ -97,6 +97,34 @@ else {
 def ang_deg(a,b,c):
     return weave.inline(angdegcode,['a','b','c'])
 
+#For spherical angles (theta,phi)
+sphang_code="""
+double x=b[0]-a[0];
+double y=b[1]-a[1];
+double z=b[2]-a[2];
+double r=sqrt(x*x+y*y+z*z);
+angs[0]=acos(z/r); //theta
+angs[1]=atan(y/x); //phi
+"""
+def sphang(a,b):
+    angs=zeros(2)
+    weave.inline(sphang_code,['a','b','angs'])
+    return angs[0],angs[1] #theta,phi
+
+bounds_code="""
+double d=0.0;
+for(int i=0;i<3;i++){
+  d = a[i]-b[i];
+  if(d>lengths[i]/2.0) c[i] = d[i]-lengths[i];
+  else if(d<-lengths[i]/2.0) c[i] = d[i]+lengths[i];
+  else c[i] = d[i];
+}
+"""
+#Returns the point which is 'b' closest to 'a' employing the bounds given.
+def applybounds(a,b,lengths):
+    c=zeros(3)
+    weave.inline(bounds_code,['a','b','c','lengths'])
+
 def mag(vec):
     return sqrt(dot(vec,vec))
 
@@ -104,7 +132,7 @@ def normalize(vec):
     a=mag(vec)
     return vec/a
 
-def rotmatx(vec1,vec2):#Rotates vector1 into vector2 and returns the rotation matrix
+def rotmatx(vec1,vec2):#Returns the rotation matrix that rotates vector1 into vector2
     raxis=normalize(cross(vec1,vec2))
     [rx,ry,rz]=raxis
     rtheta=ang(vec1,array([0,0,0]),vec2)
