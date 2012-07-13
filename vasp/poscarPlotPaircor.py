@@ -78,7 +78,7 @@ while True:
         print atoms
         [rbins,rdist]=paircor_periodic(atoms,lengths,cutoff=cutoff,nbins=nbins)
     
-    rdist=[i/(27.0**0.5) for i in rdist]
+    rdist=[i for i in rdist]
 
     pl.figure()
 

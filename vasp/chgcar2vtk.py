@@ -1,6 +1,11 @@
 #!/usr/bin/python
 
 import sys
+import operator
+from numpy import *
+import scipy
+#mine
+from poscarIO import readposcar
 
 #Multiplies by volume to get absolute Charge
 def readchgcar(chgcar):

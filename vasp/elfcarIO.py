@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from numpy import matrix,linalg
+from numpy import matrix,linalg,asarray,swapaxes
 from scipy import dot,cross
 import operator
 #mine
@@ -19,6 +19,6 @@ def readelfcar(elfcar):
     elfdata=map(float,"".join(elfcar).split()[:Tot_pnts])
     elfdata=asarray(elfdata)
     elfdata.shape=gridsz
-    elfdata=swapaxes(elfdata,0,2)
+    #elfdata=swapaxes(elfdata,0,2)
 
     return poscardata,gridsz,elfdata

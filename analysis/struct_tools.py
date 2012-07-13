@@ -109,6 +109,8 @@ angs[1]=atan(y/x); //phi
 def sphang(a,b):
     angs=zeros(2)
     weave.inline(sphang_code,['a','b','angs'])
+    if angs[1] != angs[1]: #test if phi is NaN, occurs if a and b lay on z-axis
+        angs[1]=0
     return angs[0],angs[1] #theta,phi
 
 bounds_code="""
