@@ -19,8 +19,8 @@ from colors import float2rgb
 
 def usage():
     print "Usage:"
-    print "%s <elfcarfile> <plotting style: 0,1,2,3,4,5>"%sys.argv[0].split("/")[-1]
-    print "Plotting Styles: 0=none, 1=chg contours, 2=make a bunch of plots for a movie,\n3=chg contours with atoms, 4=make a bunch of plots for a movie with spheres, 5=access remotely, save an image."
+    print "%s <elfcarfile> <plotting style: 0(+image name),1,2,3,4>"%sys.argv[0].split("/")[-1]
+    print "Plotting Styles: 0=save an image, 1=chg contours, 2=make a bunch of plots for a movie,\n3=chg contours with atoms, 4=make a bunch of plots for a movie with spheres"
     exit(0)
 
 if not(len(sys.argv) in [3]):
@@ -28,6 +28,9 @@ if not(len(sys.argv) in [3]):
 
 elfcar = open(sys.argv[1],"r").readlines()
 pstyle = int(sys.argv[2])
+
+if pstyle==0:
+    fname=sys.argv[3]
 
 chgfactor=1
 if "AECCAR" in sys.argv[1] or "CHGCAR" in sys.argv[1]:
@@ -189,7 +192,11 @@ if pstyle!=0:
         image_spheres([0,v1[0],0,v2[1]],dataset[:,:,i],i*zsize/gridsz[0],atombounds,atoms,atomcolors)
         P.colorbar()
     pl.title("%d Log plot ELF, use < and > to change plots\n%s"%(pos,cdir))
-pl.show()
+    pl.show()
+else:
+    matplotlib.use("Agg")
+    logplotter(X,Y,dataset[:,:,0],ticks,colors)
+    pl.savefig(fname)
 
 
 
