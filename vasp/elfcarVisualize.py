@@ -10,8 +10,6 @@ from numpy import *
 from matplotlib import ticker
 import matplotlib
 #matplotlib.use('Agg') 
-from matplotlib import pyplot as P
-import pylab as pl
 import subprocess
 #mine
 from elfcarIO import readelfcar
@@ -23,7 +21,7 @@ def usage():
     print "Plotting Styles: 0=save an image, 1=chg contours, 2=make a bunch of plots for a movie,\n3=chg contours with atoms, 4=make a bunch of plots for a movie with spheres"
     exit(0)
 
-if not(len(sys.argv) in [3]):
+if len(sys.argv) < 3:
     usage()
 
 elfcar = open(sys.argv[1],"r").readlines()
@@ -31,19 +29,24 @@ pstyle = int(sys.argv[2])
 
 if pstyle==0:
     fname=sys.argv[3]
+    matplotlib.use("Agg")
+else:
+    from matplotlib import pyplot as P
+import pylab as pl
 
 chgfactor=1
 if "AECCAR" in sys.argv[1] or "CHGCAR" in sys.argv[1]:
-    chgfactor=5
+    chgfactor=50
 
 global dataset
 (v1,v2,v3,types,cxs,cys,czs,header),gridsz,dataset = readelfcar(elfcar)
 
 Tot_pnts = reduce(operator.mul,gridsz)
 
-dataset=array(dataset).reshape(gridsz) #[x,y,z]
+#VASP outputs CHGCAR/ELFCARs in the order Z,Y,X.  Transfrom this to X,Y,Z
+dataset=array(dataset).reshape(list(reversed(gridsz))) #[x,y,z]
+dataset=dataset.swapaxes(0,2)
 
-#lratio=1.0/v1[0] #Used to convert sphere radius to plot size (1x1x1)
 global atoms,atomcolors,atombounds
 #Ge: 1.22 
 #Sb: 1.4
@@ -124,20 +127,20 @@ def image_spheres(bounds,z,pos,atombounds,atoms,atomcolors):
 
 def logplotter_spheres(X,Y,z,ticks,colors,pos,atombounds,atoms,atomcolors):
     pl.cla()
-    pl.contourf(X,Y,z,ticks,colors=colors,locator=ticker.LogLocator())
+    pl.contourf(X,Y,z.T,ticks,colors=colors,locator=ticker.LogLocator())
     #pl.contour(X,Y,z,ticks,colors=colors)#,locator=ticker.LogLocator())
     plotspheres(pos,atombounds,atoms,atomcolors)
     pl.tick_params(axis='both',bottom='off',left='off',labelbottom='off',labelleft='off',right='off',top='off')
 
 def logplotter(X,Y,z,ticks,colors):
     pl.cla()
-    pl.contourf(X,Y,z,ticks,colors=colors,locator=ticker.LogLocator())
+    pl.contourf(X,Y,z.T,ticks,colors=colors,locator=ticker.LogLocator())
     pl.contour(X,Y,z,ticks,colors=colors)#,locator=ticker.LogLocator())
     pl.tick_params(axis='both',bottom='off',left='off',labelbottom='off',labelleft='off',right='off',top='off')
 
 def plotter(X,Y,z):
     pl.cla()
-    pl.contourf(X,Y,z)
+    pl.contourf(X,Y,z.T)
 
 def keypress(event):
     global pos,fig,dataset,ticks,colors,atombounds,atoms,atomcolors,zsize
@@ -194,8 +197,7 @@ if pstyle!=0:
     pl.title("%d Log plot ELF, use < and > to change plots\n%s"%(pos,cdir))
     pl.show()
 else:
-    matplotlib.use("Agg")
-    logplotter(X,Y,dataset[:,:,0],ticks,colors)
+    logplotter_spheres(X,Y,dataset[:,:,0],ticks,colors,0*zsize/gridsz[0],atombounds,atoms,atomcolors)
     pl.savefig(fname)
 
 
