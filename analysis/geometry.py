@@ -54,3 +54,11 @@ def applyPeriodicBounds(pnt,bnds):
     """
     weave.inline(code,['pnt','bnds'])      
     return pnt
+
+#Return a set of points on the plane defined by the miller indeces.
+def miller2pnts(mInd,N=5):
+    #mind = [a,b,c] miller indeces
+    #N = number of points on line, N^2 points are returned.
+    
+    [1./m for m in mInd if m>0]
+        
