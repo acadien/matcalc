@@ -38,8 +38,8 @@ def gaussNorm2D(x,sigx,mux,y,sigy,muy,rho):
 
 #f(x)=a e ^ ( (x-x0)^2 / (-2sig^2) ) 
 gauss1Dcode = """
-double xx=(x-x0)/sig;
-return_val = a*exp(xx*xx/-2.);
+double xx=( x - x0 ) / sig;
+return_val = a * exp( xx*xx / -2. );
 """
 def gauss1D(a,x,x0,sig):
     return weave.inline(gauss1Dcode,['a','x','x0','sig'])
