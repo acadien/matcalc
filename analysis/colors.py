@@ -1,5 +1,7 @@
 #!/usr/bin/python
 from math import *
+import matplotlib.cm as cm
+import matplotlib.colors as col
 
 def float2rgb(val, cmin, cmax):
     x = float(val-cmin)/float(cmax-cmin)
@@ -23,3 +25,21 @@ def float2rgb_fire(val,cmin,cmax):
     g = min(max(1.5-2.0*x, 0.), 1.)
     b = min(max(1.0-2.0*x, 0.), 1.)
     return (r,g,b)
+
+#Defining a custom color map because defaults suck.
+cdict = {'red': ((0.0, 0.0, 0.0),
+                     (0.3, 0.5, 0.5),
+                     (0.6, 0.7, 0.7),
+                     (1.0, 0.8, 0.8)),
+         'green': ((0.0, 0.0, 0.0),
+                   (0.3, 0.8, 0.8),
+                   (0.6, 0.7, 0.7),
+                   (1.0, 0.0, 0.0)),
+         'blue': ((0.0, 1.0, 1.0),
+                  (0.3, 1.0, 1.0),
+                  (0.6, 0.0, 0.0),
+                  (1.0, 0.0, 0.0))}
+
+#Visible (darks) Spectral Colormap
+vizSpec = col.LinearSegmentedColormap('my_colormap',cdict,N=256,gamma=0.75)
+cm.register_cmap(name='own1', cmap=vizSpec)
