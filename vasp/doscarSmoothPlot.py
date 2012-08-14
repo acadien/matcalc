@@ -17,6 +17,7 @@ def usage():
 
 def gaussSmooth(xs,yrough,xi,yi,sig):
     #ys=[y*gaussNorm1D(x,mu,sig) for x,y in zip(xs,yrough)]
+
     Nx=len(xs)
     Nxi=len(xi)
 
@@ -24,11 +25,8 @@ def gaussSmooth(xs,yrough,xi,yi,sig):
         if yrough[j]==0.0: continue
         low=max(0,j*5-50)
         high=min(Nxi,j*5+50)
-        yi[low:high]+=[gauss1D(yrough[j],xi[i],xs[j],sig) for i in range(low,high)]
-        #print yrough[j],xi[i],xs[j],sig
-        #print [gauss1D(yrough[j],xi[i],xs[j],sig) for i in range(low,high)]
-
-        
+        yi[low:high]+=gauss1D(array(xi[low:high]),yrough[j],xs[j],sig)
+ 
 if len(sys.argv)<2:
     usage()
     exit(0)
@@ -99,18 +97,19 @@ for a in range(Natoms):
 poDOSenergy/=Natoms
 poDOS=poDOS.T
 
-if len(poDOS) in [16,32]:#s,p,d,f
-    orbs=[[0,1],[1,4],[4,9],[9,16]]
-    labels=['s','p','d','f','total','integ']
-elif len(poDOS) in [9,18]:#s,p,d
-    orbs=[[0,1],[1,4],[4,9]]
-    labels=['s','p','d','total','integ']
-elif len(poDOS) in [4,8]:#s,p
-    orbs=[[0,1],[1,4]]
-    labels=['s','p','total','integ']
-else:#s
-    orbs=[[0,1]]
-    labels=['s','total','integ']
+print poDOS.shape
+if len(poDOS) in [16,32]:
+    orbs={'s':[0,1],'p':[1,4],'d':[4,9],'f':[9,16]}
+elif len(poDOS) in [9,18]:
+    orbs={'s':[0,1],'p':[1,4],'d':[4,9]}
+elif len(poDOS) in [4,8]:
+    orbs={'s':[0,1],'p':[1,4]}
+elif len(poDOS) in [1,2]:
+    orbs={'s':[0,1]}
+else:
+    print "Length of DOS is weird (not one of 1,4,9,16). exiting."
+    exit(0)
+labels=['s','p','d','f','total','integ']
 colors=['blue','green','purple','red','black','gray']
     
 pl.figure()
@@ -151,31 +150,35 @@ pl.plot([efermi,efermi],[0,max(tDOSinteg)],c='black',ls=':')
 pl.xlim([min(min(poDOSenergy),min(tDOSenergy)),max(max(poDOSenergy),max(tDOSenergy))+8])
 pl.title(sys.argv[1])
 """
-
 #exit(0)
 Ninterp=len(poDOSenergy)*5
 smthEn=[(i/float(Ninterp)*(poDOSenergy[-1]-poDOSenergy[0]))+poDOSenergy[0] for i in range(Ninterp)]
-smthFDOSu=zeros(Ninterp)
-smthFDOSd=zeros(Ninterp)
+smthDOSu,smthDOSd=zip(*[[zeros(Ninterp),zeros(Ninterp)] for i in range(len(orbs))])
+#smthDDOSu,smthDDOSd=zeros(Ninterp),zeros(Ninterp)
+#smthPDOSu,smthPDOSd=zeros(Ninterp),zeros(Ninterp)
+#smthSDOSu,smthSDOSd=zeros(Ninterp),zeros(Ninterp)
 smthTotDOSU=zeros(Ninterp)
 smthTotDOSD=zeros(Ninterp)
 sigma=0.25
 #Loop over -f- orbitals and sum up contributions with gaussian smoothing
-for io,o in enumerate(range(orbs[-1][0],orbs[-1][1])):
-    gaussSmooth(poDOSenergy,map(float,poDOS[2*o]),smthEn,smthFDOSu,sigma)
-    gaussSmooth(poDOSenergy,map(float,poDOS[2*o+1]),smthEn,smthFDOSd,sigma)
+for i,orb in enumerate(orbs.keys()):
+    for io,o in enumerate(range(*orbs[orb])):
+        gaussSmooth(poDOSenergy,map(float,poDOS[2*o]),smthEn,smthDOSu[i],sigma)
+        gaussSmooth(poDOSenergy,map(float,poDOS[2*o+1]),smthEn,smthDOSd[i],sigma)
 gaussSmooth(tDOSenergy,tDOSU,smthEn,smthTotDOSU,sigma)
 gaussSmooth(tDOSenergy,tDOSD,smthEn,smthTotDOSD,sigma)
 smthEn=[i-efermi for i in smthEn]
 
-pl.fill_between(smthEn,0,smthFDOSu,color="orange",label="f-U")
-pl.fill_between(smthEn,0,smthFDOSd*-1,color="green",label="f-D")
-pl.plot(smthEn,smthFDOSu,c="orange",label="f-U")
-pl.plot(smthEn,smthFDOSd*-1,c="green",label="f-D")
-pl.plot(smthEn,smthTotDOSU,label="Total U")
-pl.plot(smthEn,smthTotDOSD*-1,label="Total D")
+for i in range(len(orbs)):
+    pl.plot(smthEn,smthDOSu[i],c=colors[i],label=orbs.keys()[i])
+    pl.fill_between(smthEn,0,smthDOSu[i],color=colors[i],label="f-U",alpha=0.7)
+    pl.fill_between(smthEn,0,smthDOSd[i]*-1,color=colors[i],label="f-D",alpha=0.5)    
+
+
+pl.plot(smthEn,smthTotDOSU,color="black",label="Total")
+pl.plot(smthEn,smthTotDOSD*-1,color="black")
 #pl.plot([0,0],[max(smthDOSd)*-1,max(smthDOSu)],c='black',ls=':')
-pl.xlim([-5,max(poDOSenergy)-efermi])
+#pl.xlim([-5,max(poDOSenergy)-efermi])
 pl.xlabel("Energy")
 pl.ylabel("DOS")
 pl.legend(loc=0)
