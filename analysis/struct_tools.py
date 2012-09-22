@@ -2,7 +2,7 @@
 
 #A collection of helper functions and general utilities for analzing a set of atoms
 
-from math import *
+#from math import *
 from scipy import weave
 from scipy.weave import converters
 from numpy import *
