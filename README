@@ -1,1 +1,11 @@
-All code here in written by Adam Cadien.  I've put it here for you to use as you please.  Most codes will tell you how to run them if run without any arguements.  Enjoy.
+I'm using this to store code developed throughout my doctorate. I've put it here for you to use as you please.  Most codes will tell you how to run them if run without any arguements.  Enjoy (I did, really thats just a sarcastic comment... but seriously you know... enjoy... *cough*).
+
+analysis - Generic tools that take data (of any kind) and perform operations on them.  FFTs, band pass, multidimensional curve fitting, etc.
+
+diffraction - Tools for x-ray pattern analysis and some curve fitting.
+
+gmice - A couple of tools for running codes remotely on our HPC server.
+
+moldyn - Scripts for reading lammps molecular dynamics output data, some analysis and plotting.
+
+vasp - Scripts that plot and post-process VASP output data.
