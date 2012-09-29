@@ -4,7 +4,7 @@ import pylab as pl
 import sys
 from scipy import *
 #mine
-from plotposcars import plotsimulation
+from poscarsPlot import plotsimulation
 from poscarIO import *
 from struct_tools import *
 
@@ -13,9 +13,10 @@ def rectify_basis(basis,atoms):
     #And a collection of atoms that are fractional combinations of basis
     #Returns: Basis orthognoal vectors such with same atoms 
 
-    xprimary=array([1,0,0])
-    yprimary=array([0,1,0])
-    zprimary=array([0,0,1])
+    xprimary=array([1.,0.,0.])
+    yprimary=array([0.,1.,0.])
+    zprimary=array([0.,0.,1.])
+    print basis
     [a,b,c]=basis
 
     #Rotate the whole system so that a lies in [1,0,0] direction
@@ -25,6 +26,7 @@ def rectify_basis(basis,atoms):
     c=dot(M1,c)
     atoms=[dot(M1,atom) for atom in atoms]
 
+    """
     #Trim off x part of b & c
     for atom in atoms:
         if atom[0]>a[0]:
@@ -48,8 +50,9 @@ def rectify_basis(basis,atoms):
         if atom[1]<0:
             atom[1]+=b[1]
     c[1]=0
-
+    """
     basis=[a,b,c]    
+
     return basis,atoms
 
 def plotbasis(basis,aa=None,c='r',ls='-',shift=None):
@@ -82,7 +85,7 @@ def plotatoms(atoms,types,aa=None):
 
     if aa==None:
         fig=pl.figure()
-        aa = fig.add_subplot(111,projection='3d')
+        aa = fig.gca(projection='3d')
 
     colors=["red","blue","green","yellow","orange","purple","black"]
 
