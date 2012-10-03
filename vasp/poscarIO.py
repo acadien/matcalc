@@ -13,7 +13,12 @@ def readposcar(poscar,frac_coord=False):
     v1=[float(i) for i in poscar.pop(0).split()]
     v2=[float(i) for i in poscar.pop(0).split()]
     v3=[float(i) for i in poscar.pop(0).split()]
-    atypes=[int(i) for i in poscar.pop(0).split()]
+    try:
+        vals=poscar.pop(0).split()
+        atypes=[int(i) for i in vals]
+    except ValueError:
+        elements=vals
+        atypes=[int(i) for i in poscar.pop(0).split()]
     N=sum(atypes)
     poscar.pop(0)
 
@@ -65,8 +70,10 @@ def writeposcar(poscarName,basis,atoms,types,header):
 
     #If atoms are not in fractional coordinates, convert them
     frac=True
-    for atom in atoms:
-        if len([1 for i in atom if i>1 or i<0])>0:
+    for d,atom in enumerate(atoms):
+        if len([1 for i in atom if i>1.0 or i<0.0])>0:
+            print "here"
+            print d,atom
             frac=False
             break
     if not(frac):
