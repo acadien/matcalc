@@ -4,7 +4,7 @@ import pylab as pl
 
 if len(sys.argv)<2:
     print "Usage:"
-    print sys.argv[0]+" <OUTCAR file>"
+    print sys.argv[0].split("/")[-1]+" <OUTCAR file>"
 
 outcar = open(sys.argv[1],"r")
 
