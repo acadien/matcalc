@@ -26,7 +26,7 @@ def outcarGrabFinalE(outcar):
     exit(0)
 
 basedir = sys.argv[1].rstrip("/")
-phases=[i for i in os.listdir(basedir) if "eos" in i.lower()]
+phases=[i for i in os.listdir(basedir) if "eos" in i[-3:]]
 
 ratios={}
 volumes={}
