@@ -30,7 +30,7 @@ def outcarGrabFinalE(outcar):
 basedir = sys.argv[1].rstrip("/")
 phases=[i for i in os.listdir(basedir) if "eos" in i[-3:]]
 
-cs=[colors.float2rgb(i,0,len(phases)) for i in range(len(phases))]
+cs=[colors.float2rgb_all(i,0,len(phases)) for i in range(len(phases))]
 
 ratios={}
 volumes={}
