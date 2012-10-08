@@ -55,7 +55,7 @@ for phase in phases:
     c=cs.pop()
     m=marks.next()
     pl.plot(volumes[phase],energies[phase],label=phase,mfc=c,marker=m)
-    pl.plot(volumes[phase],energies[phase],c=cs.pop())
+    pl.plot(volumes[phase],energies[phase],c=c)
 pl.xlabel("Volume ($\AA / atom$)")
 pl.ylabel("Energy ($eV / atom$)")
 pl.legend(loc=0)
