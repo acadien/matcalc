@@ -6,6 +6,8 @@ import matplotlib
 matplotlib.use('Agg')
 
 import pylab as pl
+#mine
+import colors
 
 if len(sys.argv)<2:
     print "Usage:"
@@ -28,6 +30,8 @@ def outcarGrabFinalE(outcar):
 basedir = sys.argv[1].rstrip("/")
 phases=[i for i in os.listdir(basedir) if "eos" in i[-3:]]
 
+cs=[colors.float2rgb(i,0,len(phases)) for i in range(len(phases))]
+
 ratios={}
 volumes={}
 energies={}
@@ -43,9 +47,9 @@ for phase in phases:
 
 pl.figure()
 for phase in phases:
-    pl.plot(volumes[phase],energies[phase],label=phase)
-pl.xlabel("Volume ($\AA / atoms$)")
-pl.ylabel("Energy ($eV / atoms$)")
+    pl.plot(volumes[phase],energies[phase],label=phase,c=cs.pop())
+pl.xlabel("Volume ($\AA / atom$)")
+pl.ylabel("Energy ($eV / atom$)")
 pl.legend(loc=0)
 pl.savefig("/home/acadien/Dropbox/EVolEOS.png")
 #pl.show()
