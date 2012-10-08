@@ -20,7 +20,7 @@ def float2rgb_all(val,cmin,cmax):
 
 #white-yello-red-black
 def float2rgb_fire(val,cmin,cmax):
-    x = (val-cmin)/(cmax-cmin)
+    x = float(val-cmin)/(cmax-cmin)
     r = min(max(2.0-1.8*x, 0.), 1.)
     g = min(max(1.5-2.0*x, 0.), 1.)
     b = min(max(1.0-2.0*x, 0.), 1.)
