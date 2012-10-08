@@ -12,7 +12,7 @@ def float2rgb(val, cmin, cmax):
 
 #Blue-Green-Yellow-Red-Magenta
 def float2rgb_all(val,cmin,cmax):
-    x = (val-cmin)/(cmax-cmin)
+    x = float(val-cmin)/(cmax-cmin)
     r = min(max( 4*x            -1.0, 0.), 1.)
     g = min(max(-4*fabs(0.375-x)+1.5, 0.), 1.)
     b = min(max( 4*fabs(0.500-x)-1.0, 0.), 1.)
