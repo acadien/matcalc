@@ -7,12 +7,12 @@ def readposcar(poscar,frac_coord=False):
     if len(poscar)<3:
         return [-1]*9
 
-    head=poscar[0]
-    poscar=poscar[2:]
+    head=poscar.pop(0)
+    scale=float(poscar.pop(0))
 
-    v1=[float(i) for i in poscar.pop(0).split()]
-    v2=[float(i) for i in poscar.pop(0).split()]
-    v3=[float(i) for i in poscar.pop(0).split()]
+    v1=[float(i)*scale for i in poscar.pop(0).split()]
+    v2=[float(i)*scale for i in poscar.pop(0).split()]
+    v3=[float(i)*scale for i in poscar.pop(0).split()]
     try:
         vals=poscar.pop(0).split()
         atypes=[int(i) for i in vals]
