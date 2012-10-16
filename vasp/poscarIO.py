@@ -5,6 +5,7 @@ from numpy import matrix,linalg
 #Send in the read poscar file and readposcar will parse it... should be called parse poscar
 def readposcar(poscar,frac_coord=False):
     if len(poscar)<3:
+        print "Error\nSomething wrong with poscar or not passed properly to readposcar()."
         return [-1]*9
 
     head=poscar.pop(0)
