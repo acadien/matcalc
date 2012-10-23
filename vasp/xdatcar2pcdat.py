@@ -11,7 +11,7 @@ from duplicate import duplicate26
 #Calculates the pair-correlation function for a set of atoms in an XDATCAR file and writes it to a file
 
 def usage():
-    print "Usage: %s <xdatcar> <cutoff (A)> <numbins> <opt:pcdat file name>"%sys.argv[0]
+    print "Usage: %s <xdatcar> <cutoff (A)> <numbins> <opt:pcdat file name>"%sys.argv[0].split("/")[-1]
 
 if len(sys.argv)<4:
     usage()
@@ -23,6 +23,7 @@ else:
 
 xdatfile=sys.argv[1]
 xdatcar=open(xdatfile,"r").readlines()
+Natoms=int(xdatcar[0].split()[0])
 lengths=array(map(lambda x:float(x)*1E10,xdatcar[1].split()[1:4]))
 basis=[[1,0,0],[0,1,0],[0,0,1]]
 xdatcar=xdatcar[5:]
@@ -35,24 +36,12 @@ i=0
 cnt=0
 atomconfigs=list()
 while i < len(xdatcar):
-    if "Konfig" in xdatcar[i]:
-        cnt+=1
-        atomconfigs=list()
-        atoms=list()
-        while True:
-            i+=1
-            if i >= len(xdatcar): break
-            try:
-                a=array(map(float,xdatcar[i].split()))
-            except ValueError:
-                break
-            else:
-                atoms.append(a)
-        i-=1
-        Na=len(atoms)
-        types=[1]*Na
-        pcors.append(paircor_periodic(array(atoms),array(lengths),cutoff=cutoff,nbins=numbins)[1])
     i+=1
+    cnt+=1
+    atoms=map(lambda x:map(float,x.split()),xdatcar[i:i+Natoms])
+    i+=Natoms
+    pcors.append(paircor_periodic(array(atoms),array(lengths),cutoff=cutoff,nbins=numbins)[1])
+
 
 
 print "="*50
