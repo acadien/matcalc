@@ -15,7 +15,7 @@ def plot3(md,ax,ay,az,afx,afy,afz,v1,v2,v3,types):
     thelock.set()
     mlab.figure()
     if md==True:
-        mlab.points3d(ax,ay,az,types,colormap="gist_heat",scale_factor=0.7)
+        mlab.points3d(ax,ay,az,types,colormap="gist_heat",scale_factor=1.0,vmin=-1.0,vmax=4.0)#colormap="gist_heat"
         mlab.axes()
         mlab.quiver3d(ax,ay,az,afx,afy,afz,line_width=3,scale_factor=1)
     else:
@@ -32,7 +32,7 @@ def plot3(md,ax,ay,az,afx,afy,afz,v1,v2,v3,types):
         ay2[2*N:]=[y-v2[1] for y in ay]
         az2[2*N:]=[z-v3[2] for z in az]
         print len(types)*27,len(az2)*9
-        mlab.points3d(ax2[:N]*9+ax2[N:2*N]*9+ax2[2*N:]*9,(ay2[:N]*3+ay2[N:2*N]*3+ay2[2*N:]*3)*3,az2*9,[d+1.0 for d in types]*27,scale_factor=0.7)
+        mlab.points3d(ax2[:N]*9+ax2[N:2*N]*9+ax2[2*N:]*9,(ay2[:N]*3+ay2[N:2*N]*3+ay2[2*N:]*3)*3,az2*9,[d+1.0 for d in types]*27,scale_factor=1.0,vmin=-1.0,vmax=4.0)
         #mlab.points3d(ax,ay,az,[d+1.0 for d in types],scale_factor=1.0)
         mlab.axes()
     mlab.plot3d([0,v1[0]],[0,v1[1]],[0,v1[2]],color=(0,1,0))
@@ -79,10 +79,10 @@ def plot3sphere(md,ax,ay,az,afx,afy,afz,v1,v2,v3,rx,ry,rz,rr):
     print "\nFound %d atoms inside of the sphere." % (cnt)
     mlab.clf()
     if md==True:
-        mlab.points3d(ax,ay,az,types2,colormap="gist_heat",scale_factor=0.7)
-        mlab.quiver3d(ax,ay,az,afx,afy,afz,line_width=3,scale_factor=1)
+        mlab.points3d(ax,ay,az,types,scale_factor=1,vmin=-1.0,vmax=4.0)
+        #mlab.quiver3d(ax,ay,az,afx,afy,afz,line_width=3,scale_factor=1)
     else:
-        mlab.points3d(ax,ay,az,types,colormap="gist_heat",scale_factor=0.7)
+        mlab.points3d(ax,ay,az,types,scale_factor=1,vmin=-1.0,vmax=4.0)#colormap="gist_heat"
         ax2=[0]*N*3
         ay2=[0]*N*3
         az2=[0]*N*3
@@ -95,7 +95,7 @@ def plot3sphere(md,ax,ay,az,afx,afy,afz,v1,v2,v3,rx,ry,rz,rr):
         ax2[2*N:]=[x-v1[0] for x in ax]
         ay2[2*N:]=[y-v2[1] for y in ay]
         az2[2*N:]=[z-v3[2] for z in az]
-        mlab.points3d(ax2[:N]*9+ax2[N:2*N]*9+ax2[2*N:]*9,(ay2[:N]*3+ay2[N:2*N]*3+ay2[2*N:]*3)*3,az2*9,types2*27,scale_factor=0.7)
+        mlab.points3d(ax2[:N]*9+ax2[N:2*N]*9+ax2[2*N:]*9,(ay2[:N]*3+ay2[N:2*N]*3+ay2[2*N:]*3)*3,az2*9,types2*27,scale_factor=1.0,vmin=-1.0,vmax=4.0)
     mlab.plot3d([0,v1[0]],[0,v1[1]],[0,v1[2]],color=(0,1,0))
     mlab.plot3d([v1[0],v1[0]+v2[0]],[v1[1],v1[1]+v2[1]],[v1[2],v1[2]+v2[2]],color=(0,1,0))
     mlab.plot3d([v1[0],v1[0]+v3[0]],[v1[1],v1[1]+v3[1]],[v1[2],v1[2]+v3[2]],color=(0,1,0))
@@ -111,7 +111,7 @@ def plot3sphere(md,ax,ay,az,afx,afy,afz,v1,v2,v3,rx,ry,rz,rr):
     mlab.plot3d([v3[0],v3[0]+v2[0]],[v3[1],v3[1]+v2[1]],[v3[2],v3[2]+v2[2]],color=(0,1,0))
     mlab.plot3d([v3[0]+v1[0],v1[0]+v2[0]+v3[0]],[v3[1]+v1[1],v1[1]+v2[1]+v3[1]],[v3[2]+v1[2],v1[2]+v2[2]+v3[2]],color=(0,1,0))
 
-    sphere = mlab.points3d(rx, ry, rz, scale_mode='none', scale_factor=rr*2, color=(0.67, 0.77, 0.93), resolution=50, opacity=1.0, name='Earth')
+    sphere = mlab.points3d(rx, ry, rz, scale_mode='none', scale_factor=rr*2, color=(0.67, 0.77, 0.93), resolution=50, opacity=0.6, name='Earth')
 
     # These parameters, as well as the color, where tweaked through the GUI, with the record mode to produce lines of code usable in a script.
     sphere.actor.property.specular = 0.45
@@ -215,7 +215,6 @@ if not outcar:
     prompt_iface(False,0,0,0,0,0,ax,ay,az,afx,afy,afz,v1,v2,v3,types)
     exit(0)
 
-N=sum(nums)
 count=0
 md=True
 started=0
