@@ -1,5 +1,8 @@
 #!/usr/bin/python
 import sys
+#mine
+import prshow as pr
+
 import pylab as pl
 
 if len(sys.argv)<2:
@@ -28,4 +31,4 @@ pl.legend(["PE","KE","TE"])
 pl.xlabel("Temperature (K)")
 pl.ylabel("Energy (eV)")
 pl.title(sys.argv[1])
-pl.show()
+pr.prshow("outcarET.png")

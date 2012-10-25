@@ -1,8 +1,11 @@
 #!/usr/bin/python
+
 import sys,os
-import pylab as pl
 #mine
+import prshow as pr
 from datatools import windowAvg
+
+import pylab as pl
 
 if len(sys.argv)<2:
     print "Usage:"
@@ -40,4 +43,4 @@ pl.legend(["StressX","StressY","StressZ","Avg","Windowed Avg"],loc=2)
 pl.xlabel("Timestep")
 pl.ylabel("Stress (kB)")
 pl.title(sys.argv[1])
-pl.show()
+pr.prshow("outcarStressTime.png")

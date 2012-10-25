@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import sys
+import plotRemote as pr
 import pylab as pl
 
 if len(sys.argv)<2:
@@ -26,4 +27,4 @@ pl.legend(["PE","TE"])
 pl.xlabel("Timestep")
 pl.ylabel("Energy (eV)")
 pl.title(sys.argv[1])
-pl.show()
+pr.prshow("outcarETime.png")
