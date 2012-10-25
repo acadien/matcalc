@@ -2,7 +2,7 @@
 
 import sys
 #mine
-import prshow as pr
+import plotRemote as pr
 from datatools import windowAvg
 
 import pylab as pl

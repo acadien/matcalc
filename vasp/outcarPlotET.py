@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import sys
 #mine
-import prshow as pr
+import plotRemote as pr
 
 import pylab as pl
 
