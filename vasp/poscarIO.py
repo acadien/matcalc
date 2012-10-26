@@ -74,8 +74,6 @@ def writeposcar(poscarName,basis,atoms,types,header,frac=True,ratio=1.0):
         #Check if they're already fractional
         for d,atom in enumerate(atoms):
             if len([1 for i in atom if i>1.0 or i<0.0])>0:
-                print "here"
-                print d,atom
                 frac=False
                 break
         #Convert if necessary (re-using the frac flag)
