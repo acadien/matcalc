@@ -2,7 +2,7 @@
 import sys
 
 #mine
-import poscarFixScale
+import poscarVolume
 
 def outcar2poscar(outcarF,outposF,wantconfig=-1,prompt=1):
     outcar = open(outcarF,"r")
@@ -74,7 +74,7 @@ def outcar2poscar(outcarF,outposF,wantconfig=-1,prompt=1):
             wdat+=i+"\n"
 
         open(outposF,"w").writelines(wdat)
-        poscarFixScale.poscarFixScale(outposF,prompt)
+        poscarVolume.fractional(outposF)
     else:
         raise IOError("Unable to find desired POSCAR in OUTCAR.")
 
