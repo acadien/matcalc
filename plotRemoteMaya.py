@@ -9,7 +9,6 @@ import os
 #use prshow(fname) instead of pylab.show()
 
 REMOTESESSION_BASEDIR="/home/acadien/Dropbox/"
-
 try:
     os.environ['SSH_CLIENT']
 except KeyError:
@@ -17,7 +16,7 @@ except KeyError:
     REMOTESESSION=False
 else:
     REMOTESESSION=True
-    from mayavi import mlab                                                     
+    from mayavi import mlab                                                    
     mlab.options.offscreen = True
 
 

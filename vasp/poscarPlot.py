@@ -1,17 +1,20 @@
 #!/usr/bin/python
 
 import sys
-import pylab as pl
-from scipy import array
-from math import *
-from mayavi import mlab
 #mine
-import plotRemote as pr
+import plotRemoteMaya as prm
+
+exit(0)
 from poscarIO import readposcar
 from voronoiNeighbors import voronoiNeighbors
 from struct_tools import *
 from colors import float2rgb
 from paircor import paircor_ang
+
+from scipy import array
+from math import *
+from mayavi import mlab
+
 
 def usage():
     print "%s <POSCAR file> <bond length,err>"%sys.argv[0]
@@ -44,4 +47,4 @@ mlab.plot3d([0,v2[0]],[0,v2[1]],[0,v2[2]],color=(1,1,1),line_width=0.1)
 mlab.plot3d([0,v3[0]],[0,v3[1]],[0,v3[2]],color=(1,1,1),line_width=0.1)
 
 
-pr.prshow()
+prm.prmshow(fname="POSCAR.png")

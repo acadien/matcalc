@@ -20,7 +20,6 @@ else:
     import matplotlib
     matplotlib.use("Agg")
 
-
 def prshow(fname="latestplot.png"):
     if REMOTESESSION:
         matplotlib.pyplot.savefig(REMOTESESSION_BASEDIR+fname)

@@ -25,6 +25,7 @@ def fractional(posfile):
     poscarIO.writeposcar(posfile,[v1,v2,v3], zip(ax,ay,az),atypes,head,frac=True)
 
 def ratio(posfile,ratio):
+    print posfile, ratio
     [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.readposcar(open(posfile,"r").readlines())
     poscarIO.writeposcar(posfile,[v1,v2,v3],zip(ax,ay,az),atypes,head,True,float(ratio))
     
@@ -43,7 +44,7 @@ if __name__=="__main__":
     elif sys.argv[2]=="unfrac":
         unFractional(sys.argv[1])
     elif sys.argv[2]=="ratio":
-        ratio(sys.argv[1],sys.argv[2])
+        ratio(sys.argv[1],sys.argv[3])
     else:
         print "Error, unrecognized volume arguement: %s"%sys.argv[2]
         usage()
