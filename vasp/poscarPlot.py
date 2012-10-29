@@ -6,6 +6,7 @@ from scipy import array
 from math import *
 from mayavi import mlab
 #mine
+import plotRemote as pr
 from poscarIO import readposcar
 from voronoiNeighbors import voronoiNeighbors
 from struct_tools import *
@@ -43,4 +44,4 @@ mlab.plot3d([0,v2[0]],[0,v2[1]],[0,v2[2]],color=(1,1,1),line_width=0.1)
 mlab.plot3d([0,v3[0]],[0,v3[1]],[0,v3[2]],color=(1,1,1),line_width=0.1)
 
 
-mlab.show()
+pr.prshow()

@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
 import sys
-from poscarIO import readposcar
 from numpy import *
 #mine
+from poscarIO import readposcar
 from struct_tools import mag,ang,flatten
 
 def usage():

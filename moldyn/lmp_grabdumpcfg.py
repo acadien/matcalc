@@ -38,7 +38,6 @@ if not foundFlag:
     print "Requested configuration not found, either too large or not valid int."
     exit(0)
 
-
 for line in fp:
     if line=="ITEM: TIMESTEP\n":
         break
