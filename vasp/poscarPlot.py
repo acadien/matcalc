@@ -4,7 +4,6 @@ import sys
 #mine
 import plotRemoteMaya as prm
 
-exit(0)
 from poscarIO import readposcar
 from voronoiNeighbors import voronoiNeighbors
 from struct_tools import *
