@@ -5,8 +5,9 @@ import os
 #This script detects if a session is being run remotely:
 #if remote - save figure to directory BASEDIR
 #if local - plot it
-#How to use this script: import *before* importing pylab or mpl
-#use prshow(fname) instead of pylab.show()
+#use prmshow(fname) instead of mlab.show()
+
+from mayavi import mlab                                                    
 
 REMOTESESSION_BASEDIR="/home/acadien/Dropbox/"
 try:
@@ -16,7 +17,6 @@ except KeyError:
     REMOTESESSION=False
 else:
     REMOTESESSION=True
-    from mayavi import mlab                                                    
     mlab.options.offscreen = True
 
 
