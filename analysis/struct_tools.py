@@ -154,6 +154,7 @@ def volume(a,b,c):
 
 #===========  Neighbor List  ===================
 def neighbors(atoms,bounds,r,style="full"):
+    atoms=array(atoms)
     #Assumes atom location is >=(min bound) but strictly <(max bound)
 
     #Makes a neighbor list for the list of atoms
