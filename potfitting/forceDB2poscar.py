@@ -5,7 +5,7 @@ import scipy.linalg
 
 if len(sys.argv)<2:
     print "Usage:"
-    print sys.argv[0]+" <force database file> <config#> <output-directory>"
+    print sys.argv[0].split("/")[-1]+" <force database file> <config#> <output-directory>"
     print "Parses the force database and generates a POSCAR with the proper information from the configuration given."
     exit(0)
 
