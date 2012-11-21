@@ -54,16 +54,6 @@ def paircor(atoms,inloop=0,cutoff=10.0,nbins=1000):
         inloop=N
 
     rdist=pairCorHelper(atoms,rdist,cutoff,inloop)
-    """
-    for i in range(inloop):
-        ai=atoms[i]
-        for j in range(i+1,N):
-            aj=atoms[j]
-            r=dist(ai,aj)
-            if r>cutoff:
-                continue
-            rdist[int(r/dr)]+=1
-    """
     rbins=[(i+0.5)*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
     for i,rad in enumerate(rbins):
@@ -79,55 +69,68 @@ def paircor(atoms,inloop=0,cutoff=10.0,nbins=1000):
 PCPcode="""
 double aix,ajx,aiy,ajy,aiz,ajz,c,d;
 double dr=cut/nbins;
+double cmin;
 for(int i=0;i<natoms;i++){
     aix=atoms[i*3];
     aiy=atoms[i*3+1];
     aiz=atoms[i*3+2];
-    for(int j=0;j<natoms;j++){
-        if(i==j) continue;
+    for(int j=i+1;j<natoms;j++){
+        //if(i==j) continue;
         ajx=atoms[j*3];
         ajy=atoms[j*3+1];
         ajz=atoms[j*3+2];
-        for(double tx=-1.0;tx<2.0;tx+=1.){
-        for(double ty=-1.0;ty<2.0;ty+=1.){
-        for(double tz=-1.0;tz<2.0;tz+=1.){
-            d=aix-ajx+tx*l[0];
+        cmin=100000.;
+        for(int t1=-1;t1<2;t1++){
+        for(int t2=-1;t2<2;t2++){
+        for(int t3=-1;t3<2;t3++){
+            d=aix-ajx+t1*b[0]+t2*b[3]+t3*b[6];
             c=d*d;
-            d=aiy-ajy+ty*l[1];
+            d=aiy-ajy+t1*b[1]+t2*b[4]+t3*b[7];
             c+=d*d;
-            d=aiz-ajz+tz*l[2];
+            d=aiz-ajz+t1*b[2]+t2*b[5]+t3*b[8];
             c+=d*d;
             c=sqrt(c);
 
-            if(c<=cut)
-                bins[(int)(c/dr)]++;
-        } } }
+
+            if(c<=cmin)
+                cmin=c;
+        }}}
+        if(cmin<cut)
+            bins[(int)(cmin/dr)]++;
     }
 }
 """
-def pairCorPerHelper(atoms,bins,cut,l):
+def pairCorPerHelper(atoms,bins,cut,b):
     natoms=len(atoms)
     atoms.shape=len(atoms)*3
+    b.shape=9
+    print b
     nbins=len(bins)
-    weave.inline(PCPcode,['atoms','natoms','bins','nbins','cut','l'])
+    weave.inline(PCPcode,['atoms','natoms','bins','nbins','cut','b'])
     atoms.shape=[len(atoms)/3,3]
+    b.shape=[3,3]
     return bins
 
-def paircor_periodic(atoms,lengths,cutoff=10.0,nbins=1000):
+
+def paircor_periodic(atoms,basis,cutoff=10.0,nbins=1000):
     #atoms: list of atoms[N][3]
     #cutoff: float, max radius to measure radial distro out to
     #nbins: number of bins to store in radial distro
+    basis=array(basis)
+    bt=basis.T
+    atomsp=atoms
     if sum(atoms[:,0])/len(atoms) < 1.0:
-        atoms=array(map(lambda x: [x[i]*lengths[i] for i in range(3)],atoms))
-
+        atomsp=[bt.dot(atom) for atom in atoms]
+        #atoms=array(map(lambda x: [x[i]* for i in range(3)],atoms))
+        
     rdist=zeros(nbins)
     dr=float(cutoff)/nbins
-    N=len(atoms)
+    N=len(atomsp)
 
-    rdist=pairCorPerHelper(atoms,rdist,cutoff,lengths)
+    rdist=pairCorPerHelper(atomsp,rdist,cutoff,basis)
     rbins=[i*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
-    Ndensity=N/reduce(operator.mul,lengths)
+    Ndensity=N/volume(*basis)
     for i in range(nbins):
         r=float(i)*dr
         if i==0:
@@ -137,6 +140,7 @@ def paircor_periodic(atoms,lengths,cutoff=10.0,nbins=1000):
         rdist[i]/=vol*Ndensity*N
 
     return [rbins,rdist]
+
 
 #==================================================================
 def partpaircor(atoms,types,type1,type2,inloop=0,cutoff=10.0,nbins=1000):

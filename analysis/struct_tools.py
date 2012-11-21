@@ -150,7 +150,7 @@ def rotmatx(vec1,vec2):#Returns the rotation matrix that rotates vector1 into ve
     return RM
 
 def volume(a,b,c):
-    return dot(a,cross(b,c))
+    return fabs(dot(a,cross(b,c)))
 
 #===========  Neighbor List  ===================
 def neighbors(atoms,bounds,r,style="full"):

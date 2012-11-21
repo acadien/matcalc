@@ -67,7 +67,7 @@ while True:
             exit()
 
     N=len(types)
-    lengths=array([v1[0],v2[1],v3[2]])
+    basis=array([v1,v2,v3])
     #Duplicate
     #datoms,dtypes,dbasis=duplicate26(zip(ax,ay,az),types,zip(v1,v2,v3))
 
@@ -76,7 +76,7 @@ while True:
         [rbins,rdist]=partpaircor(atoms,types,type1,type2,inloop=N,nbins=nbins)
     else:
         print atoms
-        [rbins,rdist]=paircor_periodic(atoms,lengths,cutoff=cutoff,nbins=nbins)
+        [rbins,rdist]=paircor_periodic(atoms,basis,cutoff=cutoff,nbins=nbins)
     
     rdist=[i for i in rdist]
 
