@@ -1,12 +1,14 @@
 #!/usr/bin/python
 import sys,os
 import numpy
+#mine
+from outcarIO import outcarReadConfig
 
 #This script writes an OUTCAR configuration to a force database for operating on by potfit
 
 def usage():
     print "Usage:"
-    print sys.argv[0].split("/")[-1]+" <force database> <directory containing OUTCAR/POSCAR> <configuration #> <run from script:1>"
+    print sys.argv[0].split("/")[-1]+" <force database> <OUTCAR file> <configuration #> <run from script:1>"
     exit(0)
 
 #Arguement locations in sys.argv list
@@ -18,9 +20,10 @@ argscript=4
 if not(len(sys.argv) in [4,5]):
     usage()
 
-ocdir = sys.argv[argoc] #outcar directory
-outcar = open(ocdir+"/OUTCAR","r") #outcar contains all system information at each timestep/optimation step
-poscar = open(ocdir+"/POSCAR","r") #need to use the poscar to fetch the atom types
+ocfile = sys.argv[argoc] #outcar directory
+
+#outcar = open(ocfile,"r") #outcar contains all system information at each timestep/optimation step
+
 forcefil= sys.argv[argdb]
 fordb = open(forcefil,"r")
 grabconfig=int(sys.argv[argconfig])
@@ -43,15 +46,35 @@ for line in fordb:
 fordb.close()
 fordb = open(forcefil,"a")
 
-poscar.readline()
-scale=float(poscar.readline())**(1./3.)
-v1=map(lambda x:float(x)*scale,poscar.readline().split())
-v2=map(lambda x:float(x)*scale,poscar.readline().split())
-v3=map(lambda x:float(x)*scale,poscar.readline().split())
-nums=map(int,poscar.readline().split())
+TE,stress,basis,atoms,forces,types=outcarReadConfig(ocfile,grabconfig)
+natom=len(atoms)
+
+#Number of atoms, use force, header
+line="#N\t%d 1 ifconf=%d Taken From:%s/OUTCAR  Config:#%d\n"%(natom,dbcnfgcnt,os.getcwd(),grabconfig)
+            
+#Bounding box (Angstroms)
+line += "#X\t %12.8f  %12.8f %12.8f\n"%tuple(basis[0])
+line += "#Y\t %12.8f  %12.8f %12.8f\n"%tuple(basis[1])
+line += "#Z\t %12.8f  %12.8f %12.8f\n"%tuple(basis[2])
+
+#Cohesive energy per atom (eV)
+line += "#E\t %12.8f\n"%(TE/natom)
+
+#Stress Tensor
+line += "#S\t %12.8f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f\n"%(stress[0],stress[1],stress[2],stress[3],stress[4],stress[5]) 
+            
+#Positions
+line += "#F\t\n"      
+for i in range(natom):
+    line += "  %d\t %12.8f  %12.8f  %12.8f   %12.8f  %12.8f  %12.8f\n"%(types[i],atoms[i][0],atoms[i][1],atoms[i][2],forces[i][0],forces[i][1],forces[i][2])
+
+fordb.write(line)
+print "AWWWW YEAAAAAH. "+ocfile
+
+
+"""
+nums=""
 types=list()
-for i in range(len(nums)):
-    types+=[i]*nums[i]
 ax=list()
 ay=list()
 az=list()
@@ -67,12 +90,27 @@ md=True
 while True:
     #Start a new configuration
     line=outcar.readline()
+    if "NIONS" in line and len(nums)==0:
+        nums=map(int,line.split("=")[-1].split())        
+        for i in range(len(nums)):
+            types+=[i]*nums[i]
+
     if len(line)==0:
         print "Configuration not found."
         break
     if "FREE ENERGIE OF THE ION-ELECTRON SYSTEM" in line:
         countconfig+=1
         if countconfig==grabconfig:
+            
+            #Lattice vectors
+            if "direct lattice vectors" in line:
+                line=outcar.readline()
+                v1=" ".join(line.split()[0:3])
+                line=outcar.readline()
+                v2=" ".join(line.split()[0:3])
+                line=outcar.readline()
+                v3=" ".join(line.split()[0:3])
+                break
 
             #PE
             while True:
@@ -139,28 +177,4 @@ while True:
             #
             #Write this configuration to the fordb
             #
-
-            #Number of atoms, use force, header
-            line="#N\t%d 1 ifconf=%d Location:%s  OUTCAR_Config#%d\n"%(natom,dbcnfgcnt,os.getcwd()+"/"+ocdir+"/",countconfig)
-            
-            #Bounding box (Angstroms)
-            line += "#X\t %12.8f  %12.8f %12.8f\n"%(v1[0],v1[1],v1[2])
-            line += "#Y\t %12.8f  %12.8f %12.8f\n"%(v2[0],v2[1],v2[2])
-            line += "#Z\t %12.8f  %12.8f %12.8f\n"%(v3[0],v3[1],v3[2])
-
-            #Cohesive energy per atom (eV)
-            line += "#E\t %12.8f\n"%(PE/natom)
-
-            #Stress Tensor
-            stress=[float(s)/1602.0 for s in stresskb.split()] #Convert to floats and divide by 1602kbar to get in proper units
-            line += "#S\t %12.8f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f\n"%(stress[0],stress[1],stress[2],stress[3],stress[4],stress[5]) 
-            
-            #Positions
-            line += "#F\t\n"
-            
-            for i in range(natom):
-                line += "  %d\t %12.8f  %12.8f  %12.8f   %12.8f  %12.8f  %12.8f\n"%(types[i],ax[i],ay[i],az[i],afx[i],afy[i],afz[i])
-            #print line
-            fordb.write(line)
-            print "AWWWW YEAAAAAH. "+ocdir
-            break
+"""
