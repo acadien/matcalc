@@ -8,21 +8,21 @@ import os
 #How to use this script: import *before* importing pylab or mpl
 #use prshow(fname) instead of pylab.show()
 
-REMOTESESSION_BASEDIR="/home/acadien/Dropbox/"
+REMOTESESSION_BASEDIR = "/home/acadien/Dropbox/"
 
 try:
     os.environ['SSH_CLIENT']
 except KeyError:
     #Local connection
-    REMOTESESSION=False
+    REMOTESESSION = False
 else:
-    REMOTESESSION=True
+    REMOTESESSION = True
     import matplotlib
     matplotlib.use("Agg")
 
+
 def prshow(fname="latestplot.png"):
     if REMOTESESSION:
-        matplotlib.pyplot.savefig(REMOTESESSION_BASEDIR+fname)
+        matplotlib.pyplot.savefig(REMOTESESSION_BASEDIR + fname)
     else:
         matplotlib.pyplot.show()
-        
