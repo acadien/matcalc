@@ -47,6 +47,9 @@ fordb.close()
 fordb = open(forcefil,"a")
 
 TE,stress,basis,atoms,forces,types=outcarReadConfig(ocfile,grabconfig)
+#Change atoms to be in cartesian coords instead of fractional
+bT=basis.T
+atoms=[bT.dot(atom) for atom in atoms]
 natom=len(atoms)
 
 #Number of atoms, use force, header

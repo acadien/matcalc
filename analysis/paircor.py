@@ -116,16 +116,18 @@ def paircor_periodic(atoms,basis,cutoff=10.0,nbins=1000):
     #cutoff: float, max radius to measure radial distro out to
     #nbins: number of bins to store in radial distro
     basis=array(basis)
+
     bt=basis.T
     atomsp=atoms
+
     if sum(atoms[:,0])/len(atoms) < 1.0:
         atomsp=[bt.dot(atom) for atom in atoms]
         #atoms=array(map(lambda x: [x[i]* for i in range(3)],atoms))
-        
+    atomsp=array(atomsp)
+
     rdist=zeros(nbins)
     dr=float(cutoff)/nbins
     N=len(atomsp)
-
     rdist=pairCorPerHelper(atomsp,rdist,cutoff,basis)
     rbins=[i*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 

@@ -82,7 +82,9 @@ while True:
         wrt+=boundx+"\n"
         wrt+=boundy+"\n"
         wrt+=boundz+"\n"
-        wrt+=str(atype.count(0.0))+" "+str(atype.count(1.0))+"\n" #type information
+        
+        types=[atype.count(u) for u in set(atype)]
+        wrt+=" ".join(map(str,types))+"\n"#type information
         wrt+="Direct\n"
 
         a=array([bndx,bndy,bndz])
