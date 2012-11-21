@@ -25,6 +25,10 @@ while True:
         print "Exiting."
         exit(0)
     
+    #Print the header
+    print "Header"
+    print line
+
     #Number of atoms in configuration
     natom=int(line.split()[1])
     msg = line.split("=")[1].split()[1]
@@ -64,7 +68,7 @@ while True:
     for i in range(natom):
         line=forcedb.readline().split()
         atype[i]=float(line[0])
-        [ax[i],ay[i],az[i],afx[i],afy[i],afz[i]]=[float(j) for j in line[1:-1]]
+        [ax[i],ay[i],az[i],afx[i],afy[i],afz[i]]=[float(j) for j in line[1:7]]
 
     if(count==confignum):
         pcar=sys.argv[3]+"/POSCAR"

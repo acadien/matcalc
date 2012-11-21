@@ -75,7 +75,6 @@ while True:
     if part==1:
         [rbins,rdist]=partpaircor(atoms,types,type1,type2,inloop=N,nbins=nbins)
     else:
-        print atoms
         [rbins,rdist]=paircor_periodic(atoms,basis,cutoff=cutoff,nbins=nbins)
     
     rdist=[i for i in rdist]
@@ -97,5 +96,5 @@ while True:
     if part==1:
         pl.title("Partial Pair Correlation for types %d and %d"%(type1,type2))
     else:
-        pl.title("Pair Correlation")
+        pl.title("Pair Correlation %s"%sys.argv[1])
     pl.show()
