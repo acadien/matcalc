@@ -41,6 +41,11 @@ if len(sys.argv)==7:
 
 
 while True:
+    try:
+        float(poscar[1])
+    except IndexError:
+        break
+
     [v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar)
 
     atoms=array(zip(ax,ay,az))

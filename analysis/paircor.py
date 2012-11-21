@@ -104,7 +104,6 @@ def pairCorPerHelper(atoms,bins,cut,b):
     natoms=len(atoms)
     atoms.shape=len(atoms)*3
     b.shape=9
-    print b
     nbins=len(bins)
     weave.inline(PCPcode,['atoms','natoms','bins','nbins','cut','b'])
     atoms.shape=[len(atoms)/3,3]
@@ -384,6 +383,4 @@ def paircor_binByAng(atoms,neighbs,basis,nbins=360,angtype='deg'):
     
     abins = [(i+0.5)*180./nbins for i in range(nbins)]
     
-    print bins
-
     return [abins,bins]
