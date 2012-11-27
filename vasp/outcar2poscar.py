@@ -3,6 +3,10 @@ import sys
 #mine
 import outcarIO
 
+def outcar2poscar(outcar,outposcar,wantconfig):
+    pcar=outcarIO.outcar2poscar(outcar,wantconfig)
+    open(outposcar,"w").writelines(pcar)
+
 if __name__ == "__main__":
     if len(sys.argv)<3:
         print "Usage:"
@@ -16,6 +20,5 @@ if __name__ == "__main__":
         wantconfig=int(sys.argv[3])
     else:
         wantconfig=-1 #last one by default
-
-    pcar=outcarIO.outcar2poscar(outcar,wantconfig)
-    open(outposcar,"w").writelines(pcar)
+        
+    outcar2poscar(outcar,outposcar,wantconfig)

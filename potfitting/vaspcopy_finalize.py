@@ -18,7 +18,7 @@ configNum=int(sys.argv[3])
 kpointfil=sys.argv[4]
 
 if os.path.exists(finaldir):
-    print "Please delete or rename final directory before running."
+    print "Delete or rename final directory before running."
     exit(0)
 if not os.path.exists(initdir):
     print "Error: Unable to locate initial directory."
@@ -53,4 +53,4 @@ for i in range(len(incar)):
 open(finaldir+"INCAR","w").writelines(incar)
 
 #Make the new POSCAR from the selected configuration in the OUTCAR
-outcar2poscar(initdir+"OUTCAR",finaldir+"POSCAR",configNum,0)
+outcar2poscar.outcar2poscar(initdir+"OUTCAR",finaldir+"POSCAR",configNum)

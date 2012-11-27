@@ -4,31 +4,38 @@ from math import *
 from scipy import array
 import pylab as pl
 #mine
+from poscarIO import readposcar
 from paircor import paircor_periodic
 from plotstruct import plot_atoms
-from duplicate import duplicate26
 
 #Calculates the pair-correlation function for a set of atoms in an XDATCAR file and writes it to a file
 
 def usage():
-    print "Usage: %s <xdatcar> <cutoff (A)> <numbins> <opt:pcdat file name>"%sys.argv[0].split("/")[-1]
+    print "Usage: %s <xdatcar> <POSCAR/CONTCAR (for lattice vectors)> <cutoff (A)> <numbins> <opt:pcdat file name>"%sys.argv[0].split("/")[-1]
 
-if len(sys.argv)<4:
+cutoff=10.0
+numbins=1000
+pcfile="PCDAT_fromX"
+if len(sys.argv)<3:
     usage()
     exit(0)
+if len(sys.argv)==4:
+    cutoff=float(sys.argv[3])
 if len(sys.argv)==5:
-    pcfile=sys.argv[4]
-else:
-    pcfile="PCDAT_fromX"
+    numbins=int(sys.argv[4])    
+if len(sys.argv)==6:
+    pcfile=sys.argv[5]
+
 
 xdatfile=sys.argv[1]
+pcarfile=sys.argv[2]
+v1,v2,v3,d1,d2,d3,d4,d5,d6=readposcar(open(pcarfile,"r").readlines())
+basis=[v1,v2,v3]
 xdatcar=open(xdatfile,"r").readlines()
 Natoms=int(xdatcar[0].split()[0])
 lengths=array(map(lambda x:float(x)*1E10,xdatcar[1].split()[1:4]))
-basis=[[1,0,0],[0,1,0],[0,0,1]]
 xdatcar=xdatcar[5:]
-cutoff=float(sys.argv[2])
-numbins=int(sys.argv[3])
+
 delr=float(cutoff)/numbins
 pcors=list()
 
@@ -40,7 +47,7 @@ while i < len(xdatcar):
     cnt+=1
     atoms=map(lambda x:map(float,x.split()),xdatcar[i:i+Natoms])
     i+=Natoms
-    pcors.append(paircor_periodic(array(atoms),array(lengths),cutoff=cutoff,nbins=numbins)[1])
+    pcors.append(paircor_periodic(array(atoms),basis,cutoff=cutoff,nbins=numbins)[1])
 
 
 
