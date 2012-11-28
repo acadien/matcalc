@@ -4,7 +4,8 @@ import sys
 from numpy import *
 #mine
 from poscarIO import readposcar
-from struct_tools import mag,ang,flatten
+from lammpsIO import bounds2lohi
+from struct_tools import flatten
 
 def usage():
     print "%s <in:POSCAR-file> <out:LAMMPS config-file>"%(sys.argv[0].split("/")[-1])
@@ -22,23 +23,10 @@ except IOError:
     exit(0)
 
 [v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar,frac_coord=True)
-v1,v2,v3=map(array,[v1,v2,v3])
 atoms=zip(ax,ay,az)
 #Convert from POSCAR style basis vectors to LAMMPS style boundaries.
-mv1,mv2,mv3=map(mag,[v1,v2,v3]) #magnitude
-
-origin=array([0,0,0])
-A=ang(v2,origin,v3)
-B=ang(v1,origin,v3)
-C=ang(v1,origin,v2)
-
-#Only 14 digits of accuracy.
-xhi= mv1
-xy= mv2*cos(C)
-xz= mv3*cos(B)
-yhi=(mv2**2-xy**2)**0.5
-yz= (mv2*mv3*cos(A)-xy*xz)/yhi
-zhi=(mv3**2-xz**2-yz**2)**0.5
+bounds=[v1,v2,v3]
+xhi,yhi,zhi,xy,xz,yz=bounds2lohi(bounds)
 
 basis=matrix([[xhi,0,0],[xy,yhi,0],[xz,yz,zhi]])
 
