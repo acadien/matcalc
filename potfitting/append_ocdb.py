@@ -22,8 +22,6 @@ if not(len(sys.argv) in [4,5]):
 
 ocfile = sys.argv[argoc] #outcar directory
 
-#outcar = open(ocfile,"r") #outcar contains all system information at each timestep/optimation step
-
 forcefil= sys.argv[argdb]
 fordb = open(forcefil,"r")
 grabconfig=int(sys.argv[argconfig])
