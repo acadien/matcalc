@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import matplotlib
 
 #This script detects if a session is being run remotely:
 #if remote - save figure to directory BASEDIR

@@ -1,6 +1,8 @@
 #!/usr/bin/python
 import sys
-import plotRemote as pr
+#mine
+import plotRemote as pr #must be imported before pylab
+#notmine
 import pylab as pl
 
 if len(sys.argv)<2:

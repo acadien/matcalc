@@ -93,10 +93,10 @@ while True:
         smdist=rdist[:]
         smdist = wsmooth(smdist,50)
         pl.plot(rbins,smdist)
+    else:
+        pl.plot(rbins,rdist)
 
-    #Plotting
-    pl.plot(rbins,rdist)
-    pl.xlabel("radius (A)")
+    pl.xlabel("radius ($\AA$)")
     pl.ylabel("g(r)")
     if part==1:
         pl.title("Partial Pair Correlation for types %d and %d"%(type1,type2))

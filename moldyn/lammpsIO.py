@@ -1,8 +1,61 @@
 #!/usr/bin/python
 
 from numpy import *
+import sys
 #mine
 from struct_tools import mag,ang,flatten
+
+#For reading multiple configurations from a single lammps dump
+#Reads the next configuration (jumping by step)
+def dumpReadNext(dump,step=0):
+    dbreak=0
+    chopPoint=0
+    for i,line in enumerate(dump):
+        if "TIMESTEP" in line:
+            dbreak+=1
+            if dbreak>=step:
+                chopPoint=i
+                break
+
+    if dbreak==0:
+        raise Exception(sys.argv[0].split("/")[-1],'end of file')
+    
+    dump=dump[chopPoint+1:]
+
+    end=0
+    v1,v2,v3=[[0,0,0] for j in range(3)]
+    ax,ay,az=[list() for j in range(3)]
+    types=list()
+    head=""
+    for i,line in enumerate(dump):
+        if "ITEM: TIMESTEP" in line:
+            head="From LAMMPS dump, Timestep: %s"%dump[i+1]
+            continue
+        if "ITEM: BOX BOUNDS" in line:
+            xlo,xhi,xy=map(float,dump[i+1].split())
+            ylo,yhi,xz=map(float,dump[i+2].split())
+            zlo,zhi,yz=map(float,dump[i+3].split())
+            v1=[xhi-xlo-xy-xz,0,0]
+            v2=[xy,yhi-ylo-yz,0]
+            v3=[xz,yz,zhi-zlo]
+            continue
+        if "ITEM: ATOMS" in line: #assume ITEM: ATOMS id type x y z
+            atominfo=list()
+            for j,line in enumerate(dump[i+1:]):
+                try: 
+                    data=map(float,line.split())
+                    atominfo.append(data)
+                except ValueError: 
+                    end=j
+                    break
+            atominfo.sort(key=lambda x:x[0])
+            order,types,ax,ay,az=zip(*atominfo)
+            types=map(int,types)
+            break
+    bounds=[v1,v2,v3]
+    atoms=zip(ax,ay,az)
+    return dump[end:],bounds,types,atoms,head
+
 
 #From a lammps dump read a desired configuration (0-indexed) from the dump file
 def dumpReadConfig(dump,configN):
@@ -79,7 +132,7 @@ def dumpWriteConfig(dump,bounds,types,atoms,head):
         data.append( "\t%d\t%d\t% 6.6f\t% 6.6f\t% 6.6f \n"%(i+1,t,atom[0],atom[1],atom[2]) )
     dump.writelines(data)
 
-
+#Converts VASP style boundaries to LAMMPS boundaries
 def bounds2lohi(bounds):
     v1,v2,v3=map(array,bounds)
     mv1,mv2,mv3=map(mag,[v1,v2,v3]) #magnitude
