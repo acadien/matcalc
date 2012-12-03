@@ -1,12 +1,14 @@
 #!/usr/bin/python
 
-import sys
-import pylab as pl
-from scipy import array
 #mine
+import plotRemote as pr
 from poscarIO import readposcar
 from paircor import paircor_periodic,partpaircor
 from datatools import wsmooth
+#notmine
+import sys
+import pylab as pl
+from scipy import array
 
 def usage():
     print "%s <poscar/BestPOSCARs file> <cutoff=10.0> <nbins=256> <smooth=0> <type1> <type2>"%sys.argv[0]
@@ -84,8 +86,6 @@ while True:
     
     rdist=[i for i in rdist]
 
-    pl.figure()
-
     #Smooth
     if smooth==1:
         #rdist=windowavg(rdist,50)
@@ -102,4 +102,5 @@ while True:
         pl.title("Partial Pair Correlation for types %d and %d"%(type1,type2))
     else:
         pl.title("Pair Correlation %s"%sys.argv[1])
-    pl.show()
+    pr.prshow("poscarPaircor.png")
+#    pl.savefig("blah.png")

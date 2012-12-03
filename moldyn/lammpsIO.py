@@ -61,7 +61,7 @@ def dumpReadConfig(dump,configN):
     #Grab the line numbers where the configurations start
     starts=[i for i,line in enumerate(dump) if "TIMESTEP" in line]
     if configN<-1 or configN >= len(starts):
-        print "Error: lammpsIO: requested configuration not available in dump file. %d Configurations available."%len(starts)-1
+        print "Error: lammpsIO: requested configuration not available in dump file. %d Configurations available, 0 indexed."%(len(starts))
         exit(0)
     if configN==-1:
         configN=len(starts)-1
