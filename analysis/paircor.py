@@ -131,14 +131,14 @@ def paircor_periodic(atoms,basis,cutoff=10.0,nbins=1000):
     rdist=pairCorPerHelper(atomsp,rdist,cutoff,basis)
     rbins=[i*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
-    Ndensity=N/volume(*basis)
+    #Ndensity=N/volume(*basis)
     for i in range(nbins):
         r=float(i)*dr
         if i==0:
-            vol=3.0*pi*dr*dr*dr/4.0
+            vol=4.0*pi*dr*dr*dr/3.0
         else:
             vol=4.0*pi*r*r*dr
-        rdist[i]/=vol*Ndensity*N
+        rdist[i]/=vol#*Ndensity*N
 
     return [rbins,rdist]
 
