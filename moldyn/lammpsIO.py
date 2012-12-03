@@ -13,22 +13,21 @@ def dumpReadNext(dump,step=0):
     for i,line in enumerate(dump):
         if "TIMESTEP" in line:
             dbreak+=1
-            if dbreak>=step:
+            if dbreak>step:
                 chopPoint=i
                 break
 
     if dbreak==0:
         raise Exception(sys.argv[0].split("/")[-1],'end of file')
     
-    dump=dump[chopPoint+1:]
-
+    dump=dump[chopPoint:]
     end=0
     v1,v2,v3=[[0,0,0] for j in range(3)]
     ax,ay,az=[list() for j in range(3)]
     types=list()
     head=""
     for i,line in enumerate(dump):
-        if "ITEM: TIMESTEP" in line:
+        if "TIMESTEP" in line:
             head="From LAMMPS dump, Timestep: %s"%dump[i+1]
             continue
         if "ITEM: BOX BOUNDS" in line:
@@ -46,8 +45,8 @@ def dumpReadNext(dump,step=0):
                     data=map(float,line.split())
                     atominfo.append(data)
                 except ValueError: 
-                    end=j
                     break
+            end=len(atominfo)
             atominfo.sort(key=lambda x:x[0])
             order,types,ax,ay,az=zip(*atominfo)
             types=map(int,types)
