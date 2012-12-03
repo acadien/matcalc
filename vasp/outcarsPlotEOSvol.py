@@ -21,15 +21,17 @@ def outcarGrabFinalE(outcar):
     natoms=0
     vol=0
     pres=0
+    enrg=0
     for line in open(outcar):
         if "NIONS" in line:
             natoms=int(line.split()[-1])
         if "volume of cell" in line:
-            vol=float(line.split()[-1])
+            vol=float(line.split()[-1])/natoms
+        if "free  energy" in line:
+            enrg=float(line.split()[-2])/natoms
         if "external pressure" in line:
             pres=float(line.split()[3])/10.0 #convert kB to GPa
-        if "free  energy" in line:
-            return float(line.split()[-2]),natoms,vol,pres
+            return enrg,natoms,vol,pres
     print "Error: simulation didn't finish (not final TOTEN) in file %s"%outcar
     exit(0)
 
@@ -46,10 +48,11 @@ for phase in phases:
         [outcarGrabFinalE(basedir+"/"+phase+"/"+rat+"/OUTCAR") \
              for rat in ratios[phase]])
     natoms=natoms[0]
-    es,vols,prss=zip(*sorted(zip(es,vols,prss),key=lambda x:x[1]))
-    energies[phase]=[i/natoms for i in es]
-    volumes[phase]=[i/natoms for i in vols]
-    pressures[phase]=prss #don't divide by # atoms
+    energies[phase],volumes[phase],pressures[phase] = \
+        zip(*sorted(zip(es,vols,prss),key=lambda x:x[1]))
+#    energies[phase]=[i/natoms for i in es]
+#    volumes[phase]=[i/natoms for i in vols]
+#    pressures[phase]=[i for i in prss] #don't divide by # atoms
 
 colors=[colors.float2rgb(i,0,len(phases)) for i in range(len(phases))]
 markers=['o','v','s','p','*','h','D']
