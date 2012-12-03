@@ -31,16 +31,11 @@ for pcfile in pcdats:
     xx=[i*delr for i in range(Nbins)]
     xxs.append(xx)
 
-    yy=list()
-    while len(pcdat)>Nbins:
-        pcdat.pop(0)
-        yy.append(map(float,pcdat[0:Nbins]))
-        pcdat=pcdat[Nbins:]
+    yy=[map(float,pcdat[i*Nbins+i+1:(i+1)*Nbins+i+1]) for i in range(len(pcdat)/(Nbins+1))]
     nys.append(len(yy))
     yys.append([sum(y)/len(y) for y in zip(*yy)])
 
 Niter=sum(nys)
-#yys=[[sum(j)/len(j) for j in zip(*i)] for i in yys]
 for x,y in zip(xxs,yys):
     pl.plot(x,y)
 if enableAvg:

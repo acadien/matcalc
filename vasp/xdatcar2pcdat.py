@@ -49,8 +49,6 @@ while i < len(xdatcar):
     i+=Natoms
     pcors.append(paircor_periodic(array(atoms),basis,cutoff=cutoff,nbins=numbins)[1])
 
-
-
 print "="*50
 print "="*50
 print "%d Configurations found."%len(pcors)
