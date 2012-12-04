@@ -18,9 +18,9 @@ pcfile="PCDAT_fromLAMMPs"
 if len(sys.argv)<2:
     usage()
     exit(0)
-if len(sys.argv)==3:
+if len(sys.argv)>=3:
     cutoff=float(sys.argv[2])
-if len(sys.argv)==4:
+if len(sys.argv)>=4:
     nbins=int(sys.argv[3])    
 if len(sys.argv)==5:
     pcfile=sys.argv[4]

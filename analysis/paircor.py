@@ -108,6 +108,7 @@ def pairCorPerHelper(atoms,bins,cut,b):
     weave.inline(PCPcode,['atoms','natoms','bins','nbins','cut','b'])
     atoms.shape=[len(atoms)/3,3]
     b.shape=[3,3]
+#    bins/=atoms.shape[0]
     return bins
 
 
@@ -131,14 +132,14 @@ def paircor_periodic(atoms,basis,cutoff=10.0,nbins=1000):
     rdist=pairCorPerHelper(atomsp,rdist,cutoff,basis)
     rbins=[i*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
-    #Ndensity=N/volume(*basis)
-    for i in range(nbins):
-        r=float(i)*dr
+    Ndensity=N/volume(*basis)
+    print Ndensity,N
+    for i,r in enumerate(rbins):
         if i==0:
             vol=4.0*pi*dr*dr*dr/3.0
         else:
             vol=4.0*pi*r*r*dr
-        rdist[i]/=vol#*Ndensity*N
+        rdist[i]/=vol*Ndensity*N/3
 
     return [rbins,rdist]
 
