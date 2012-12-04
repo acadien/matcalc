@@ -1,17 +1,19 @@
 #!/usr/bin/python
 
-import sys
-import pylab as pl
-from scipy import array
-from mpl_toolkits.mplot3d import Axes3D
-from math import fabs
 #mine
+import plotRemote as pr
 from poscarIO import readposcar
 from duplicate import duplicate26
 from datatools import wsmooth
 from struct_tools import neighbors,dist,dist_periodic
 from voronoiNeighbors import voronoiNeighbors
 from paircor import paircor_ang
+#notmine
+import sys
+import pylab as pl
+from scipy import array
+from mpl_toolkits.mplot3d import Axes3D
+from math import fabs
 
 def usage():
     print "%s <poscar/BestPOSCARs file> <nbins=360> <optional:minBondLen,maxBondLen>"%sys.argv[0]
@@ -89,5 +91,5 @@ while True:
     pl.xlabel("Angle (deg)")
     pl.ylabel("Count")
     pl.title("Distribution of Angles %s"%sys.argv[1])
-    pl.show()
+    pr.prshow("poscarPaircorAng.png")
     
