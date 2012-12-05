@@ -133,7 +133,6 @@ def paircor_periodic(atoms,basis,cutoff=10.0,nbins=1000):
     rbins=[i*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
     Ndensity=N/volume(*basis)
-    print Ndensity,N
     for i,r in enumerate(rbins):
         if i==0:
             vol=4.0*pi*dr*dr*dr/3.0

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from numpy import *
-from scipy.signal import freqz
+#from scipy.signal import freqz
 from numpy.fft import *
 from numpy import convolve
 import pylab as pl
@@ -65,6 +65,7 @@ def wsmooth(x,window_len=11,window='hanning'):
     M=window_len/2
     return y[M:-M+1]
 
+"""
 #Finite Impulse Response
 def FIR(n,wl,wh):
     return (sin(wh*n) - sin(wl*n))/pi/n
@@ -94,7 +95,7 @@ def bandpass(x,y,bandlow,bandhigh):
     pl.plot(filtered)
     pl.show()
     exit()
-
+"""
 
 #Takes a 2D list and turns it into a 1D list
 def flatten(listOfLists):
