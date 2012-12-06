@@ -96,7 +96,7 @@ for(int i=0;i<natoms;i++){
                 cmin=c;
         }}}
         if(cmin<cut)
-            bins[(int)(cmin/dr)]++;
+            bins[(int)(cmin/dr)]+=2;
     }
 }
 """
@@ -138,7 +138,7 @@ def paircor_periodic(atoms,basis,cutoff=10.0,nbins=1000):
             vol=4.0*pi*dr*dr*dr/3.0
         else:
             vol=4.0*pi*r*r*dr
-        rdist[i]/=vol*Ndensity*N/3
+        rdist[i]/=vol*(Ndensity*N)
 
     return [rbins,rdist]
 
