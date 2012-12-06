@@ -15,7 +15,7 @@ def usage():
     print "For parital pair-correlation indicate the desired types (1,2,3...) as defined by the ordering of the POTCAR." 
     print "Note: Periodicity of the system is accounted for."
 
-if len(sys.argv) not in [2,3,4,6]:
+if len(sys.argv) not in [2,3,4,5,6]:
     usage()
     exit(0)
 
@@ -91,7 +91,7 @@ while True:
         #rdist=windowavg(rdist,50)
         #bandpass(rbins,rdist,0.1,4.0)
         smdist=rdist[:]
-        smdist = wsmooth(smdist,50)
+        smdist = wsmooth(smdist,16)
         pl.plot(rbins,smdist)
     else:
         pl.plot(rbins,rdist)
