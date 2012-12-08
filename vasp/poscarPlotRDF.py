@@ -2,8 +2,8 @@
 
 #mine
 import plotRemote as pr
-from poscarIO import readposcar
-from paircor import paircor_periodic,partpaircor
+import poscarIO
+from rdf import rdf_periodic,rdf_partial
 from datatools import wsmooth
 #notmine
 import sys
@@ -12,7 +12,7 @@ from scipy import array
 
 def usage():
     print "%s <poscar/BestPOSCARs file> <cutoff=10.0> <nbins=256> <smooth=0> <type1> <type2>"%sys.argv[0]
-    print "For parital pair-correlation indicate the desired types (1,2,3...) as defined by the ordering of the POTCAR." 
+    print "For partial rdf indicate the desired types (1,2,3...) as defined by the ordering of the POTCAR." 
     print "Note: Periodicity of the system is accounted for."
 
 if len(sys.argv) not in [2,3,4,5,6]:
@@ -48,7 +48,7 @@ while True:
     except IndexError:
         break
 
-    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar)
+    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
 
     atoms=array(zip(ax,ay,az))
 
@@ -80,9 +80,9 @@ while True:
 
     #Correlate
     if part==1:
-        [rbins,rdist]=partpaircor(atoms,types,type1,type2,inloop=N,nbins=nbins)
+        [rbins,rdist]=rdf_partial(atoms,types,type1,type2,inloop=N,nbins=nbins)
     else:
-        [rbins,rdist]=paircor_periodic(atoms,basis,cutoff=cutoff,nbins=nbins)
+        [rbins,rdist]=rdf_periodic(atoms,basis,cutoff=cutoff,nbins=nbins)
     
     rdist=[i for i in rdist]
 
@@ -99,8 +99,8 @@ while True:
     pl.xlabel("radius ($\AA$)")
     pl.ylabel("g(r)")
     if part==1:
-        pl.title("Partial Pair Correlation for types %d and %d"%(type1,type2))
+        pl.title("Partial Radial Distribution for types %d and %d"%(type1,type2))
     else:
-        pl.title("Pair Correlation %s"%sys.argv[1])
-    pr.prshow("poscarPaircor.png")
+        pl.title("Radial Distribution %s"%sys.argv[1])
+    pr.prshow("poscarRDF.png")
 #    pl.savefig("blah.png")

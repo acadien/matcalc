@@ -2,10 +2,9 @@
 
 from numpy import matrix,linalg
 
-#Send in the read poscar file and readposcar will parse it... should be called parse poscar
-def readposcar(poscar,frac_coord=False):
+def read(poscar,frac_coord=False):
     if len(poscar)<3:
-        print "Error\nSomething wrong with poscar or not passed properly to readposcar()."
+        print "Error\nSomething wrong with poscar or not passed properly to read poscar."
         return [-1]*9
 
     head=poscar.pop(0)
@@ -47,7 +46,7 @@ def readposcar(poscar,frac_coord=False):
     return v1,v2,v3,atypes,ax,ay,az,head,poscar
 
 #Takes 1 valid poscar from the input and returns it with the input poscar
-def splitposcar(poscarin):
+def split(poscarin):
     if len(poscarin)<3:
         return [-1]*2
 
@@ -60,7 +59,7 @@ def splitposcar(poscarin):
     return poscarin,poscarout
 
 
-def writeposcar(poscarName,basis,atoms,types,header,frac=True,ratio=1.0):
+def write(poscarName,basis,atoms,types,header,frac=True,ratio=1.0):
 
     if len(types)==len(atoms):
         #fix types arrangement, reorder atoms as necessary

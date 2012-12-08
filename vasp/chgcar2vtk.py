@@ -5,27 +5,10 @@ import operator
 from numpy import *
 import scipy
 #mine
-from poscarIO import readposcar
+import poscarIO
+import chgcarIO
 
-#Multiplies by volume to get absolute Charge
-def readchgcar(chgcar):
-    v1,v2,v3,types,xs,ys,zs,header,chgcar=readposcar(chgcar)
-    poscardata=(v1,v2,v3,types,xs,ys,zs,header)
-
-    chgcar.pop(0)
-    gridsz=[int(i) for i in chgcar.pop(0).split()]
-
-    Tot_pnts = reduce(operator.mul,gridsz)
-    vol=dot(v1,cross(v2,v3))/Tot_pnts
-
-    #*vol
-    chgdata=array([float(i) for i in "".join(chgcar).split()[:Tot_pnts]])
-    chgdata=asarray(chgdata)
-    chgdata.shape=gridsz
-    chgdata=swapaxes(chgdata,0,2)
-
-    return poscardata,gridsz,chgdata
-
+"""
 #Writes a chargecar to vtk format
 def writeVTK(fname,poscardata,gridsz,chgdata,clean=False):
     v1,v2,v3,types,xs,ys,zs,header=poscardata
@@ -59,7 +42,7 @@ def writeVTK(fname,poscardata,gridsz,chgdata,clean=False):
     for i in range(gridsz[0]):
          for j in range(gridsz[1]):
             vtkfile.write(" ".join(map(lambda x:str(x),chgdata[i][j]))+"\n")
-
+"""
 
 def usage():
     print "Usage: %s <input chgcar> <optional:output vtk filename>"%sys.argv[0].split("/")[-1]
@@ -74,5 +57,5 @@ if len(sys.argv)==3:
 else:
     vtkfname=chgfname+".vtk"
 
-poscardata,gridsz,chgdata=readchgcar(open(chgfname,"r").readlines())
-writeVTK(vtkfname,poscardata,gridsz,chgdata,clean=True)
+poscardata,gridsz,chgdata=chgcarIO.read(open(chgfname,"r").readlines())
+chgcarIO.writeVTK(vtkfname,poscardata,gridsz,chgdata,clean=True)

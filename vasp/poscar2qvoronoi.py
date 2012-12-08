@@ -3,7 +3,7 @@
 import sys,os
 from scipy import *
 #mine
-from poscarIO import readposcar
+import poscarIO
 from duplicate import duplicate26
 
 def poscar2qvoronoi(**kwargs):
@@ -12,7 +12,7 @@ def poscar2qvoronoi(**kwargs):
     #Option2: atoms, basis, atypes, [qvfile]
     if "poscar" in kwargs:
         poscar=kwargs["poscar"]
-        [v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar)        
+        [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)        
         basis=[v1,v2,v3]
         atoms=zip(ax,ay,az)
     else:

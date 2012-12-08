@@ -2,12 +2,12 @@
 
 #mine
 import plotRemote as pr
-from poscarIO import readposcar
+import poscarIO
 from duplicate import duplicate26
 from datatools import wsmooth
 from struct_tools import neighbors,dist,dist_periodic
 from voronoiNeighbors import voronoiNeighbors
-from paircor import paircor_ang
+from rdf import adf
 #notmine
 import sys
 import pylab as pl
@@ -42,7 +42,7 @@ bl=float(bmin+bmax)/2.
 bw=bmax-bl
 
 while True:
-    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar)
+    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
 
     if v1==v2==v3==-1:
         break
@@ -72,8 +72,7 @@ while True:
     if bl!=-1 and bw!=-1:
         neighbs=[[j for j in neighbs[i] if fabs(dist_periodic(atoms[i],atoms[j],lengths)-bl)<bw] for i in range(N)]
     #Correlate
-    #[rbins,rdist]=paircor_ang(datoms,neighbs,nbins=nbins,inloop=N)
-    [rbins,rdist]=paircor_ang(atoms,neighbs,basis,nbins=nbins)
+    [rbins,rdist]=adf(atoms,neighbs,basis,nbins=nbins)
     
     #Smooth
     #if smooth==1:
@@ -91,5 +90,5 @@ while True:
     pl.xlabel("Angle (deg)")
     pl.ylabel("Count")
     pl.title("Distribution of Angles %s"%sys.argv[1])
-    pr.prshow("poscarPaircorAng.png")
+    pr.prshow("poscarADF.png")
     

@@ -4,12 +4,12 @@ import sys,os
 from scipy import *
 from numpy import linalg
 #mine
-from poscarIO import readposcar,writeposcar
+import poscarIO
 
 def poscarGrow(poscar,outputname,cx,cy,cz):
     nCopies=cx*cy*cz
  
-    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar,frac_coord=True)
+    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar,frac_coord=True)
     natoms=len(ax)
     v1,v2,v3=map(array,[v1,v2,v3])
     ax,ay,az=map(array,[ax,ay,az])
@@ -51,7 +51,7 @@ def poscarGrow(poscar,outputname,cx,cy,cz):
 
     atypes=[i*nCopies for i in atypes]
 
-    writeposcar(outputname,basis,atoms,atypes,head)
+    poscarIO.write(outputname,basis,atoms,atypes,head)
     return len(atoms),basis
 
 if __name__=="__main__":

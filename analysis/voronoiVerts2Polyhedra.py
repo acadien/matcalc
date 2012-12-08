@@ -4,7 +4,7 @@ import sys
 from scipy import array,ravel
 #mine
 from voronoiIO import *
-from poscarIO import readposcar
+import poscarIO 
 from struct_tools import points2polyhedron
 
 def usage():
@@ -40,7 +40,7 @@ qvodata=open(sys.argv[1],"r").readlines()
 qvfidata=open(sys.argv[2],"r").readlines()
 poscar=open(sys.argv[3],"r").readlines()
 
-[v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar)
+[v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
 basis=array([v1,v2,v3])
 atoms=zip(ax,ay,az)
 bounds=array([basis[0][0],basis[1][1],basis[2][2]])

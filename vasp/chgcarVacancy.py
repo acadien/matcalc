@@ -13,7 +13,7 @@ from matplotlib import ticker
 from matplotlib import pyplot as P
 import pylab as pl
 #mine
-from chgcarIO import readchgcar
+import chgcarIO
 from colors import float2rgb
 
 def usage():
@@ -30,7 +30,7 @@ cutev = float(sys.argv[2])
 pstyle = int(sys.argv[3])
 
 global dataset
-(v1,v2,v3,types,xs,ys,zs,header),gridsz,dataset = readchgcar(chgcar)
+(v1,v2,v3,types,xs,ys,zs,header),gridsz,dataset = chgcarIO.read(chgcar)
 #dataset.shape=gridsz[0]*gridsz[1]*gridsz[2]
 
 Tot_pnts = reduce(operator.mul,gridsz)

@@ -11,7 +11,7 @@ from matplotlib import ticker
 import matplotlib
 import subprocess
 #mine
-from elfcarIO import readelfcar
+import elfcarIO
 from colors import float2rgb
 
 def usage():
@@ -35,7 +35,7 @@ else:
 import pylab as pl
 
 global dataset
-(v1,v2,v3,types,cxs,cys,czs,header),gridsz,dataset = readelfcar(elfcar)
+(v1,v2,v3,types,cxs,cys,czs,header),gridsz,dataset = elfcarIO.read(elfcar)
 
 Npnts = reduce(operator.mul,gridsz)
 

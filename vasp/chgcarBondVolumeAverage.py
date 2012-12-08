@@ -11,7 +11,7 @@ from scipy import *
 import pylab as pl
 #mine
 from struct_tools import dist_periodic
-from chgcarIO import readchgcar,writeVTK
+import chgcarIO
 from voronoiNeighbors import voronoiNeighbors
 from fieldPointAnalysis import fieldNeighbors3D
 
@@ -22,7 +22,7 @@ def chgcarBondAnalysis(chgcarfile,bondLengths,normalize=False,verbose=False,Nint
 
     #Parse CHGCAR
     chgcar=open(chgcarfile,"r").readlines()
-    (v1,v2,v3,atypes,axs,ays,azs,header),gridSize,chg = readchgcar(chgcar)
+    (v1,v2,v3,atypes,axs,ays,azs,header),gridSize,chg = chgcarIO.read(chgcar)
     basis=asarray([v1,v2,v3])
     lengths=array([v1[0],v2[1],v3[2]])
     atoms=array(zip(axs,ays,azs))
@@ -117,8 +117,8 @@ if __name__=="__main__":
         avgGrids,bondCounts=chgcarBondAnalysis(chgcarfile,bondLengths,normalize,verbose,Ninterps=Ninterps)
 
         chgcar=open(chgcarfile,"r").readlines()
-        poscardata,gridSize,chg = readchgcar(chgcar)
+        poscardata,gridSize,chg = chgcarIO.read(chgcar)
         
         for avgGrid,bondCount,cutoff in zip(avgGrids,bondCounts,bondLengths):
             vtkfname=chgcarfile+"_cut%2.2f_NBond%d.vtk"%(cutoff,bondCount)
-            writeVTK(vtkfname,poscardata,avgGrid.shape,avgGrid)
+            chgcarIO.writeVTK(vtkfname,poscardata,avgGrid.shape,avgGrid)

@@ -4,11 +4,10 @@ from numpy import matrix,linalg,asarray,swapaxes
 from scipy import dot,cross
 import operator
 #mine
-from poscarIO import readposcar
+import poscarIO
 
-
-def readelfcar(elfcar):
-    v1,v2,v3,types,xs,ys,zs,header,elfcar=readposcar(elfcar)
+def read(elfcar):
+    v1,v2,v3,types,xs,ys,zs,header,elfcar=poscarIO.read(elfcar)
     poscardata=(v1,v2,v3,types,xs,ys,zs,header)
 
     elfcar.pop(0)

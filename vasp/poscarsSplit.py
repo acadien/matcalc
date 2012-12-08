@@ -2,7 +2,7 @@
 import sys
 from math import *
 #mine
-from poscarIO import splitposcar
+import poscarIO
 
 #Reading in the options and preparing for file reading
 if len(sys.argv)<3:
@@ -21,7 +21,7 @@ while True:
     if len(poscar)<=1:
         break
 
-    poscar,poscarout = splitposcar(poscar)
+    poscar,poscarout = poscarIO.split(poscar)
     poscarout[0]=atoms+poscarout[0]
     if poscarout==poscar==-1:
         break

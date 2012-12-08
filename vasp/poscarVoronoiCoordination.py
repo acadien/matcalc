@@ -5,7 +5,7 @@ from math import *
 import pylab as pl
 from scipy import *
 #mine
-from poscarIO import readposcar
+import poscarIO
 from geometry import atomsAtLength
 from voronoiNeighbors import voronoiNeighbors
 from struct_tools import *
@@ -20,7 +20,7 @@ mbl=-1.
 if len(sys.argv)==3:
     mbl=float(sys.argv[2])
 
-[v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar)
+[v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
 atoms=array(zip(ax,ay,az))
 basis=[v1,v2,v3]
 bounds=array([v1[0],v2[1],v3[2]])

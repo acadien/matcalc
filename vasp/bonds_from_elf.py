@@ -13,7 +13,7 @@ from matplotlib import pyplot as P
 import pylab as pl
 import subprocess
 #mine
-from readposcar import readposcar
+import poscarIO
 
 def usage():
     print "Usage:"
@@ -28,7 +28,7 @@ elfcar = open(sys.argv[1],"r").readlines()
 cutev = float(sys.argv[2])
 pstyle = int(sys.argv[3])
 
-v1,v2,v3,types,cxs,cys,czs,header,elfcar = readposcar(elfcar)
+v1,v2,v3,types,cxs,cys,czs,header,elfcar = poscarIO.read(elfcar)
 
 elfcar.pop(0)
 gridsz=[int(i) for i in elfcar.pop(0).split()]

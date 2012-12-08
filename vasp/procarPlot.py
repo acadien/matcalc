@@ -3,7 +3,7 @@
 import sys
 import pylab as pl
 #mine
-from procarIO import readPROCAR
+import procarIO
 
 def usage():
     print "procarPlot.py <PROCAR File> <Value=avg or kp> <Xaxis=band or energy>"
@@ -23,7 +23,7 @@ if xaxis not in ["band","energy"]:
     print "Select a valid xaxis."
     exit(0)
 
-olabels,kpoints,ws,energy,occupancy,avgen,avgoc=readPROCAR(procarfile)
+olabels,kpoints,ws,energy,occupancy,avgen,avgoc=procarIO.read(procarfile)
 
 Norbs=len(olabels)
 porb='q'

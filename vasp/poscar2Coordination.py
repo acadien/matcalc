@@ -5,11 +5,11 @@ from math import *
 import pylab as pl
 from scipy import *
 #mine
-from poscarIO import readposcar
+import poscarIO
 from geometry import atomsAtLength
 from voronoiNeighbors import voronoiNeighbors
 from struct_tools import *
-from coordinationIO import writeCoordination
+import coordinationIO
 
 if len(sys.argv)<3:
     print "Usage:"
@@ -30,7 +30,7 @@ for i in sys.argv[2:]:
         else:
             raise ValueError
 
-[v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar)
+[v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
 atoms=array(zip(ax,ay,az))
 basis=[v1,v2,v3]
 lengths=array([v1[0],v2[1],v3[2]])
@@ -93,4 +93,4 @@ else:
 print header
 print "Writing %s."%cnfile
 
-writeCoordination(cnfile,header,mncn,mxcn,labels,avgs,atLCNhist)
+coordinationIO.write(cnfile,header,mncn,mxcn,labels,avgs,atLCNhist)

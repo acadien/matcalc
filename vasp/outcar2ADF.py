@@ -4,17 +4,15 @@ from math import *
 from scipy import array
 import pylab as pl
 #mine
-from paircor import paircor_ang
+from rdf import adf
 from voronoiNeighbors import *
-from angularpaircorIO import writeAngularPairCor
-
-#Calculates the pair-correlation function for a set of atoms in an XDATCAR file and writes it to a file
+import adfIO
 
 def usage():
     print "Usage: %s <Outcar> <optional:numbins=360> <optional:minBondLen,maxBondLen>"%sys.argv[0]
     print "If a bondlen is given only bonds with a length between minlen and maxlen will be evaluated."
 
-def outcarAngularPairCor(outcarfile,nbins,bl=-1.0,bw=-1.0):
+def outcarADF(outcarfile,nbins,bl=-1.0,bw=-1.0):
     outcar=open(outcarfile,"r")
     tbinvals=list()
 
@@ -33,7 +31,7 @@ def outcarAngularPairCor(outcarfile,nbins,bl=-1.0,bw=-1.0):
     basis=array([map(float,outcar.readline().split()[:3]) for i in range(3)])
     lengths=array([basis[0][0],basis[1][1],basis[2][2]])
 
-    #Grab atom positions and perform paircorang analysis
+    #Grab atom positions and perform adf calculation
     count=0
     posit=False
     for line in outcar:
@@ -66,7 +64,7 @@ def outcarAngularPairCor(outcarfile,nbins,bl=-1.0,bw=-1.0):
                                     specbonds[i].append(j)
                     else:
                         specbonds=neighbs
-                    [angs,abins]=paircor_ang(atoms,specbonds,basis,nbins=nbins)
+                    [angs,abins]=adf(atoms,specbonds,basis,nbins=nbins)
                     tbinvals.append(abins)
                     print count
                     posit=False
@@ -103,15 +101,15 @@ if __name__=="__main__":
     except IndexError:
         num=None
 
-    angs,tbinvals=outcarAngularPairCor(outcarfile,nbins,bl,bw)
+    angs,tbinvals=outcarADF(outcarfile,nbins,bl,bw)
     avgvals=map(lambda x:sum(x)/len(x),zip(*tbinvals))
 
     if num:
-        apcfile="angularPairCor_%s_%g-%g.data"%(num,bmin,bmax)
+        adffile="ADF_%s_%g-%g.data"%(num,bmin,bmax)
     else:
-        apcfile="angularPairCor_%g-%g.data"%(bmin,bmax)
+        adffile="ADF_%g-%g.data"%(bmin,bmax)
 
     header="Angular Distribution from file %s."%(sys.argv[0])
 
     print "Writing %s."%apcfile
-    writeAngularPairCor(apcfile,header,bmin,bmax,angs,avgvals)
+    adfIO.write(adffile,header,bmin,bmax,angs,avgvals)

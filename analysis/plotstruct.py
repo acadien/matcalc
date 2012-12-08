@@ -1,7 +1,7 @@
 import pylab as pl
 from mpl_toolkits.mplot3d import Axes3D
 #mine
-from paircor import paircor, paircor_ang
+from rdf import rdf, adf
 from duplicate import duplicate26
 from struct_tools import *
 
@@ -46,10 +46,10 @@ def plot_pos_rad_ang(atoms,types,basis,dup=0):
         dneighbs=neighbors(datoms,5.0,style="full")
 
         #Radial Distribution
-        [rbins,rdist]=paircor(datoms,inloop=N,cutoff=12.0)
+        [rbins,rdist]=rdf(datoms,inloop=N,cutoff=12.0)
 
         #Correlation of Angles
-        [abins,adist]=paircor_ang(datoms,dneighbs,inloop=N)
+        [abins,adist]=adf(datoms,dneighbs,inloop=N)
 
         #Type sorted atoms lists
         tatoms=[list() for i in range(Ntypes)]

@@ -13,7 +13,7 @@ from scipy import *
 import pylab as pl
 #mine
 from struct_tools import dist_periodic
-from chgcarIO import readchgcar
+import chgcarIO
 from voronoiNeighbors import voronoiNeighbors
 from fieldPointAnalysis import fieldNeighbors1D
 
@@ -24,7 +24,7 @@ def chgcarBondAnalysis(chgcarfile,bondLengths,normalize=False,verbose=False):
 
     #Parse CHGCAR
     chgcar=open(chgcarfile,"r").readlines()
-    (v1,v2,v3,atypes,axs,ays,azs,header),gridSize,chg = readchgcar(chgcar)
+    (v1,v2,v3,atypes,axs,ays,azs,header),gridSize,chg = chgcarIO.read(chgcar)
     basis=asarray([v1,v2,v3])
     lengths=array([v1[0],v2[1],v3[2]])
     atoms=array(zip(axs,ays,azs))

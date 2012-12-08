@@ -10,7 +10,7 @@ import operator
 from scipy import *
 import pylab as pl
 #mine
-from elfcarIO import readelfcar
+import elfcarIO
 from voronoiNeighbors import voronoiNeighbors
 from fieldPointAnalysis import fieldNeighbors
 
@@ -30,7 +30,7 @@ if len(sys.argv)==3:
 
 #Parse ELFCAR
 elfcar=open(sys.argv[1],"r").readlines()
-(v1,v2,v3,atypes,axs,ays,azs,header),gridSize,elf = readelfcar(elfcar)
+(v1,v2,v3,atypes,axs,ays,azs,header),gridSize,elf = elfcarIO.read(elfcar)
 basis=asarray([v1,v2,v3])
 bounds=[[0.,v1[0]],[0.,v2[1]],[0.,v3[2]]]
 atoms=asarray(zip(axs,ays,azs))

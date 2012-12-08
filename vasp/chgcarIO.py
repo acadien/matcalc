@@ -4,12 +4,12 @@ import scipy
 from scipy import *
 import operator
 #mine
-from poscarIO import readposcar
+import poscarIO
 
 
 #Multiplies by volume to get absolute Charge
-def readchgcar(chgcar):
-    v1,v2,v3,types,xs,ys,zs,header,chgcar=readposcar(chgcar)
+def read(chgcar):
+    v1,v2,v3,types,xs,ys,zs,header,chgcar=poscarIO.read(chgcar)
     poscardata=(v1,v2,v3,types,xs,ys,zs,header)
 
     chgcar.pop(0)

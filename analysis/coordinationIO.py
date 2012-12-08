@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 #Writes the coordination information to a file
-def writeCoordination(fname,header,mncn,mxcn,labels,avgs,cnhists):
+def write(fname,header,mncn,mxcn,labels,avgs,cnhists):
     seperator="|||"
     cnfile=open(fname,"w")
     cnfile.write(header.strip("\n")+"\n")
@@ -12,7 +12,7 @@ def writeCoordination(fname,header,mncn,mxcn,labels,avgs,cnhists):
         cnfile.write(" ".join(map(str,i))+"\n")
     cnfile.close()
 
-def readCoordination(fname):
+def read(fname):
     seperator="|||"
     cndata=open(fname,"r").readlines()
     header=cndata.pop(0)

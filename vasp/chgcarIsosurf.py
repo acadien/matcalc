@@ -8,8 +8,6 @@ import sys,operator,os
 from numpy import *
 import scipy
 from vtk import *
-#mine
-from chgcarIO import readchgcar
 
 def usage():
     print "Usage:"

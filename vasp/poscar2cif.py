@@ -4,7 +4,7 @@ import sys,os,time
 from math import degrees
 from numpy import matrix,linalg
 #mine
-from poscarIO import readposcar
+import poscarIO
 from struct_tools import vecs2lattice
 
 def usage():
@@ -23,7 +23,7 @@ except IOError:
     usage()
     exit(0)
 
-[v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar)
+[v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
 
 N=sum(atypes)
 

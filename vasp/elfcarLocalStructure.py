@@ -16,7 +16,7 @@ from scipy import *
 from elfcarAnalyze import elfNeighbors
 from voronoiNeighbors import voronoiNeighbors
 from struct_tools import *
-from elfcarIO import readelfcar
+import elfcarIO
 
 if __name__=="__main__":
 
@@ -32,7 +32,7 @@ if __name__=="__main__":
 
     #Parse ELFCAR
     elfcar=open(sys.argv[1],"r").readlines()
-    (v1,v2,v3,atypes,axs,ays,azs,header),gridSize,elf = readelfcar(elfcar)
+    (v1,v2,v3,atypes,axs,ays,azs,header),gridSize,elf = elfcarIO.read(elfcar)
     basis=asarray([v1,v2,v3])
     bounds=[[0.,v1[0]],[0.,v2[1]],[0.,v3[2]]]
     atoms=asarray(zip(axs,ays,azs))

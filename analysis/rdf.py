@@ -8,7 +8,7 @@ import operator
 from struct_tools import *
 
 #==================================================================
-PCcode="""
+RDFcode="""
 double aix,ajx,aiy,ajy,aiz,ajz,c,d;
 double dr=cut/nbins;
 for(int i=0;i<inloop;i++){
@@ -32,16 +32,16 @@ for(int i=0;i<inloop;i++){
     }
 }
 """
-def pairCorHelper(atoms,bins,cut,inloop):
+def rdfHelper(atoms,bins,cut,inloop):
     natoms=len(atoms)
     atoms.shape=len(atoms)*3
     nbins=len(bins)
-    weave.inline(PCcode,['atoms','natoms','bins','nbins','cut','inloop'])
+    weave.inline(RDFcode,['atoms','natoms','bins','nbins','cut','inloop'])
     atoms.shape=[len(atoms)/3,3]
     return bins
 
 #==================================================================
-def paircor(atoms,inloop=0,cutoff=10.0,nbins=1000):
+def rdf(atoms,inloop=0,cutoff=10.0,nbins=1000):
     #atoms: list of atoms[N][3]
     #inloop: number of atoms to do the summation over
     #cutoff: float, max radius to measure radial distro out to
@@ -53,7 +53,7 @@ def paircor(atoms,inloop=0,cutoff=10.0,nbins=1000):
     if inloop==0:
         inloop=N
 
-    rdist=pairCorHelper(atoms,rdist,cutoff,inloop)
+    rdist=rdfHelper(atoms,rdist,cutoff,inloop)
     rbins=[(i+0.5)*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
     for i,rad in enumerate(rbins):
@@ -100,7 +100,7 @@ for(int i=0;i<natoms;i++){
     }
 }
 """
-def pairCorPerHelper(atoms,bins,cut,b):
+def rdfpHelper(atoms,bins,cut,b):
     natoms=len(atoms)
     atoms.shape=len(atoms)*3
     b.shape=9
@@ -112,7 +112,7 @@ def pairCorPerHelper(atoms,bins,cut,b):
     return bins
 
 
-def paircor_periodic(atoms,basis,cutoff=10.0,nbins=1000):
+def rdf_periodic(atoms,basis,cutoff=10.0,nbins=1000):
     #atoms: list of atoms[N][3]
     #cutoff: float, max radius to measure radial distro out to
     #nbins: number of bins to store in radial distro
@@ -129,7 +129,7 @@ def paircor_periodic(atoms,basis,cutoff=10.0,nbins=1000):
     rdist=zeros(nbins)
     dr=float(cutoff)/nbins
     N=len(atomsp)
-    rdist=pairCorPerHelper(atomsp,rdist,cutoff,basis)
+    rdist=rdfpHelper(atomsp,rdist,cutoff,basis)
     rbins=[i*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
     Ndensity=N/volume(*basis)
@@ -144,7 +144,7 @@ def paircor_periodic(atoms,basis,cutoff=10.0,nbins=1000):
 
 
 #==================================================================
-def partpaircor(atoms,types,type1,type2,inloop=0,cutoff=10.0,nbins=1000):
+def rdf_partial(atoms,types,type1,type2,inloop=0,cutoff=10.0,nbins=1000):
     #atoms: list of atoms[N][3]
     #types: list of types[N]
     #type1, type2: which types to compare against
@@ -152,7 +152,7 @@ def partpaircor(atoms,types,type1,type2,inloop=0,cutoff=10.0,nbins=1000):
     #cutoff: float, max radius to measure radial distro out to
     #nbins: number of bins to store in radial distro
 
-    print "ERROR: This method (partpaircor) needs to be re-written using the PCPcode shortcut."
+    print "ERROR: This method (rdf_partial) needs to be re-written using the PCPcode shortcut."
     print "Maybe somebody should get off their lazy ass and write it. *cough*"
     exit(0)
     """
@@ -186,7 +186,7 @@ def partpaircor(atoms,types,type1,type2,inloop=0,cutoff=10.0,nbins=1000):
     return [rbins,rdist]
 
 #==================================================================
-PCAcode="""
+ADFcode="""
 double aix,ajx,akx,aiy,ajy,aky,aiz,ajz,akz;
 double dij,dik,djk,x,a,d;
 int jn,kn,cn=0;
@@ -256,7 +256,8 @@ for(int i=0; i<natoms; i++){
 }
 """
 
-def paircor_ang(atoms,neighbs,basis,nbins=360,angtype='deg'):
+#angular distribution function
+def adf(atoms,neighbs,basis,nbins=360,angtype='deg'):
     #atoms: list of atoms[N][3]
     #neighbs: the *full* neighbor list for atoms
     #angtype: 'deg' or 'rad'
@@ -273,7 +274,7 @@ def paircor_ang(atoms,neighbs,basis,nbins=360,angtype='deg'):
 
     l=array([basis[0][0],basis[1][1],basis[2][2]])
 
-    weave.inline(PCAcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','l'])
+    weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','l'])
 
     atoms.shape=[len(atoms)/3,3]    
     abins = [(i+0.5)*180./nbins for i in range(nbins)]
@@ -282,7 +283,7 @@ def paircor_ang(atoms,neighbs,basis,nbins=360,angtype='deg'):
     
 
 #==================================================================
-PCbyAcode="""
+RDFBYADFcode="""
 double aix,ajx,akx,aiy,ajy,aky,aiz,ajz,akz;
 double dij,dik,djk,x,a,d;
 double bondij,bondjk;
@@ -362,7 +363,7 @@ for(int i=0; i<natoms; i++){
 }
 """
 
-def paircor_binByAng(atoms,neighbs,basis,nbins=360,angtype='deg'):
+def rdf_by_adf(atoms,neighbs,basis,nbins=360,angtype='deg'):
     #atoms: list of atoms[N][3]
     #neighbs: the *full* neighbor list for atoms
     #angtype: 'deg' or 'rad'
@@ -380,7 +381,7 @@ def paircor_binByAng(atoms,neighbs,basis,nbins=360,angtype='deg'):
     nneighbsf=array([len(i) for i in neighbs])
     neighbsf=array([i for i in flatten(neighbs)])
     l=array([basis[0][0],basis[1][1],basis[2][2]])
-    weave.inline(PCbyAcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','MAXNeighbs','bcounts','l'])
+    weave.inline(RDFBYADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','MAXNeighbs','bcounts','l'])
     atoms.shape=[len(atoms)/3,3]
     
     abins = [(i+0.5)*180./nbins for i in range(nbins)]

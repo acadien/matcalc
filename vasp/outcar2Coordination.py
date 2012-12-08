@@ -6,12 +6,10 @@ import pylab as pl
 from scipy import *
 import numpy as np
 #mine
-from poscarIO import readposcar
 from geometry import atomsAtLength
 from voronoiNeighbors import voronoiNeighbors
 from struct_tools import *
-from coordinationIO import writeCoordination
-
+import coordinationIO
 
 def outcarCoordination(outcarfile,maxls,voronoiEnable):
     outcar=open(outcarfile,"r")
@@ -39,7 +37,7 @@ def outcarCoordination(outcarfile,maxls,voronoiEnable):
     else:
         avgCNhist=zeros([len(maxls),absMax])
 
-    #Grab atom positions and perform paircorang analysis
+    #Grab atom positions and perform adf calculation
     count=0
     posit=False
     for line in outcar:
@@ -137,4 +135,4 @@ if __name__=="__main__":
     print header
     print "Writing %s."%cnfile
 
-    writeCoordination(cnfile,header,0,mxcn,labels,avgs,atLCNhist)
+    coordinationIO.write(cnfile,header,0,mxcn,labels,avgs,atLCNhist)

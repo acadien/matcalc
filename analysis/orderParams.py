@@ -7,7 +7,7 @@ from operator import mul
 import pylab as pl
 #mine
 from struct_tools import sphang,neighbors
-from paircor import paircor
+from rdf import rdf
 from datatools import flatten
 
 #Raw functions for calculating order parameters such as bond orientation, translational and tetrahedral ordering.
@@ -38,7 +38,7 @@ def bondOrient(atoms,basis,l,neighbs=None,rcut=5.0):
 def translational(atoms,basis,neighbs=None,rcut=None):
     if rcut==None:
         rcut=basis[0][0]/2.0
-    r,g = paircor(atoms,cutoff=rcut)
+    r,g = rdf(atoms,cutoff=rcut)
     h=map(math.fabs,g-1)
     
     tao = sum(h)/len(r)

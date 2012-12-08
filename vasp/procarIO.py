@@ -40,7 +40,7 @@ def grabOatB(procar, Nions):
     occ=map(lambda x:sum(x),zip(*[map(float,procar.readline().split()[1:]) for i in range(Nions)]))
     return occ,header
 
-def readPROCAR(procarFilename):
+def read(procarFilename):
     energy=list()
     kpoints=list()
     weights=list()

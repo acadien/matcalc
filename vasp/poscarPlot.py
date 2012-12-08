@@ -4,11 +4,10 @@ import sys
 #mine
 import plotRemoteMaya as prm
 
-from poscarIO import readposcar
+import poscarIO
 from voronoiNeighbors import voronoiNeighbors
 from struct_tools import *
 from colors import float2rgb
-from paircor import paircor_ang
 
 from scipy import array
 from math import *
@@ -29,7 +28,7 @@ if len(sys.argv) >= 3:
 
 poscar=open(sys.argv[1],"r").readlines()
 
-[v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar)
+[v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
 
 j=0
 types=list()
@@ -44,6 +43,5 @@ z=[0,0,0]
 mlab.plot3d([0,v1[0]],[0,v1[1]],[0,v1[2]],color=(1,1,1),line_width=0.1)
 mlab.plot3d([0,v2[0]],[0,v2[1]],[0,v2[2]],color=(1,1,1),line_width=0.1)
 mlab.plot3d([0,v3[0]],[0,v3[1]],[0,v3[2]],color=(1,1,1),line_width=0.1)
-
 
 prm.prmshow(fname="POSCAR.png")

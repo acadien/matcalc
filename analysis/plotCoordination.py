@@ -3,7 +3,7 @@
 import sys
 import pylab as pl
 #mine
-from coordinationIO import readCoordination
+import coordinationIO
 
 def usage():
     print "Usage: %s <coordination file>"%sys.argv[0].split("/")[-1]
@@ -12,7 +12,7 @@ if len(sys.argv)<2:
     usage()
     exit(0)
 fname=sys.argv[1]
-header,mncn,mxcn,labels,avgs,cnhists=readCoordination(fname)
+header,mncn,mxcn,labels,avgs,cnhists=coordinationIO.read(fname)
 print header
 
 colors=["red","blue","green","purple","yellow"]

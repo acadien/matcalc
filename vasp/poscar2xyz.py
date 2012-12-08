@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import sys,os
-from poscarIO import readposcar
+import poscarIO
 
 def usage():
     print "%s <element1> <element2> ... <elementN> <in:POSCAR-file> <out:XYZ-file>"%(sys.argv[0])
@@ -19,7 +19,7 @@ except IOError:
     usage()
     exit(0)
 
-[v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar)
+[v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
 
 N=sum(atypes)
 
