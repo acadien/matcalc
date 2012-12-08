@@ -3,7 +3,7 @@
 import sys
 from numpy import *
 #mine
-from poscarIO import readposcar
+import poscarIO
 from lammpsIO import bounds2lohi
 from struct_tools import flatten
 
@@ -22,7 +22,7 @@ except IOError:
     usage()
     exit(0)
 
-[v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar,frac_coord=True)
+[v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar,frac_coord=True)
 atoms=zip(ax,ay,az)
 #Convert from POSCAR style basis vectors to LAMMPS style boundaries.
 bounds=[v1,v2,v3]

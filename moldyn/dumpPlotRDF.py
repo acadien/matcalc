@@ -3,7 +3,7 @@
 #mine
 import plotRemote as pr #must be imported before pylab
 from lammpsIO import dumpReadNext
-from paircor import paircor_periodic
+from rdf import rdf_periodic
 from datatools import wsmooth #window smoothing
 #notmine
 import pylab as pl
@@ -42,7 +42,7 @@ def plotting(rbins,rdist):
     pl.plot(rbins,rdist)
     pl.xlabel("radius ($\AA$)")
     pl.ylabel("g(r)")
-    pl.title("PairCor | File:%s | Step:%s"%(sys.argv[1],head.split()[-1]))
+    pl.title("RDF | File:%s | Step:%s"%(sys.argv[1],head.split()[-1]))
     pr.prshow()
 
 if avg==1:
@@ -61,7 +61,7 @@ while True:
             print "Found %d configurations."%cnt
         break
 
-    [rbins,rdist]=paircor_periodic(array(atoms),array(bounds),cutoff=cutoff,nbins=nbins)
+    [rbins,rdist]=rdf_periodic(array(atoms),array(bounds),cutoff=cutoff,nbins=nbins)
 
     if avg==0:
         if smooth==1:

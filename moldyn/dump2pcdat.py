@@ -4,10 +4,10 @@ from math import *
 from scipy import array
 #mine
 from lammpsIO import dumpReadNext
-from paircor import paircor_periodic
+from rdf import rdf_periodic
 from plotstruct import plot_atoms
 
-#Calculates the pair-correlation function for a set of atoms in an XDATCAR file and writes it to a file
+#Calculates the RDF for a set of atoms in an XDATCAR file and writes it to a file
 
 def usage():
     print "Usage: %s <lammps-dump> <cutoff=10.0> <nbins=1000> <pcfile=\"PCDAT_fromLAMMPS\">"%sys.argv[0].split("/")[-1]
@@ -40,10 +40,10 @@ while True:
     except Exception as inst:
         #last of the configurations
         break
-    pcors.append(paircor_periodic(array(atoms),array(bounds),cutoff=cutoff,nbins=nbins)[1])
+    pcors.append(rdf_periodic(array(atoms),array(bounds),cutoff=cutoff,nbins=nbins)[1])
     print cnt
 print "Found %d configurations."%cnt
-print "Writing pair correlation function of these configurations to %s"%pcfile
+print "Writing RDF of these configurations to %s"%pcfile
 head="\nCreated by %s, from %s\n"%(sys.argv[0].split("/")[-1],dumpfile)+"\n"*4+str(nbins)+"\n"*2+str(delr/1E10)+"\n"*4
 pcdat=open(pcfile,"w")
 pcdat.write(head)

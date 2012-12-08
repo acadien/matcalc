@@ -15,8 +15,7 @@ for(int i=0;i<inloop;i++){
     aix=atoms[i*3];
     aiy=atoms[i*3+1];
     aiz=atoms[i*3+2];
-    for(int j=0;j<natoms;j++){
-        if(i==j) continue;
+    for(int j=i+1;j<natoms;j++){
         ajx=atoms[j*3];
         ajy=atoms[j*3+1];
         ajz=atoms[j*3+2];
@@ -28,7 +27,7 @@ for(int i=0;i<inloop;i++){
         c+=d*d;
         c=sqrt(c);
         if(c<=cut)
-            bins[(int)(c/dr)]++;
+            bins[(int)(c/dr)]+=2;
     }
 }
 """
@@ -56,12 +55,12 @@ def rdf(atoms,inloop=0,cutoff=10.0,nbins=1000):
     rdist=rdfHelper(atoms,rdist,cutoff,inloop)
     rbins=[(i+0.5)*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
-    for i,rad in enumerate(rbins):
-        if i==0:
-            vol=4.0*pi*rad*rad*rad/3.0
-        else:
-            vol=4.0*pi*rad*rad*dr
-        rdist[i]/=vol
+    #for i,rad in enumerate(rbins):
+    #    if i==0:
+    #        vol=4.0*pi*rad*rad*rad/3.0
+    #    else:
+    #        vol=4.0*pi*rad*rad*dr
+    #    rdist[i]/=vol
         
     return [rbins,rdist]
 
@@ -75,7 +74,6 @@ for(int i=0;i<natoms;i++){
     aiy=atoms[i*3+1];
     aiz=atoms[i*3+2];
     for(int j=i+1;j<natoms;j++){
-        //if(i==j) continue;
         ajx=atoms[j*3];
         ajy=atoms[j*3+1];
         ajz=atoms[j*3+2];
@@ -90,7 +88,6 @@ for(int i=0;i<natoms;i++){
             d=aiz-ajz+t1*b[2]+t2*b[5]+t3*b[8];
             c+=d*d;
             c=sqrt(c);
-
 
             if(c<=cmin)
                 cmin=c;
@@ -108,7 +105,6 @@ def rdfpHelper(atoms,bins,cut,b):
     weave.inline(PCPcode,['atoms','natoms','bins','nbins','cut','b'])
     atoms.shape=[len(atoms)/3,3]
     b.shape=[3,3]
-#    bins/=atoms.shape[0]
     return bins
 
 
@@ -194,28 +190,28 @@ double dang=180./nbins;
 
 double pi2=2.0*3.14159265;
 for(int i=0; i<natoms; i++){
-    ajx=atoms[i*3];
-    ajy=atoms[i*3+1];
-    ajz=atoms[i*3+2];
+    aix=atoms[i*3];
+    aiy=atoms[i*3+1];
+    aiz=atoms[i*3+2];
     for(int j=0;j<nneighbsf[i];j++){
         jn=neighbsf[cn+j];
         if(i==jn) 
           continue;
 
-        aix=atoms[jn*3];
-        aiy=atoms[jn*3+1];
-        aiz=atoms[jn*3+2];
+        ajx=atoms[jn*3];
+        ajy=atoms[jn*3+1];
+        ajz=atoms[jn*3+2];
 
         //Periodic Bounds
-        d = aix-ajx;
-        if(d>l[0]/2.0) aix -= l[0];
-        if(d<-l[0]/2.0) aix += l[0];
-        d = aiy-ajy;
-        if(d>l[1]/2.0) aiy -= l[1];
-        if(d<-l[1]/2.0) aiy += l[1];
-        d = aiz-ajz;
-        if(d>l[2]/2.0) aiz -= l[2];
-        if(d<-l[2]/2.0) aiz += l[2];
+        d = ajx-aix;
+        if(d>l[0]/2.0) ajx -= l[0];
+        if(d<-l[0]/2.0) ajx += l[0];
+        d = ajy-aiy;
+        if(d>l[1]/2.0) ajy -= l[1];
+        if(d<-l[1]/2.0) ajy += l[1];
+        d = ajz-aiz;
+        if(d>l[2]/2.0) ajz -= l[2];
+        if(d<-l[2]/2.0) ajz += l[2];
 
         for(int k=0; k<nneighbsf[i];k++){
             kn=neighbsf[cn+k];
@@ -241,7 +237,7 @@ for(int i=0; i<natoms; i++){
             dij = (aix-ajx)*(aix-ajx) + (aiy-ajy)*(aiy-ajy) + (aiz-ajz)*(aiz-ajz);
             dik = (aix-akx)*(aix-akx) + (aiy-aky)*(aiy-aky) + (aiz-akz)*(aiz-akz);
             djk = (ajx-akx)*(ajx-akx) + (ajy-aky)*(ajy-aky) + (ajz-akz)*(ajz-akz);  
-            x=(dij + djk - dik)/(2.0*sqrt(dij)*sqrt(djk));
+            x=(dij + djk - dik)/(2.0*sqrt(dij)*sqrt(djk));//possibly switch ik - jk
             if(fabs(fabs(x)-1.0) <= 1e-9)
               a=0.0;
             else

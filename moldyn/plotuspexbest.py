@@ -6,10 +6,10 @@ import mpl_toolkits.mplot3d.axes3d as p3
 import os
 #mine
 #from plotstruct import plot_pos_rad_ang
-from paircor import paircor, paircor_ang
+from rdf import rdf,adf
 from duplicate import duplicate26
 from struct_tools import *
-from readposcar import readposcar
+import poscarIO
 from datatools import flatten
 
 def findsymmetry(vs,ts,xyzpnts):
@@ -73,7 +73,7 @@ gencnt=0
 
 colors=["red","blue","green","yellow","orange","purple","black"]
 while True:
-    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = readposcar(poscar)
+    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
 
     if v1==v2==v3==-1:
         break
@@ -110,10 +110,10 @@ while True:
         dneighbs=neighbors(datoms,5.0,style="full")
 
         #Radial Distribution
-        [rbins,rdist]=paircor(datoms,inloop=N,cutoff=12.0)
+        [rbins,rdist]=rdf(datoms,inloop=N,cutoff=12.0)
 
         #Correlation of Angles
-        [abins,adist]=paircor_ang(datoms,dneighbs,inloop=N)
+        [abins,adist]=adf(datoms,dneighbs,inloop=N)
 
         #Type sorted atoms lists
         tatoms=[list() for i in range(Ntypes)]
