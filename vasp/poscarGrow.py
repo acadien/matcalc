@@ -6,31 +6,33 @@ from numpy import linalg
 #mine
 import poscarIO
 
-def poscarGrow(poscar,outputname,cx,cy,cz):
+def poscarGrow(poscarName,outputName,cx,cy,cz):
+    poscar=open(poscarName,"r").readlines()
     nCopies=cx*cy*cz
  
     [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar,frac_coord=True)
     natoms=len(ax)
     v1,v2,v3=map(array,[v1,v2,v3])
     ax,ay,az=map(array,[ax,ay,az])
-    
+
+    #duplicate and tile
     ax=array(split(tile(ax,nCopies),nCopies))
     ay=array(split(tile(ay,nCopies),nCopies))
     az=array(split(tile(az,nCopies),nCopies))
 
-    #shift=array([v1[0]+v2[0]+v3[0]]*natoms)
+    #Shift tiles in x dirn
     shift=array([1]*natoms)
     shiftfull=array([shift*j for j in range(cx)])
     for i in range(cy*cz):
         ax[i*cx+array(range(cx))]+=shiftfull
 
-        #shift=array([v1[1]+v2[1]+v3[1]]*natoms)
+    #Shift tiles in y dirn
     shift=array([1]*natoms)
     shiftfull=array([shift*(j/cx) for j in range(cy*cx)])
     for i in range(cz):
         ay[i*cx*cy+array(range(cy*cx))]+=shiftfull
 
-        #shift=array([v1[2]+v2[2]+v3[2]]*natoms)
+    #Shift tiles in z dirn
     shift=array([1]*natoms)
     shiftfull=array([shift*(j/cx/cy) for j in range(cy*cx*cz)])
     az+=shiftfull
@@ -51,7 +53,7 @@ def poscarGrow(poscar,outputname,cx,cy,cz):
 
     atypes=[i*nCopies for i in atypes]
 
-    poscarIO.write(outputname,basis,atoms,atypes,head)
+    poscarIO.write(outputName,basis,atoms,atypes,head)
     return len(atoms),basis
 
 if __name__=="__main__":
@@ -64,13 +66,14 @@ if __name__=="__main__":
         usage()
         exit(0)
 
-    outputname=sys.argv[1]+"_grown"
-    poscar=open(sys.argv[1],"r").readlines()
+    poscarName=sys.argv[1]
+    outputName=poscarName+"_grown"
+
     cx,cy,cz=map(int,sys.argv[2:5])
     if cx<1 or cy<1 or cz<1:
         print "Cell duplication values must be >=1."
         exit(0)
-    natoms,basis=poscarGrow(poscar,outputname,cx,cy,cz)
+    natoms,basis=poscarGrow(poscarName,outputName,cx,cy,cz)
     
     print "%d Atoms in grown cell"%(natoms)
     print "Bounds of simulation area are:"

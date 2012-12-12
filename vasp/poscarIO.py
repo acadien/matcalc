@@ -8,7 +8,7 @@ def read(poscar,frac_coord=False):
         return [-1]*9
 
     head=poscar.pop(0)
-    scale=float(poscar.pop(0))**(1./3)
+    scale=float(poscar.pop(0))
 
     v1=[float(i)*scale for i in poscar.pop(0).split()]
     v2=[float(i)*scale for i in poscar.pop(0).split()]
