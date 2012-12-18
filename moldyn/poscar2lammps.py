@@ -45,7 +45,7 @@ def usage():
     print "%s <in:POSCAR-file> <out:LAMMPS config-file>"%(sys.argv[0].split("/")[-1])
 
 
-if __name__=="main":
+if __name__=="__main__":
     if len(sys.argv)<3:
         usage()
         exit(0)
