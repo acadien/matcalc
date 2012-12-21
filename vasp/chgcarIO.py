@@ -9,14 +9,14 @@ import poscarIO
 
 #Multiplies by volume to get absolute Charge
 def read(chgcar):
-    v1,v2,v3,types,xs,ys,zs,header,chgcar=poscarIO.read(chgcar)
-    poscardata=(v1,v2,v3,types,xs,ys,zs,header)
+    basis,types,atoms,header,chgcar=poscarIO.read(chgcar)
+    poscardata=(basis,types,atoms,header)
 
     chgcar.pop(0)
     gridsz=[int(i) for i in chgcar.pop(0).split()]
 
     Tot_pnts = reduce(operator.mul,gridsz)
-    vol=dot(v1,cross(v2,v3))/Tot_pnts
+    vol=dot(basis[0],cross(basis[1],basis[2]))/Tot_pnts
 
     #*vol
     chgdata=array([float(i) for i in "".join(chgcar).split()[:Tot_pnts]])
@@ -28,7 +28,7 @@ def read(chgcar):
 
 #Writes a chargecar to vtk format
 def writeVTK(fname,poscardata,gridsz,chgdata,clean=False):
-    v1,v2,v3,types,xs,ys,zs,header=poscardata
+    basis,types,atoms,header=poscardata
     
     Tot_pnts=reduce(operator.mul,gridsz)
 
@@ -39,7 +39,7 @@ def writeVTK(fname,poscardata,gridsz,chgdata,clean=False):
     header.append("DATASET STRUCTURED_POINTS")
     header.append("DIMENSIONS "+" ".join(map(str,gridsz)))
     header.append("ORIGIN 0.0 0.0 0.0")
-    header.append("SPACING "+" ".join(map(str,[i/j for i,j in zip([v1[0],v2[1],v3[2]],gridsz)])))
+    header.append("SPACING "+" ".join(map(str,[i/j for i,j in zip([basis[0][0],basis[1][1],basis[2][2]],gridsz)])))
     header.append("POINT_DATA %d"%Tot_pnts)
     header.append("SCALARS charge_density float")
     header.append("LOOKUP_TABLE default")

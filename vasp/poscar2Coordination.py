@@ -30,10 +30,9 @@ for i in sys.argv[2:]:
         else:
             raise ValueError
 
-[v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
-atoms=array(zip(ax,ay,az))
-basis=[v1,v2,v3]
-lengths=array([v1[0],v2[1],v3[2]])
+[basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
+atoms=array(atoms)
+lengths=array([basis[0][0],basis[1][1],basis[2][2]])
 
 #vHalfNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='half')
 #atLHalfNeighbors=[neighbors(atoms,array([[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]),maxlen,style='half') for maxlen in maxls]

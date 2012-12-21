@@ -113,6 +113,7 @@ def rdf_periodic(atoms,basis,cutoff=10.0,nbins=1000):
     #cutoff: float, max radius to measure radial distro out to
     #nbins: number of bins to store in radial distro
     basis=array(basis)
+    atoms=array(atoms)
 
     bt=basis.T
     atomsp=atoms

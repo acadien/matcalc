@@ -10,10 +10,10 @@ def poscarGrow(poscarName,outputName,cx,cy,cz):
     poscar=open(poscarName,"r").readlines()
     nCopies=cx*cy*cz
  
-    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar,frac_coord=True)
-    natoms=len(ax)
-    v1,v2,v3=map(array,[v1,v2,v3])
-    ax,ay,az=map(array,[ax,ay,az])
+    [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar,frac_coord=True)
+    natoms=len(atoms)
+    v1,v2,v3=map(array,basis)
+    ax,ay,az=map(array,zip(*atoms))
 
     #duplicate and tile
     ax=array(split(tile(ax,nCopies),nCopies))

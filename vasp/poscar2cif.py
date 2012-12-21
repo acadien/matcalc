@@ -23,16 +23,16 @@ except IOError:
     usage()
     exit(0)
 
-[v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
+[basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
 
 N=sum(atypes)
 
 #Calculate fractional coordinates of atoms
-A=matrix([v1,v2,v3])
-[fx,fy,fz]=[list(i) for i in zip(*[linalg.solve(A,p)[:] for p in zip(ax,ay,az)])]
+A=matrix(basis)
+[fx,fy,fz]=[list(i) for i in zip(*[linalg.solve(A,p)[:] for p in atoms])]
 
 #Calculate lattice parameters
-a,b,c,A,B,C=vecs2lattice(v1,v2,v3)
+a,b,c,A,B,C=vecs2lattice(*basis)
 A,B,C=degrees(A),degrees(B),degrees(C)
 
 data= "_audit_creation_date              %s\n"%time.ctime()

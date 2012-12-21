@@ -35,7 +35,7 @@ else:
 import pylab as pl
 
 global dataset
-(v1,v2,v3,types,cxs,cys,czs,header),gridsz,dataset = elfcarIO.read(elfcar)
+(basis,types,atoms,header),gridsz,dataset = elfcarIO.read(elfcar)
 
 Npnts = reduce(operator.mul,gridsz)
 
@@ -58,13 +58,14 @@ for i in range(len(types)):
     t=types[i]
     atomradii+=[radii[i]]*t
     atomcolors+=[acolors[i]]*t
-atoms=zip(cxs,cys,czs,atomradii)
+ax,ay,az=zip(*atoms)
+atoms=zip(ax,ay,az,atomradii)
 atombounds=array([[zpos-r,zpos+r] for zpos,r in zip(czs,atomradii)])
 
-x=linspace(0,v1[0],gridsz[0])-v1[0]/gridsz[0]/2.
-y=linspace(0,v2[1],gridsz[1])-v2[1]/gridsz[1]/2.
+x=linspace(0,basis[0][0],gridsz[0])-basis[0][0]/gridsz[0]/2.
+y=linspace(0,basis[1][1],gridsz[1])-basis[1][1]/gridsz[1]/2.
 global zsize
-zsize=v3[2]
+zsize=basis[2][2]
 
 X,Y = meshgrid(x,y)
 cdir=os.getcwd().split("/")[-1]
@@ -72,37 +73,37 @@ cdir=os.getcwd().split("/")[-1]
 def plotspheres(zpos,atombounds,atoms,atomcolors):
     for i,bounds in enumerate(atombounds):
         cirs=list()
-        if (zpos > bounds[0] and zpos < bounds[1]) or zpos < bounds[1]-v3[2] or zpos > bounds[0]+v3[2]:
+        if (zpos > bounds[0] and zpos < bounds[1]) or zpos < bounds[1]-basis[2][2] or zpos > bounds[0]+basis[2][2]:
             x=atoms[i][0]
             y=atoms[i][1]
             z=atoms[i][2]
             
             d=z-zpos
-            if bounds[0] < 0 and zpos>v3[2]/2:
-                d+=v3[2]
-            elif bounds[1] > v3[2] and zpos<v3[2]/2:
-                d-=v3[2]
+            if bounds[0] < 0 and zpos>basis[2][2]/2:
+                d+=basis[2][2]
+            elif bounds[1] > basis[2][2] and zpos<basis[2][2]/2:
+                d-=basis[2][2]
             r=sqrt(atoms[i][3]**2-d**2)
 
             cirs.append( pl.Circle((x,y),radius=r, fc='None' , color=atomcolors[i], linewidth=2))
 
-            if x+r > v1[0]:
-                cirs.append(pl.Circle((x-v1[0],y), radius=r, fc='None' , color=atomcolors[i], linewidth=2))
+            if x+r > basis[0][0]:
+                cirs.append(pl.Circle((x-basis[0][0],y), radius=r, fc='None' , color=atomcolors[i], linewidth=2))
             if x-r < 0:
-                cirs.append(pl.Circle((x+v1[0],y), radius=r, fc='None' , color=atomcolors[i], linewidth=2))
-            if y+r > v2[1]:
-                cirs.append(pl.Circle((x,y-v2[1]), radius=r, fc='None' , color=atomcolors[i], linewidth=2))
+                cirs.append(pl.Circle((x+basis[0][0],y), radius=r, fc='None' , color=atomcolors[i], linewidth=2))
+            if y+r > basis[1][1]:
+                cirs.append(pl.Circle((x,y-basis[1][1]), radius=r, fc='None' , color=atomcolors[i], linewidth=2))
             if y-r < 0:
-                cirs.append(pl.Circle((x,y+v2[1]), radius=r, fc='None' , color=atomcolors[i], linewidth=2))
+                cirs.append(pl.Circle((x,y+basis[1][1]), radius=r, fc='None' , color=atomcolors[i], linewidth=2))
 
-            if x+r > v1[0] and y+r > v2[1]:
-                cirs.append( pl.Circle((x-v1[0],y-v2[1]), radius=r, fc='None' , color=atomcolors[i], linewidth=2))
-            if x+r > v1[0] and y-r < 0:
-                cirs.append(pl.Circle((x-v1[0],y+v2[1]), radius=r, fc='None' , color=atomcolors[i],linewidth=2))
-            if x-r < 0 and y+r > v2[1]:
-                cirs.append(pl.Circle((x+v1[0],y-v2[1]), radius=r, fc='None' , color=atomcolors[i],linewidth=2))
+            if x+r > basis[0][0] and y+r > basis[1][1]:
+                cirs.append( pl.Circle((x-basis[0][0],y-basis[1][1]), radius=r, fc='None' , color=atomcolors[i], linewidth=2))
+            if x+r > basis[0][0] and y-r < 0:
+                cirs.append(pl.Circle((x-basis[0][0],y+basis[1][1]), radius=r, fc='None' , color=atomcolors[i],linewidth=2))
+            if x-r < 0 and y+r > basis[1][1]:
+                cirs.append(pl.Circle((x+basis[0][0],y-basis[1][1]), radius=r, fc='None' , color=atomcolors[i],linewidth=2))
             if x-r < 0 and y-r < 0:
-                cirs.append(pl.Circle((x+v1[0],y+v2[1]), radius=r, fc='None' , color=atomcolors[i],linewidth=2))
+                cirs.append(pl.Circle((x+basis[0][0],y+basis[1][1]), radius=r, fc='None' , color=atomcolors[i],linewidth=2))
             for cir in cirs:
                 pl.gca().add_patch(cir)
 
@@ -140,7 +141,7 @@ def keypress(event):
     elif pstyle==3:
         logplotter_spheres(X,Y,dataset[:,:,pos],ticks,colors,pos*zsize/gridsz[2],atombounds,atoms,atomcolors)
     elif pstyle==5:
-        image_spheres([0,v1[0],0,v2[1]],dataset[:,:,pos],pos*zsize/gridsz[2],atombounds,atoms,atomcolors)
+        image_spheres([0,basis[0][0],0,basis[1][1]],dataset[:,:,pos],pos*zsize/gridsz[2],atombounds,atoms,atomcolors)
     pl.title("%d ELF, use < and > to change plots\n%s"%(pos,cdir))
     pl.draw()
         
@@ -210,7 +211,7 @@ if pstyle!=0:
             for p in range(2):
                 pl.savefig("elfplot%3.3d.png"%(i*2+p))
     elif pstyle==5:
-        image_spheres([0,v1[0],0,v2[1]],dataset[:,:,i],i*zsize/gridsz[2],atombounds,atoms,atomcolors)
+        image_spheres([0,basis[0][0],0,basis[1][1]],dataset[:,:,i],i*zsize/gridsz[2],atombounds,atoms,atomcolors)
         P.colorbar()
     pl.title("%d Log plot ELF, use < and > to change plots\n%s"%(pos,cdir))
     pl.show()

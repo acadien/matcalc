@@ -42,9 +42,9 @@ bl=float(bmin+bmax)/2.
 bw=bmax-bl
 
 while True:
-    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
+    [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
 
-    if v1==v2==v3==-1:
+    if basis==-1:
         break
 
     j=1
@@ -55,8 +55,6 @@ while True:
     thetypes=str(set(types))
 
     N=len(types)
-    atoms=array(zip(ax,ay,az))
-    basis=array([v1,v2,v3])
 
     #Duplicate
     #datoms,dtypes,dbasis=duplicate26(atoms,types,basis)

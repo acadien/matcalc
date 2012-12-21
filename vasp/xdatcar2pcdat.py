@@ -29,8 +29,7 @@ if len(sys.argv)==6:
 
 xdatfile=sys.argv[1]
 pcarfile=sys.argv[2]
-v1,v2,v3,d1,d2,d3,d4,d5,d6=poscarIO.read(open(pcarfile,"r").readlines())
-basis=[v1,v2,v3]
+basis=poscarIO.read(open(pcarfile,"r").readlines())[0]
 xdatcar=open(xdatfile,"r").readlines()
 Natoms=int(xdatcar[0].split()[0])
 lengths=array(map(lambda x:float(x)*1E10,xdatcar[1].split()[1:4]))

@@ -48,11 +48,9 @@ while True:
     except IndexError:
         break
 
-    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
+    [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
 
-    atoms=array(zip(ax,ay,az))
-
-    if v1==v2==v3==-1:
+    if basis==-1:
         break
 
     j=1
@@ -74,7 +72,7 @@ while True:
             exit()
 
     N=len(types)
-    basis=array([v1,v2,v3])
+    basis=array(basis)
     #Duplicate
     #datoms,dtypes,dbasis=duplicate26(zip(ax,ay,az),types,zip(v1,v2,v3))
 
@@ -88,8 +86,6 @@ while True:
 
     #Smooth
     if smooth==1:
-        #rdist=windowavg(rdist,50)
-        #bandpass(rbins,rdist,0.1,4.0)
         smdist=rdist[:]
         smdist = wsmooth(smdist,16)
         pl.plot(rbins,smdist)
@@ -103,4 +99,4 @@ while True:
     else:
         pl.title("Radial Distribution %s"%sys.argv[1])
     pr.prshow("poscarRDF.png")
-#    pl.savefig("blah.png")
+

@@ -32,10 +32,10 @@ if __name__=="__main__":
 
     #Parse ELFCAR
     elfcar=open(sys.argv[1],"r").readlines()
-    (v1,v2,v3,atypes,axs,ays,azs,header),gridSize,elf = elfcarIO.read(elfcar)
-    basis=asarray([v1,v2,v3])
-    bounds=[[0.,v1[0]],[0.,v2[1]],[0.,v3[2]]]
-    atoms=asarray(zip(axs,ays,azs))
+    (basis,atypes,atoms,header),gridSize,elf = elfcarIO.read(elfcar)
+    basis=array(basis)
+    bounds=[[0.,basis[0][0]],[0.,basis[1][1]],[0.,basis[2][2]]]
+    atoms=array(atoms)
     nAtoms=len(atoms)
     r=5.0 #5 Angstroms by default
 

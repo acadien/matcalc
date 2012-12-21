@@ -12,13 +12,10 @@ def poscar2qvoronoi(**kwargs):
     #Option2: atoms, basis, atypes, [qvfile]
     if "poscar" in kwargs:
         poscar=kwargs["poscar"]
-        [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)        
-        basis=[v1,v2,v3]
-        atoms=zip(ax,ay,az)
+        [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)        
     else:
         atypes=kwargs["atypes"]
         basis=kwargs["basis"]
-        [v1,v2,v3]=basis
         atoms=kwargs["atoms"]
     if "qvfile" in kwargs:
         qvfile=kwargs["qvfile"]
@@ -30,9 +27,9 @@ def poscar2qvoronoi(**kwargs):
     NRealAtoms=len(atoms)
 
     #Ensure simulation bx is sufficiently orthorhombic
-    if sum(map(fabs,v1))-fabs(v1[0]) > 1e-10 or \
-            sum(map(fabs,v2))-fabs(v2[1]) > 1e-10 or \
-            sum(map(fabs,v3))-fabs(v3[2]) > 1e-10:
+    if sum(map(fabs,basis[0]))-fabs(basis[0][0]) > 1e-10 or \
+            sum(map(fabs,basis[1]))-fabs(basis[1][1]) > 1e-10 or \
+            sum(map(fabs,basis[2]))-fabs(basis[2][2]) > 1e-10:
         print "Error: simulation axes are not sufficiently orthogonal.  Use script poscarRectify.py and regenerate doscar"
         exit(0)
 
@@ -44,7 +41,7 @@ def poscar2qvoronoi(**kwargs):
 
     datoms,dtypes,dbasis=duplicate26(atoms,types,basis)
 
-    bounds=[[-i/2.0,i*3.0/2] for i in [v1[0],v2[1],v3[2]]]
+    bounds=[[-i/2.0,i*3.0/2] for i in [basis[0][0],basis[1][1],basis[2][2]]]
     def inBounds(point,bounds):
         for a,[b,c] in zip(point,bounds):
             if a>=c or a<b:

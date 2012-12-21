@@ -16,12 +16,10 @@ def poscar2lammps(pcarFile,lmpFile):
         usage()
         exit(0)
 
-    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
+    [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
 
     #Convert from POSCAR style basis vectors to LAMMPS style boundaries.
-    atoms=zip(ax,ay,az)
-    bounds=[v1,v2,v3]
-    xhi,yhi,zhi,xy,xz,yz=bounds2lohi(bounds)
+    xhi,yhi,zhi,xy,xz,yz=bounds 2lohi(basis)
     basis=matrix([[xhi,0,0],[xy,yhi,0],[xz,yz,zhi]])
 
     N=sum(atypes)

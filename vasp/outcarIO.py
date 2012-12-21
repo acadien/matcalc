@@ -1,7 +1,6 @@
 #!/usr/bin/python
 from numpy import *
 
-
 #Returns a POSCAR file contents in string format, just use writeline to write to file or read using poscarIO.read
 def outcar2poscar(outcarF,wantconfig=-1):
     basis=zeros([3,3])

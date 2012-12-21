@@ -4,30 +4,30 @@ import sys
 import poscarIO
 
 def unFractional(posfile):
-    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(open(posfile,"r").readlines(),frac_coord=True)
-    for x,y,z in zip(ax,ay,az):
+    [basis,atypes,atoms,head,poscar] = poscarIO.read(open(posfile,"r").readlines(),frac_coord=True)
+    for x,y,z in atoms:
         if x>1.0 or y>1.0 or z>1.0 or x<0.0 or y<0.0 or z<0.0:
             print "Error: it appears these are already unfractional coordinates. %s"%posfile
             exit(0)
-    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(open(posfile,"r").readlines(),frac_coord=False)
-    poscarIO.write(posfile,[v1,v2,v3], zip(ax,ay,az),atypes,head,frac=False)
+    [basis,atypes,atoms,head,poscar] = poscarIO.read(open(posfile,"r").readlines(),frac_coord=False)
+    poscarIO.write(posfile,basis, atoms,atypes,head,frac=False)
 
 def fractional(posfile):
-    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(open(posfile,"r").readlines(),frac_coord=True)
+    [basis,atypes,atoms,head,poscar] = poscarIO.read(open(posfile,"r").readlines(),frac_coord=True)
     fraced=False
-    for x,y,z in zip(ax,ay,az):
+    for x,y,z in atoms:
         if x>1.0 or y>1.0 or z>1.0 or x<0.0 or y<0.0 or z<0.0:
             fraced=True
             break
     if not fraced:
         print "Error: it appears these are already fractional coordiantes. %s"%posfile
         exit(0)
-    poscarIO.write(posfile,[v1,v2,v3], zip(ax,ay,az),atypes,head,frac=True)
+    poscarIO.write(posfile,basis,atoms,atypes,head,frac=True)
 
 def ratio(posfile,ratio):
     print posfile, ratio
-    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(open(posfile,"r").readlines())
-    poscarIO.write(posfile,[v1,v2,v3],zip(ax,ay,az),atypes,head,True,float(ratio))
+    [basis,atypes,atoms,head,poscar] = poscarIO.read(open(posfile,"r").readlines())
+    poscarIO.write(posfile,basis,atoms,atypes,head,True,float(ratio))
     
 if __name__=="__main__":
     def usage():

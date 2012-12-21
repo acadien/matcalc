@@ -40,9 +40,8 @@ qvodata=open(sys.argv[1],"r").readlines()
 qvfidata=open(sys.argv[2],"r").readlines()
 poscar=open(sys.argv[3],"r").readlines()
 
-[v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
-basis=array([v1,v2,v3])
-atoms=zip(ax,ay,az)
+[basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
+basis=array(basis)
 bounds=array([basis[0][0],basis[1][1],basis[2][2]])
 
 polyverts=readQVo(qvodata)#,bounds)

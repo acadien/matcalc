@@ -28,7 +28,7 @@ elfcar = open(sys.argv[1],"r").readlines()
 cutev = float(sys.argv[2])
 pstyle = int(sys.argv[3])
 
-v1,v2,v3,types,cxs,cys,czs,header,elfcar = poscarIO.read(elfcar)
+basis,types,catoms,header,elfcar = poscarIO.read(elfcar)
 
 elfcar.pop(0)
 gridsz=[int(i) for i in elfcar.pop(0).split()]
@@ -48,8 +48,8 @@ dataset=dataset[:Tot_pnts] #chop off extra, invalid values
 dataset=array(dataset).reshape(gridsz) #[x,y,z]
 
 
-x=linspace(0,v1[0],gridsz[0])
-y=linspace(0,v2[1],gridsz[1])
+x=linspace(0,basis[0][0],gridsz[0])
+y=linspace(0,basis[1][1],gridsz[1])
 X,Y = meshgrid(x,y)
 
 

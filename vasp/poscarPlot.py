@@ -28,8 +28,9 @@ if len(sys.argv) >= 3:
 
 poscar=open(sys.argv[1],"r").readlines()
 
-[v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
-
+[basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
+ax,ay,az=zip(*atoms)
+v1,v2,v3=basis
 j=0
 types=list()
 for i in atypes:

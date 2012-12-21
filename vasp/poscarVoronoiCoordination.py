@@ -20,10 +20,8 @@ mbl=-1.
 if len(sys.argv)==3:
     mbl=float(sys.argv[2])
 
-[v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
-atoms=array(zip(ax,ay,az))
-basis=[v1,v2,v3]
-bounds=array([v1[0],v2[1],v3[2]])
+[basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
+bounds=array([basis[0][0],basis[1][1],basis[2][2]])
 
 #Generate neighbor lists and coordination numbers
 vhalfNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='half')

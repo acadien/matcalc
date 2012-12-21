@@ -73,9 +73,9 @@ gencnt=0
 
 colors=["red","blue","green","yellow","orange","purple","black"]
 while True:
-    [v1,v2,v3,atypes,ax,ay,az,head,poscar] = poscarIO.read(poscar)
+    [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
 
-    if v1==v2==v3==-1:
+    if basis==-1:
         break
 
     gencnt+=1
@@ -98,13 +98,10 @@ while True:
     print "Fitness= %s eV   PerAtom Energy= %s eV\nkpoints= %sVolume= %sEnthalpy= %s"%(a,round(float(a)/N,3),kpoints.pop(0),volumes.pop(0),enthalpy.pop(0).strip())
 
     if gencnt >= start:
-        #Actual Atoms
-        atoms=zip(ax,ay,az)
-
         #plot_pos_rad_ang(atoms,types,pdup=pdup)
 
         #Periodic Atoms (duplicated)
-        datoms,dtypes,dbasis=duplicate26(atoms,types,zip(v1,v2,v3))
+        datoms,dtypes,dbasis=duplicate26(atoms,types,basis)
 
         #Neighbors needed for angular distribution
         dneighbs=neighbors(datoms,5.0,style="full")
@@ -124,8 +121,6 @@ while True:
             for i,j in enumerate(types):
                 tatoms[j].append(atoms[i])
 
-        #findsymmetry([v1,v2,v3],types,zip(xs,ys,zs))
-
         fig=pl.figure(figsize=(12,6))
         aa = fig.add_subplot(311,projection='3d')
         aa.set_position([0,0,0.5,1.0])
@@ -133,6 +128,7 @@ while True:
             ax,ay,az=zip(*tatoms[i])
             aa.scatter(ax,ay,az,c=cs.pop(0),marker="o")
 
+        v1,v2,v3=basis
         aa.plot([0,v1[0]],[0,v1[1]],[0,v1[2]])
         aa.plot([0,v2[0]],[0,v2[1]],[0,v2[2]])
         aa.plot([0,v3[0]],[0,v3[1]],[0,v3[2]])

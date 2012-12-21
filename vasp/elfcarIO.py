@@ -7,8 +7,8 @@ import operator
 import poscarIO
 
 def read(elfcar):
-    v1,v2,v3,types,xs,ys,zs,header,elfcar=poscarIO.read(elfcar)
-    poscardata=(v1,v2,v3,types,xs,ys,zs,header)
+    basis,types,atoms,header,elfcar=poscarIO.read(elfcar)
+    poscardata=(basis,types,atoms,header)
 
     elfcar.pop(0)
     gridsz=[int(i) for i in elfcar.pop(0).split()]

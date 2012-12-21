@@ -5,7 +5,7 @@ from numpy import matrix,linalg
 def read(poscar,frac_coord=False):
     if len(poscar)<3:
         print "Error\nSomething wrong with poscar or not passed properly to read poscar."
-        return [-1]*9
+        return [-1]*5
 
     head=poscar.pop(0)
     scale=float(poscar.pop(0))
@@ -22,28 +22,23 @@ def read(poscar,frac_coord=False):
     N=sum(atypes)
     poscar.pop(0)
 
-    ax=list()
-    ay=list()
-    az=list()
+    ax,ay,az=map(list,zip(*[map(float,line.split()) for line in poscar[:N]]))
 
-    if frac_coord:
-        for line in poscar[:N]:
-            [x,y,z]=[float(i) for i in line.split()]
-            ax.append(x)
-            ay.append(y)
-            az.append(z)
-    else:
-        for line in poscar[:N]:
-            [x,y,z]=[float(i) for i in line.split()]
-            x1=v1[0]*x+v2[0]*y+v3[0]*z
-            y1=v1[1]*x+v2[1]*y+v3[1]*z
-            z1=v1[2]*x+v2[2]*y+v3[2]*z
-            ax.append(x1)
-            ay.append(y1)
-            az.append(z1)
+    if not frac_coord:
+        for i in range(len(ax)):
+            ax[i]=v1[0]*ax[i]+v2[0]*ay[i]+v3[0]*az[i]
+            ay[i]=v1[1]*ax[i]+v2[1]*ay[i]+v3[1]*az[i]
+            az[i]=v1[2]*ax[i]+v2[2]*ay[i]+v3[2]*az[i]
+
+        center=(sum(ax)+sum(ay)+sum(az))/(len(ax)+len(ay)+len(az))
+        if center>=1: #in fractional coordinates, convert to cartesian
+            print "WARNING: poscarIO.read() did not convert to fractional coordinates, something probably wrong with POSCAR."
+    
+    atoms=zip(ax,ay,az)
+    basis=[v1,v2,v3]
     poscar=poscar[N:]    
         
-    return v1,v2,v3,atypes,ax,ay,az,head,poscar
+    return basis,atypes,atoms,head,poscar
 
 #Takes 1 valid poscar from the input and returns it with the input poscar
 def split(poscarin):
@@ -90,7 +85,7 @@ def write(poscarName,basis,atoms,types,header,frac=True,ratio=1.0):
     data+="Direct\n"
     for atom in atoms:
         data+="% 5.12e % 5.12e % 5.12e\n"%(atom[0],atom[1],atom[2])
-        
+
     poscar=open(poscarName,"w")
     poscar.write(data)
     return poscar
