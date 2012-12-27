@@ -8,32 +8,20 @@ from outcarIO import outcarReadConfig
 
 def usage():
     print "Usage:"
-    print sys.argv[0].split("/")[-1]+" <force database> <OUTCAR file> <configuration #> <run from script:1>"
+    print sys.argv[0].split("/")[-1]+" <force database> <OUTCAR file> <configuration #> <optional:weight>"
     exit(0)
-
-#Arguement locations in sys.argv list
-argdb=1
-argoc=2
-argconfig=3
-argscript=4
 
 if not(len(sys.argv) in [4,5]):
     usage()
 
-ocfile = sys.argv[argoc] #outcar directory
+ocfile = sys.argv[2] #outcar directory
 
-forcefil= sys.argv[argdb]
+forcefil= sys.argv[1]
 fordb = open(forcefil,"r")
-grabconfig=int(sys.argv[argconfig])
-
-checkdisable=False
+grabconfig=int(sys.argv[3])
+weight=-1
 if len(sys.argv)==5:
-    if int(sys.argv[argscript])==1:
-        checkdisable=True
-    else:
-        print "If running from a script, make the 4th arguement a \"1\""
-        usage()
-
+    weight=int(sys.argv[4])
 
 #get the force configuration number (the total number of configs in the forcefil)
 dbcnfgcnt=0 #Force Data Base Configuration Counter
@@ -60,6 +48,10 @@ line += "#Z\t %12.8f  %12.8f %12.8f\n"%tuple(basis[2])
 
 #Cohesive energy per atom (eV)
 line += "#E\t %12.8f\n"%(TE/natom)
+
+#Weight
+if weight>0:
+    line += "#W\t %d\n"%weight
 
 #Stress Tensor
 line += "#S\t %12.8f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f\n"%(stress[0],stress[1],stress[2],stress[3],stress[4],stress[5]) 
