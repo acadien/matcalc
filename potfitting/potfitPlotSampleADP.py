@@ -5,6 +5,7 @@ import matplotlib
 
 import sys
 import pylab as pl
+from numpy import array 
 
 def usage():
     print "%s <potential sampled file> <lammps potential>"%sys.argv[0].split("/")[-1]
@@ -18,7 +19,7 @@ lmpdata=open(sys.argv[2],"r").readlines()
 
 nvars=sum([1 for i in potdata if len(i)<=1])/2
 if nvars==5:
-    varnames=["F","phi","rho","u","w"]
+    varnames=["F","rho","phi","u","w"]
 
 datax=[[]]
 datay=[[]]
@@ -54,10 +55,11 @@ lxdata=[list() for i in range(5)]
 
 lxdata[0]=map(lambda x:x*drho,range(nrho)) #F
 lydata[0]=map(float,lmpdata[:nrho])
-lxdata[1]=map(lambda x:x*dr,range(nr)) #phi
+lxdata[1]=map(lambda x:x*dr,range(nr)) #rho
 lydata[1]=map(float,lmpdata[nrho:nrho+nr])
-lxdata[2]=map(lambda x:x*dr,range(nr)) #rho
+lxdata[2]=map(lambda x:x*dr,range(nr)) #phi
 lydata[2]=map(float,lmpdata[nrho+nr:nrho+2*nr])
+lydata[2]=[lydata[2][i]/(lxdata[2][i]+1E-20) for i in range(nr)]
 lxdata[3]=map(lambda x:x*dr,range(nr)) #u
 lydata[3]=map(float,lmpdata[nrho+2*nr:nrho+3*nr])
 lxdata[4]=map(lambda x:x*dr,range(nr)) #w
@@ -72,7 +74,7 @@ for i,var in enumerate(varnames):
     ylims=pl.ylim()
 
     pl.plot(lxdata[i],lydata[i],label=var)
-    pl.ylim(ylims)
+    #pl.ylim(ylims)
 #    print "%3.3s : %4.4e - %4.4e"%(var,min(datay[i]),max(datay[i]))
     pl.title(var)
     
