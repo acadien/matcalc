@@ -91,12 +91,13 @@ def parse_pfend(pfend):
         return x,y
 
     xRho,yRho=appendPrimes2(xRho,yRho,yRhoPrimes,step)
+    yRhoR=[yRho[i]*xRho[i] for i in range(len(xRho))]
     xPhi,yPhi=appendPrimes(xPhi,yPhi,yPhiPrimes,step)
     xF,yF=appendPrimes(xF,yF,yFPrimes,step)
     xU,yU=appendPrimes(xU,yU,yUPrimes,step)
     xW,yW=appendPrimes(xW,yW,yWPrimes,step)
 
-    return [xF,xPhi,xRho,xU,xW],[yF,yPhi,yRho,yU,yW] #return in lammps order!
+    return [xF,xPhi,xRho,xU,xW],[yF,yPhi,yRhoR,yU,yW] #return in lammps order!
 
 def usage():
     print "%s <pf_end_??.adp> <output potential> <optional:lammps potential>"%sys.argv[0].split("/")[-1]
