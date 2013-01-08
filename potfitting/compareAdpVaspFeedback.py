@@ -65,7 +65,7 @@ for p,iters in zip(pressures,vIter):
     temp,tE,pres=list(),list(),list()
     rdy=False
     for line in open(p+lmpssuffix,"r").readlines():
-        if "Step TotEng Temp Press Volume" in line:
+        if "Step PotEng Temp Press Volume" in line:
             rdy=True
         if not rdy:
             continue
@@ -94,7 +94,7 @@ for p,vi,ve,vs,le,lt,ls in zip(pressures,vIter,vToten,vStress,lToten,lTemp,lPres
     pl.plot(ve,label=p+"GPa VASP")
     pl.plot(le,label="LAMMPS")
     pl.ylabel("eV/atom")
-    pl.legend()
+#    pl.legend()
     #print array(ve)-array(le)
     #print sum(array(ve[1:])-array(le[1:]))/len(le[1:])
     #print sum(array(vs[1:])-array(ls[1:]))/len(ls[1:])

@@ -7,7 +7,7 @@ import poscarIO
 from lammpsIO import bounds2lohi
 from struct_tools import flatten
 
-def poscar2lammps(pcarFile,lmpFile):
+def poscar2dump(pcarFile,lmpFile):
     try:
         poscar=open(pcarFile,"r").readlines()
         lammps=open(lmpFile,"w")
@@ -19,7 +19,7 @@ def poscar2lammps(pcarFile,lmpFile):
     [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
 
     #Convert from POSCAR style basis vectors to LAMMPS style boundaries.
-    xhi,yhi,zhi,xy,xz,yz=bounds 2lohi(basis)
+    xhi,yhi,zhi,xy,xz,yz=bounds2lohi(basis)
     basis=matrix([[xhi,0,0],[xy,yhi,0],[xz,yz,zhi]])
 
     N=sum(atypes)
@@ -48,4 +48,4 @@ if __name__=="__main__":
         usage()
         exit(0)
     
-    poscar2lammps(sys.argv[1],sys.argv[2])
+    poscar2dump(sys.argv[1],sys.argv[2])
