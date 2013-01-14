@@ -59,17 +59,17 @@ def poscarGrow(poscarName,outputName,cx,cy,cz):
 if __name__=="__main__":
 
     def usage():
-        print "Usage: %s <poscar/contcar> <dupl-x> <dupl-y> <dupl-z>"%sys.argv[0]
+        print "Usage: %s <Input poscar/contcar> <Output> <dupl-x> <dupl-y> <dupl-z>"%sys.argv[0].split("/")[-1]
         print "Duplicates the poscar along the primary axes defined by the bounding box"
 
-    if len(sys.argv)<4:
+    if len(sys.argv)!=6:
         usage()
         exit(0)
 
     poscarName=sys.argv[1]
-    outputName=poscarName+"_grown"
+    outputName=sys.argv[2]
 
-    cx,cy,cz=map(int,sys.argv[2:5])
+    cx,cy,cz=map(int,sys.argv[3:6])
     if cx<1 or cy<1 or cz<1:
         print "Cell duplication values must be >=1."
         exit(0)

@@ -40,7 +40,7 @@ for i,val in enumerate(reversed(sorted(absdelE))):
     if val<mxerr:
         break
     if fdb!=-1:
-        print "%4d %-50.50s %f"%(absdelE.index(val),fdb[absdelE.index(val)],val)
+        print "%4d, %-50.50s, %f"%(absdelE.index(val),fdb[absdelE.index(val)],val)
     else:
         print i," ",absdelE.index(val)," \t",val
     cnt=i
