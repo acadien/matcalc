@@ -33,7 +33,7 @@ if __name__=="__main__":
     def usage():
         print "Usage:"
         print "%s <POSCAR> <frac/unfrac>"%sys.argv[0].split("/")[-1]
-        print "%s <POSCAR> <ratio> <ratio value>"%sys.argv[0].split("/")[-1]
+        print "%s <POSCAR> <ratio value>"%sys.argv[0].split("/")[-1]
 
     if len(sys.argv)<=2:
         usage()
@@ -43,9 +43,11 @@ if __name__=="__main__":
         fractional(sys.argv[1])
     elif sys.argv[2]=="unfrac":
         unFractional(sys.argv[1])
-    elif sys.argv[2]=="ratio":
-        ratio(sys.argv[1],sys.argv[3])
     else:
-        print "Error, unrecognized volume arguement: %s"%sys.argv[2]
-        usage()
-        exit(0)
+        try:
+            r=float(sys.argv[2])
+            ratio(sys.argv[1],r)
+        except:
+            print "Error, unrecognized volume arguement: %s"%sys.argv[2]
+            usage()
+            exit(0)

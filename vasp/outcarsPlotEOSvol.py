@@ -6,9 +6,10 @@ import sys,os,shutil,itertools
 import lammps #requires lammps.so file exists and environment be setup
               #info here: http://lammps.sandia.gov/doc/Section_python.html
 import pylab as pl
+from numpy import linspace
 
 #mine
-import poscar2dump,poscarGrow
+import poscar2dump,poscarGrow,poscarVolume
 import colors
 
 bars2GPa=1./10000.
@@ -46,12 +47,13 @@ def initLammpsCmds(potential):
         ]
     return preLammpsCommands,postLammpsCommands
 
-def lammpsGenerateE(vaspPOSCAR,preCmd,postCmd):
+def lammpsGenerateE(vaspPOSCAR,preCmd,postCmd,vRatio):
     #Convert to lammps input configure format, rescale accordingly
     lammpsConfig="lmp.config"
     lammpsPOSCAR="POSCAR_eos"
     shutil.copyfile(vaspPOSCAR,lammpsPOSCAR)
     poscarGrow.poscarGrow(lammpsPOSCAR,lammpsPOSCAR,2,1,1)
+    poscarVolume.ratio(lammpsPOSCAR,vRatio)
     poscar2dump.poscar2dump(lammpsPOSCAR,lammpsConfig)
     
     #Run lammps
@@ -111,12 +113,17 @@ Lenergies={}
 if lmppot!=-1:
     preCmd,postCmd=initLammpsCmds(lmppot)
     for phase in phases:
-        rs=ratios[phase]
-        pe,prs,vol= zip(* \
-            [lammpsGenerateE("/".join([basedir,phase,r,"POSCAR"]),preCmd,postCmd) \
-                 for r in rs] )
+
+        #Volume ratios for lammps configurations
+        minr=min(ratios[phase])
+        maxr=max(ratios[phase])
+        numr=20
+
+        epv = [lammpsGenerateE("/".join([basedir,phase,"1.00/POSCAR"]),preCmd,postCmd,r) \
+                   for r in linspace(minr,maxr,numr)] 
+
         Lenergies[phase],Lvolumes[phase],Lpressures[phase] = \
-            zip(* sorted(zip(pe,vol,prs),key=lambda x:x[1]) )
+            zip(* sorted(epv,key=lambda x:x[1]) )
 
 #Plotting 
 colors=[colors.float2rgb(i,0,len(phases)) for i in range(len(phases))]
