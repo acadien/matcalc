@@ -31,8 +31,8 @@ def read(poscar,frac_coord=False):
             ay[i]=v1[1]*a+v2[1]*b+v3[1]*c
             az[i]=v1[2]*a+v2[2]*b+v3[2]*c
 
-        center=(sum(ax)+sum(ay)+sum(az))/(len(ax)+len(ay)+len(az))
-        if center>=1: #in fractional coordinates, convert to cartesian
+        center=(sum(ax)/len(ax)+sum(ay)/len(ay)+sum(az)/len(az))/3
+        if center<1: #in fractional coordinates, convert to cartesian
             print "WARNING: poscarIO.read() did not convert to fractional coordinates, something probably wrong with POSCAR."
     
     atoms=zip(ax,ay,az)

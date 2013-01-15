@@ -25,7 +25,6 @@ def fractional(posfile):
     poscarIO.write(posfile,basis,atoms,atypes,head,frac=True)
 
 def ratio(posfile,ratio):
-    print posfile, ratio
     [basis,atypes,atoms,head,poscar] = poscarIO.read(open(posfile,"r").readlines())
     poscarIO.write(posfile,basis,atoms,atypes,head,True,float(ratio))
     
