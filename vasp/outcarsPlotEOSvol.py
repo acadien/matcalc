@@ -151,9 +151,9 @@ def dictScatter(xdict,ydict,items,ls,lw,l=None):
         c=cs.next()
         m=marks.next()
         if l==None:
-            pl.scatter(xdict[i],ydict[i],m,c=c,mfc=c)
+            pl.scatter(xdict[i],ydict[i],m,c=c)
         else:
-            pl.scatter(xdict[i],ydict[i],m,label=i,c=c,mfc=c)
+            pl.scatter(xdict[i],ydict[i],m,label=i,c=c)
 
 
 def dictPlotDiff(xdict1,xdict2,ydict1,ydict2,items):
