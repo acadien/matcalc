@@ -7,10 +7,10 @@ import lammps #requires lammps.so file exists and environment be setup
               #info here: http://lammps.sandia.gov/doc/Section_python.html
 import pylab as pl
 from numpy import linspace
+from matplotlib import colors
 
 #mine
 import poscar2dump,poscarGrow,poscarVolume
-import colors
 
 bars2GPa=1./10000.
 kB2GPa=1./10.
@@ -67,7 +67,7 @@ def lammpsGenerateE(vaspPOSCAR,preCmd,postCmd,vRatio):
     pe = lmp.extract_compute("thermo_pe",0,0)/natom 
     prs = lmp.extract_compute("thermo_press",0,0)*bars2GPa 
     vol = lmp.extract_variable("v",0,0)/natom
-
+    
     os.remove(lammpsConfig)
     os.remove(lammpsPOSCAR)
     
@@ -120,71 +120,53 @@ if lmppot!=-1:
         numr=30
 
         epv = [lammpsGenerateE("/".join([basedir,phase,"1.00/POSCAR"]),preCmd,postCmd,r) \
-                   for r in linspace(minr,maxr,numr)] 
+                   for r in linspace(minr,maxr,numr)]
 
-        Lenergies[phase],Lvolumes[phase],Lpressures[phase] = \
-            zip(* sorted(epv,key=lambda x:x[1]) )
+        Lenergies[phase],Lpressures[phase],Lvolumes[phase] = \
+            zip(* sorted(epv,key=lambda x:x[2]) )
 
 #Plotting 
-colors=[colors.float2rgb(i,0,len(phases)) for i in range(len(phases))]
+mcolors=[pl.cm.spectral(i) for i in linspace(0,0.9,len(phases))]
 markers=['o','v','s','p','*','h','D']
 
 subs=130
 #if lmppot!=-1:
 #    subs=220
 
-def dictPlot(xdict,ydict,items,ls,lw,l=None):
-    cs=itertools.cycle(colors)
+def dictPlot(xdict,ydict,items,ls,lw):
+    cs=itertools.cycle(mcolors)
     marks=itertools.cycle(markers)
     for i in items:
         c=cs.next()
         m=marks.next()
-        if l==None:
-            pl.plot(xdict[i],ydict[i],c=c,mfc=c,ls=ls,lw=lw)#marker=m,ls=ls,lw=lw)
-        else:
-            pl.plot(xdict[i],ydict[i],label=i,c=c,mfc=c,ls=ls,lw=lw)#marker=m,ls=ls,lw=lw)
+        pl.plot(xdict[i],ydict[i],c=c,ls=ls,lw=lw)#mfc=c,marker=m,ls=ls,lw=lw)
 
-def dictScatter(xdict,ydict,items,ls,lw,l=None):
-    cs=itertools.cycle(colors)
+
+def dictScatter(xdict,ydict,items):
+    cs=itertools.cycle(mcolors)
     marks=itertools.cycle(markers)
     for i in items:
         c=cs.next()
         m=marks.next()
-        if l==None:
-            pl.scatter(xdict[i],ydict[i],m,c=c)
-        else:
-            pl.scatter(xdict[i],ydict[i],m,label=i,c=c)
-
-
-def dictPlotDiff(xdict1,xdict2,ydict1,ydict2,items):
-    cs=itertools.cycle(colors)
-    marks=itertools.cycle(markers)
-    for i in items:
-        n=len(xdict1[i])
-        c=cs.next()
-        m=marks.next()
-        xx=[xdict1[i][j]-xdict2[i][j] for j in range(n)]
-        xx=xdict1[i]
-        yy=[ydict1[i][j]-ydict2[i][j] for j in range(n)]
-        pl.plot(xx,yy,label=i,c=c,mfc=c,marker=m)
+        pl.scatter(xdict[i],ydict[i],marker=m,c=c,label=i,s=40)
 
 #VASP Plot
 pl.subplot(subs+1)
-dictScatter(Vvolumes,Venergies,phases,"-",1,1)
-if lmppot!=-1: dictPlot(Lvolumes,Lenergies,phases,"--",2)
+dictScatter(Vvolumes,Venergies,phases)
+if lmppot!=-1: dictPlot(Lvolumes,Lenergies,phases,"-",1.5)
 pl.xlabel("Volume ($\AA / atom$)")
 pl.ylabel("Energy ($eV / atom$)")
 pl.legend(loc=0,fontsize=10)
 
 pl.subplot(subs+2)
-dictPlot(Vvolumes,Vpressures,phases,"-",1,1)
-if lmppot!=-1: dictPlot(Lvolumes,Lpressures,phases,"--",2)
+dictScatter(Vvolumes,Vpressures,phases)
+if lmppot!=-1: dictPlot(Lvolumes,Lpressures,phases,"-",1.5)
 pl.xlabel("Volume ($\AA / atom$)")
 pl.ylabel("Pressure ($GPa$)")
 
 pl.subplot(subs+3)
-dictPlot(Vpressures,Venergies,phases,"-",1,1)
-if lmppot!=-1: dictPlot(Lpressures,Lenergies,phases,"--",2)
+dictScatter(Vpressures,Venergies,phases)
+if lmppot!=-1: dictPlot(Lpressures,Lenergies,phases,"-",1.5)
 pl.xlabel("Pressure ($GPa$)")
 pl.ylabel("Energy ($eV / atom$)")
 

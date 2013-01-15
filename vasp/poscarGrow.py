@@ -47,8 +47,13 @@ def poscarGrow(poscarName,outputName,cx,cy,cz):
     v3*=cz
     basis=[v1,v2,v3]
     A=matrix([[float(cx),0.0,0.0],[0.0,float(cy),0.0],[0.0,0.0,float(cz)]])
-
     ax,ay,az=zip(*[linalg.solve(A,array(p).T)[:] for p in zip(ax,ay,az)])
+
+
+    if max(ax)>1.0 or max(ay)>1.0 or max(az)>1.0:
+        print "doh"
+        exit(0)
+
     atoms=zip(ax,ay,az)
 
     atypes=[i*nCopies for i in atypes]

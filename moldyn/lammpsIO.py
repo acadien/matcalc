@@ -134,7 +134,7 @@ def dumpWriteConfig(dump,bounds,types,atoms,head):
 #Converts VASP style boundaries to LAMMPS boundaries
 def bounds2lohi(bounds):
     v1,v2,v3=map(array,bounds)
-    mv1,mv2,mv3=map(mag,[v1,v2,v3]) #magnitude
+    mv1,mv2,mv3=map(mag,[v1,v2,v3])
 
     origin=array([0,0,0])
     A=ang(v2,origin,v3)
@@ -142,10 +142,10 @@ def bounds2lohi(bounds):
     C=ang(v1,origin,v2)
 
     #14 digits of accuracy.
-    xhi= mv1
-    xy= mv2*cos(C)
-    xz= mv3*cos(B)
-    yhi=(mv2**2-xy**2)**0.5
-    yz= (mv2*mv3*cos(A)-xy*xz)/yhi
-    zhi=(mv3**2-xz**2-yz**2)**0.5
+    xhi=  mv1
+    xy =  mv2*cos(C)
+    xz =  mv3*cos(B)
+    yhi= (mv2**2-xy**2)**0.5
+    yz = (mv2*mv3*cos(A)-xy*xz)/yhi
+    zhi= (mv3**2-xz**2-yz**2)**0.5
     return xhi,yhi,zhi,xy,xz,yz
