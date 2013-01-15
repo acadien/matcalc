@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+#mine
+import plotRemote as pr
+
+#notmine
 import sys
 import pylab as pl
 
@@ -46,6 +50,6 @@ for i,val in enumerate(reversed(sorted(absdelE))):
     cnt=i
 print "\n%d configurations with error above %f"%(cnt,mxerr)
 
-pl.show()
+pr.prshow("energyErrorHist.png")
 #pl.savefig("/home/acadien/Dropbox/GeData/hist_energy_error.png")
 
