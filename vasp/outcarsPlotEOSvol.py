@@ -68,6 +68,8 @@ def lammpsGenerateE(vaspPOSCAR,preCmd,postCmd,vRatio):
     prs = lmp.extract_compute("thermo_press",0,0)*bars2GPa 
     vol = lmp.extract_variable("v",0,0)/natom
 
+    exit(0)
+
     os.remove(lammpsConfig)
     os.remove(lammpsPOSCAR)
     
@@ -115,9 +117,9 @@ if lmppot!=-1:
     for phase in phases:
 
         #Volume ratios for lammps configurations
-        minr=min(ratios[phase])
-        maxr=max(ratios[phase])
-        numr=20
+        minr=float(min(ratios[phase]))
+        maxr=float(max(ratios[phase]))
+        numr=30
 
         epv = [lammpsGenerateE("/".join([basedir,phase,"1.00/POSCAR"]),preCmd,postCmd,r) \
                    for r in linspace(minr,maxr,numr)] 
