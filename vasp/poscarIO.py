@@ -26,9 +26,10 @@ def read(poscar,frac_coord=False):
 
     if not frac_coord:
         for i in range(len(ax)):
-            ax[i]=v1[0]*ax[i]+v2[0]*ay[i]+v3[0]*az[i]
-            ay[i]=v1[1]*ax[i]+v2[1]*ay[i]+v3[1]*az[i]
-            az[i]=v1[2]*ax[i]+v2[2]*ay[i]+v3[2]*az[i]
+            a,b,c = ax[i], ay[i], az[i]
+            ax[i]=v1[0]*a+v2[0]*b+v3[0]*c
+            ay[i]=v1[1]*a+v2[1]*b+v3[1]*c
+            az[i]=v1[2]*a+v2[2]*b+v3[2]*c
 
         center=(sum(ax)+sum(ay)+sum(az))/(len(ax)+len(ay)+len(az))
         if center>=1: #in fractional coordinates, convert to cartesian
