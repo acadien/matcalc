@@ -2,7 +2,10 @@
 
 from numpy import matrix,linalg
 
+#Given the poscar (opened and read)
+#Returns: basis,atypes,atoms,head,poscar
 def read(poscar,frac_coord=False):
+
     if len(poscar)<3:
         print "Error\nSomething wrong with poscar or not passed properly to read poscar."
         return [-1]*5
