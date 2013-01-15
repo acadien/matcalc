@@ -68,8 +68,6 @@ def lammpsGenerateE(vaspPOSCAR,preCmd,postCmd,vRatio):
     prs = lmp.extract_compute("thermo_press",0,0)*bars2GPa 
     vol = lmp.extract_variable("v",0,0)/natom
 
-    exit(0)
-
     os.remove(lammpsConfig)
     os.remove(lammpsPOSCAR)
     
@@ -142,9 +140,21 @@ def dictPlot(xdict,ydict,items,ls,lw,l=None):
         c=cs.next()
         m=marks.next()
         if l==None:
-            pl.plot(xdict[i],ydict[i],c=c,mfc=c,marker=m,ls=ls,lw=lw)
+            pl.plot(xdict[i],ydict[i],c=c,mfc=c,ls=ls,lw=lw)#marker=m,ls=ls,lw=lw)
         else:
-            pl.plot(xdict[i],ydict[i],label=i,c=c,mfc=c,marker=m,ls=ls,lw=lw)
+            pl.plot(xdict[i],ydict[i],label=i,c=c,mfc=c,ls=ls,lw=lw)#marker=m,ls=ls,lw=lw)
+
+def dictScatter(xdict,ydict,items,ls,lw,l=None):
+    cs=itertools.cycle(colors)
+    marks=itertools.cycle(markers)
+    for i in items:
+        c=cs.next()
+        m=marks.next()
+        if l==None:
+            pl.scatter(xdict[i],ydict[i],m,c=c,mfc=c)
+        else:
+            pl.scatter(xdict[i],ydict[i],m,label=i,c=c,mfc=c)
+
 
 def dictPlotDiff(xdict1,xdict2,ydict1,ydict2,items):
     cs=itertools.cycle(colors)
@@ -160,7 +170,7 @@ def dictPlotDiff(xdict1,xdict2,ydict1,ydict2,items):
 
 #VASP Plot
 pl.subplot(subs+1)
-dictPlot(Vvolumes,Venergies,phases,"-",1,1)
+dictScatter(Vvolumes,Venergies,phases,"-",1,1)
 if lmppot!=-1: dictPlot(Lvolumes,Lenergies,phases,"--",2)
 pl.xlabel("Volume ($\AA / atom$)")
 pl.ylabel("Energy ($eV / atom$)")
