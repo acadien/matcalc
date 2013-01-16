@@ -7,6 +7,7 @@ def usage():
     print "\nUsage: %s <data-file> <x-data column> <y-data column>"%sys.argv[0].split("/")[-1]
     print "\nA general use plotter of 2D data. \nAttempts to find data in column format and plot the desired columns."
     print "If x-data column is -1 then range(len(y)) is used"
+    print ""
 
 if len(sys.argv)!=4:
     usage()
