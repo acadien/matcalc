@@ -169,9 +169,7 @@ if len(sys.argv)==4:
     yl=pl.ylim()
     pl.plot(axx,LPhi,label="mine")
     pl.plot(rs,PhiPF,label="potfit")
-    pl.ylim(yl)
-
-    #pl.plot(rs,Phi,label="Phi")
+#    pl.ylim(yl)
     pl.legend(loc=0)
 
     pl.subplot(232)
@@ -180,8 +178,7 @@ if len(sys.argv)==4:
     yl=pl.ylim()
     pl.plot(axx,LU,label="mine")
     pl.plot(rs,UPF,label="potfit")
-    pl.ylim(yl)
-    #pl.plot(rs,U,label="U")
+#    pl.ylim(yl)
     pl.legend(loc=0)
 
     pl.subplot(233)
@@ -190,8 +187,7 @@ if len(sys.argv)==4:
     yl=pl.ylim()
     pl.plot(axx,LW,label="mine")
     pl.plot(rs,WPF,label="potfit")
-    pl.ylim(yl)
-    #pl.plot(rs,W,label="W")
+#    pl.ylim(yl)
     pl.legend(loc=0)
 
     pl.subplot(234)
@@ -201,7 +197,6 @@ if len(sys.argv)==4:
     pl.plot(axx,LRho,label="mine")
     pl.plot(rs,RhoPF,label="potfit")
     #pl.ylim(yl)
-    #pl.plot(rs,Rho,label="Rho")
     pl.legend(loc=0)
 
     pl.subplot(235)
