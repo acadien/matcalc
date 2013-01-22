@@ -3,7 +3,7 @@
 import sys
 
 def usage():
-    print "%s <input force DB> <output force DB> <a_eq/a_adp>"%sys.argv[0].split("/")[-1]
+    print "%s <input force DB> <output force DB> <a_literature/a_adp> <E_adp - E_literature>"%sys.argv[0].split("/")[-1]
     print "Re-scales a force database by the ratio of lattice constants"
     print "ratio = experimental lattice param / ADP lattice param"
 
@@ -56,35 +56,40 @@ def appendEntry(head,bounds,energy,weight,stress,atominfo,oFDB):
     oFDB.writelines(data)
 
 
-def scaleEntry(fdbEntry,ratio):
+def scaleEntry(fdbEntry,aRatio,eShift):
     head,bounds,energy,weight,stress,atominfo = fdbEntry
 
-    head = head.strip() + " Scaled by %5.5f.\n"%ratio
+    head = head.strip() + " Scaled by A=%5.5f,B=1.0,C=%5.5f.\n"%(aRatio,eShift)
 
-    scaleMul = lambda x : x*ratio
-    scaleDiv = lambda x : x/ratio
+    scaleAMul = lambda x : x*aRatio
+    scaleADiv = lambda x : x/aRatio
+    scaleADiv3 = lambda x : x/(aRatio*aRatio*aRatio)
 
-    #Scale position and force data by 
-    bounds = [ map( scaleMul , i ) for i in bounds] 
-    stress = map( scaleDiv , stress )
-    atominfo = [[i[0]] + map( scaleMul , i[1:]) for i in atominfo]
+    #Scale position, forces and stress by 
+    bounds = [ map( scaleAMul , i ) for i in bounds] 
+    stress = map( scaleADiv3 , stress )
+    atominfo = [[i[0]] + map( scaleAMul , i[1:4]) + map( scaleADiv , i[4:]) for i in atominfo]
+
+    #Scale energy by
+    energy = energy - eShift
 
     fdbEntry = [head,bounds,energy,weight,stress,atominfo]
     return fdbEntry
 
-if len(sys.argv) != 4:
+if len(sys.argv) != 5:
     usage()
     exit(0)
 
 iFDB = open(sys.argv[1],"r").readlines()
 oFDB = open(sys.argv[2],"w")
-ratio= float(sys.argv[3])
+aRatio = float(sys.argv[3])
+eShift = float(sys.argv[4])
 
 entries = sum([1 for line in iFDB if "#N"==line[:2]])
 for i in range(entries):
     entry, iFDB = readNextEntry(iFDB)
 
-    entry = scaleEntry(entry,ratio)
+    entry = scaleEntry(entry,aRatio,eShift)
 
     entry.append(oFDB)
     appendEntry(*entry)
