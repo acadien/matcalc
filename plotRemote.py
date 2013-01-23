@@ -21,6 +21,11 @@ else:
     import matplotlib
     matplotlib.use("Agg")
 
+import socket
+if socket.gethostname()=="mozart":
+    REMOTESESSION = False
+    import matplotlib
+    matplotlib.use('WX')
 
 def prshow(fname="latestplot.png"):
     if REMOTESESSION:
