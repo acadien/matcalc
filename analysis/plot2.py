@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import plotRemote #mine
+
 import sys
 import pylab as pl
 
