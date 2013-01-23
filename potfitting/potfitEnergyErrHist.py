@@ -21,7 +21,7 @@ if len(sys.argv)<2:
 efile=open(sys.argv[1],"r").readlines()[2:]
 fdb=-1
 if len(sys.argv)>=3:
-    fdb=["/".join(line.split()[-2].split("/")[-3:]) for line in open(sys.argv[2],"r").readlines() if "ifconf" in line]
+    fdb=["/".join(line.split("home")[1].split("OUTCAR")[0].split("/")[6:]) for line in open(sys.argv[2],"r").readlines() if "ifconf" in line]
 
 mxerr=0.1
 if len(sys.argv)==4:
@@ -33,7 +33,6 @@ if fdb!=-1:
     eosDelE=[i for i,j in zip(absdelE,fdb) if "eos" in j]
     meltDelE=[i for i,j in zip(absdelE,fdb) if "heat" in j or "cool" in j]
     feedDelE=[i for i,j in zip(absdelE,fdb) if "feedback" in j]
-    print map(len,[eosDelE,meltDelE,feedDelE])
     pl.hist([eosDelE,meltDelE,feedDelE],20,label=["EOS","Melt","Feedback"],histtype='barstacked')
 else:
     pl.hist(absdelE,20)
