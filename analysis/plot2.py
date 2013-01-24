@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import plotRemote #mine
+import plotRemote as pr#mine
 
 import sys
 import pylab as pl
@@ -72,5 +72,5 @@ if len(labels)==colN:
         
     pl.ylabel( labels[yCol] )
 
-pl.show()
+pr.prshow("plot2.png")
 

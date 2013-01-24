@@ -31,9 +31,15 @@ def dumpReadNext(dump,step=0):
             head="From LAMMPS dump, Timestep: %s"%dump[i+1]
             continue
         if "ITEM: BOX BOUNDS" in line:
-            xlo,xhi,xy=map(float,dump[i+1].split())
-            ylo,yhi,xz=map(float,dump[i+2].split())
-            zlo,zhi,yz=map(float,dump[i+3].split())
+            if len(dump[i+1].split())==3:
+                xlo,xhi,xy=map(float,dump[i+1].split())
+                ylo,yhi,xz=map(float,dump[i+2].split())
+                zlo,zhi,yz=map(float,dump[i+3].split())
+            else:
+                xlo,xhi=map(float,dump[i+1].split())
+                ylo,yhi=map(float,dump[i+2].split())
+                zlo,zhi=map(float,dump[i+3].split())
+                xy=xz=yz = 0.0
             v1=[xhi-xlo-xy-xz,0,0]
             v2=[xy,yhi-ylo-yz,0]
             v3=[xz,yz,zhi-zlo]
@@ -90,12 +96,16 @@ def dumpReadConfig(dump,configN):
                 continue
 
             if "BOX BOUNDS" in line: #assume: ITEM: BOX BOUNDS xy xz yz pp pp p
-                i+=1
-                xlo,xhi,xy=map(float,dump[i].split())
-                i+=1
-                ylo,yhi,xz=map(float,dump[i].split())
-                i+=1
-                zlo,zhi,yz=map(float,dump[i].split())
+                if len(dump[i+1].split())==3:
+                    xlo,xhi,xy=map(float,dump[i+1].split())
+                    ylo,yhi,xz=map(float,dump[i+2].split())
+                    zlo,zhi,yz=map(float,dump[i+3].split())
+                else:
+                    xlo,xhi=map(float,dump[i+1].split())
+                    ylo,yhi=map(float,dump[i+2].split())
+                    zlo,zhi=map(float,dump[i+3].split())
+                    xy=xz=yz = 0.0
+                i+=3
                 v1=[xhi-xlo-xy-xz,0,0]
                 v2=[xy,yhi-ylo-yz,0]
                 v3=[xz,yz,zhi-zlo]
