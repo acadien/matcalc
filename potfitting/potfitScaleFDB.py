@@ -60,7 +60,7 @@ def appendEntry(head,bounds,energy,weight,stress,atominfo,oFDB):
 def scaleEntry(fdbEntry,A,B,C):
     head,bounds,energy,weight,stress,atominfo = fdbEntry
 
-    head = head.strip() + " Scaled by A=%5.5f,B=1.0,C=%5.5f.\n"%(aRatio,eShift)
+    head = head.strip() + " Scale (ABC) %4.4f, %4.4f, %4.4f.\n"%(A,B,C)
 
     scalePosition = lambda x : x * A
     scaleEnergy = lambda x : x * B - C
