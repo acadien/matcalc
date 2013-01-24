@@ -3,9 +3,11 @@
 import sys
 
 def usage():
-    print "%s <input force DB> <output force DB> <a_literature/a_adp> <E_adp - E_literature>"%sys.argv[0].split("/")[-1]
+    print "%s <input force DB> <output force DB> <A=1.0> <B=1.0> <C=0.0>"%sys.argv[0].split("/")[-1]
     print "Re-scales a force database by the ratio of lattice constants"
-    print "ratio = experimental lattice param / ADP lattice param"
+    print "A = <a_literature / a_adp> = 1.0 -> not altered"
+    print "B = sqrt(<Tmelt_literature / Tmelt_adp>) = 1.0 -> not altered"
+    print "C = <E_adp - E_literature> = 0.0 -> not altered (ground state energies)"
 
 def readNextEntry(iFDB):
 
@@ -30,7 +32,7 @@ def readNextEntry(iFDB):
         if line[:2] == "#S":
             stress = map( float , line.split()[1:] )
 
-        if line[:2]=="#F":
+        if line[:2] == "#F":
             break
 
     iFDB = iFDB[i+1:]
@@ -55,41 +57,49 @@ def appendEntry(head,bounds,energy,weight,stress,atominfo,oFDB):
     data += [ "  %d\t %12.8f  %12.8f  %12.8f   %12.8f  %12.8f  %12.8f\n"%tuple(ai) for ai in atominfo]
     oFDB.writelines(data)
 
-
-def scaleEntry(fdbEntry,aRatio,eShift):
+def scaleEntry(fdbEntry,A,B,C):
     head,bounds,energy,weight,stress,atominfo = fdbEntry
 
     head = head.strip() + " Scaled by A=%5.5f,B=1.0,C=%5.5f.\n"%(aRatio,eShift)
 
-    scaleAMul = lambda x : x*aRatio
-    scaleADiv = lambda x : x/aRatio
-    scaleADiv3 = lambda x : x/(aRatio*aRatio*aRatio)
+    scalePosition = lambda x : x * A
+    scaleEnergy = lambda x : x * B - C
+    scaleForce = lambda x : x * B / A
+    scaleStress = lambda x : x * B / (A*A*A)
 
     #Scale position, forces and stress by 
-    bounds = [ map( scaleAMul , i ) for i in bounds] 
-    stress = map( scaleADiv3 , stress )
-    atominfo = [[i[0]] + map( scaleAMul , i[1:4]) + map( scaleADiv , i[4:]) for i in atominfo]
+    bounds = [ map( scalePosition , i ) for i in bounds] 
+    stress = map( scaleStress , stress )
+    atominfo = [ [i[0]] + map( scalePosition , i[1:4]) + map( scaleForce , i[4:]) \
+                    for i in atominfo ]
 
     #Scale energy by
-    energy = energy - eShift
+    energy = scaleEnergy(energy)
 
     fdbEntry = [head,bounds,energy,weight,stress,atominfo]
     return fdbEntry
 
-if len(sys.argv) != 5:
+if len(sys.argv) != 6:
     usage()
     exit(0)
 
 iFDB = open(sys.argv[1],"r").readlines()
 oFDB = open(sys.argv[2],"w")
 aRatio = float(sys.argv[3])
-eShift = float(sys.argv[4])
+tmRatio = float(sys.argv[4])
+eShift = float(sys.argv[5])
 
 entries = sum([1 for line in iFDB if "#N"==line[:2]])
+
+#Loop over all the entries in the force database
 for i in range(entries):
+
+    #Grab an entry
     entry, iFDB = readNextEntry(iFDB)
 
-    entry = scaleEntry(entry,aRatio,eShift)
-
+    #Scale the entry
+    entry = scaleEntry(entry,aRatio,tmRatio,eShift)
     entry.append(oFDB)
+
+    #Stick it in a new force database
     appendEntry(*entry)

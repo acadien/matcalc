@@ -78,5 +78,6 @@ while True:
     pl.gca().set_yticks([])
     pl.axis('off')
 
-    pr.prshow("atomProjection.png")
+    #pr.prshow("atomProjection.png")
+    pl.show()
     pl.gca().clear()
