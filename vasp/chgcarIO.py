@@ -8,6 +8,7 @@ import poscarIO
 
 
 #poscardata,gridsz,chgdata = chgcarIO.read(open(chgcarFileName,"r").readlines())
+#sum(sum(sum(chgdata))) = Total # of electrons (or valence electrons)
 def read(chgcar,frac_coord=True):
     basis,types,atoms,header,chgcar=poscarIO.read(chgcar,frac_coord)
     poscardata=(basis,types,atoms,header)
@@ -16,10 +17,9 @@ def read(chgcar,frac_coord=True):
     gridsz=[int(i) for i in chgcar.pop(0).split()]
 
     Tot_pnts = reduce(operator.mul,gridsz)
-    vol=dot(basis[0],cross(basis[1],basis[2]))/Tot_pnts
 
-    #Multiplies by volume to get absolute Charge
-    chgdata=array([float(i)*vol for i in "".join(chgcar).split()[:Tot_pnts]])
+    #Divices by Tot_pnts to get absolute Charge (e.g. total # electrons)
+    chgdata=array([float(i)/Tot_pnts for i in "".join(chgcar).split()[:Tot_pnts]])
     chgdata=asarray(chgdata)
     chgdata.shape=gridsz
     chgdata=swapaxes(chgdata,0,2)
