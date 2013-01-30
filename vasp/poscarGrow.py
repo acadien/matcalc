@@ -54,11 +54,13 @@ def poscarGrow(poscarName,outputName,cx,cy,cz):
         print "doh"
         exit(0)
 
+    print sum(ax)/len(ax)
+
     atoms=zip(ax,ay,az)
 
     atypes=[i*nCopies for i in atypes]
 
-    poscarIO.write(outputName,basis,atoms,atypes,head)
+    poscarIO.write(outputName,basis,atoms,atypes,head,frac=False)
     return len(atoms),basis
 
 if __name__=="__main__":
