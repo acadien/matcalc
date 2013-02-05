@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import scipy
 from scipy import *
 import operator
 #mine
@@ -19,17 +18,23 @@ def read(chgcar,frac_coord=True):
     Tot_pnts = reduce(operator.mul,gridsz)
 
     #Divices by Tot_pnts to get absolute Charge (e.g. total # electrons)
-    chgdata=array([float(i)/Tot_pnts for i in "".join(chgcar).split()[:Tot_pnts]])
-    chgdata=asarray(chgdata)
-    chgdata.shape=gridsz
-    chgdata=swapaxes(chgdata,0,2)
+    chgdata=array(map(lambda x:float(x)/Tot_pnts,"".join(chgcar).split()))
 
-    return poscardata,gridsz,chgdata
+    #To eliminate points that step outside a reasonable range
+#    avg = sum(chgdata)/len(chgdata)
+#    chgdata[where(chgdata > 100*avg)[0]]=avg
+
+    chgdata.shape=gridsz
+    #Some chgcars seem to need their axes swapped, possible bug in VASP
+#    chgdata=swapaxes(chgdata,0,2)
+
+    return poscardata,chgdata
 
 #Writes a chargecar to vtk format
-def writeVTK(fname,poscardata,gridsz,chgdata,clean=False):
+def writeVTK(fname,poscardata,chgdata):
     basis,types,atoms,header=poscardata
-    
+    gridsz=chgdata.shape
+
     Tot_pnts=reduce(operator.mul,gridsz)
 
     header=list()
@@ -47,16 +52,8 @@ def writeVTK(fname,poscardata,gridsz,chgdata,clean=False):
     vtkfile=open(fname,"w")
     vtkfile.writelines([x+"\n" for x in header])
 
-    if clean==True:
-        chgdata=chgdata.ravel()
-        def clearoutlier(i,a): return 1.0 if i>a else i/a
-        avgval=scipy.sum(chgdata)/Tot_pnts
-        vclearout=vectorize(clearoutlier)
-        chgdata=vclearout(chgdata,avgval)
-        #chgdata=array([i/avgval for i in chgdata])
-        chgdata.shape=gridsz
-    #chgdata=chgdata.ravel()
-    #savetxt(fname,chgdata,delimiter=' ')
+    mx=chgdata.max()
+#    mx=1
     for i in range(gridsz[0]):
          for j in range(gridsz[1]):
-            vtkfile.write(" ".join(map(lambda x:str(x),chgdata[i][j]))+"\n")
+            vtkfile.write(" ".join(map(lambda x:str(x/mx),chgdata[i][j]))+"\n")

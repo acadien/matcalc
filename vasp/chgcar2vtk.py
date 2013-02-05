@@ -57,5 +57,5 @@ if len(sys.argv)==3:
 else:
     vtkfname=chgfname+".vtk"
 
-poscardata,gridsz,chgdata=chgcarIO.read(open(chgfname,"r").readlines())
-chgcarIO.writeVTK(vtkfname,poscardata,gridsz,chgdata,clean=True)
+poscardata,chgdata=chgcarIO.read(open(chgfname,"r").readlines())
+chgcarIO.writeVTK(vtkfname,poscardata,chgdata,clean=True)

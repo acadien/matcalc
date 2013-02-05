@@ -30,14 +30,13 @@ cutev = float(sys.argv[2])
 pstyle = int(sys.argv[3])
 
 global dataset
-(v1,v2,v3,types,xs,ys,zs,header),gridsz,dataset = chgcarIO.read(chgcar)
+(basis,types,atoms,header),gridsz,dataset = chgcarIO.read(chgcar)
 #dataset.shape=gridsz[0]*gridsz[1]*gridsz[2]
 
 Tot_pnts = reduce(operator.mul,gridsz)
-vol=dot(v1,cross(v2,v3))/Tot_pnts
 
-dataset=vclearout(dataset,avgval*3)
-dataset=array([log(i/avgval) for i in dataset])
+#dataset=vclearout(dataset,avgval*3)
+#dataset=array([log(i/avgval) for i in dataset])
 #dataset is 1d
 #dhist=pl.hist(dataset,bins=10000,range=(0,1000),normed=True,histtype='step')[0]
 #f=open("CHGDENS_HIST","w")

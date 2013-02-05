@@ -8,6 +8,8 @@ import sys,operator,os
 from numpy import *
 import scipy
 from vtk import *
+#mine
+import chgcarIO
 
 def usage():
     print "Usage:"
@@ -17,10 +19,15 @@ def usage():
 if not(len(sys.argv) in [2]):
     usage()
 
-vtkfile=sys.argv[1]
+fname=sys.argv[1]
+vtkfile=fname+".vtk"
+
+poscarData,chgcarData=chgcarIO.read(open(fname,"r").readlines())
+chgcarIO.writeVTK(vtkfile,poscarData,chgcarData)
+
 #---------------------------------
 #Below is taken from website
-#---------------------------------
+#x---------------------------------
 # Interaction with an Isosurface visualization
 
 # A reader
@@ -48,14 +55,14 @@ outlineActor.GetProperty().SetColor(0.0,0.0,0.5)
 # Color lookup table
 lut=vtkColorTransferFunction()
 lut.AddRGBPoint(0.0,0,0,0)
-lut.AddRGBPoint(0.850,1,0,1)
-lut.AddRGBPoint(0.890,0,0,1)
-lut.AddRGBPoint(0.925,0,1,0)
+lut.AddRGBPoint(0.10,1,0,1)
+lut.AddRGBPoint(0.20,0,0,1)
+lut.AddRGBPoint(0.30,0,1,0)
 lut.AddRGBPoint(1.000,1,1,0)
 lut.AddRGBPoint(5.0,1,1,1)
 
 # Define initial iso value 
-isovalue = 0.9
+isovalue = 0.1
 
 # The contour filter
 isosurface = vtkContourFilter()
