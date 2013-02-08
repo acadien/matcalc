@@ -22,7 +22,8 @@ def chgcarBondAnalysis(chgcarfile,bondLengths,normalize=False,verbose=False,Nint
 
     #Parse CHGCAR
     chgcar=open(chgcarfile,"r").readlines()
-    (v1,v2,v3,atypes,axs,ays,azs,header),gridSize,chg = chgcarIO.read(chgcar)
+    (v1,v2,v3,atypes,axs,ays,azs,header),chg = chgcarIO.read(chgcar)
+    gridSize = chg.shape
     basis=asarray([v1,v2,v3])
     lengths=array([v1[0],v2[1],v3[2]])
     atoms=array(zip(axs,ays,azs))

@@ -35,7 +35,7 @@ if __name__=="__main__":
         print "%s <POSCAR> <frac/unfrac>"%sys.argv[0].split("/")[-1]
         print "%s <POSCAR> <ratio value>"%sys.argv[0].split("/")[-1]
 
-    if len(sys.argv)!=2:
+    if len(sys.argv)!=3:
         usage()
         exit(0)
 

@@ -21,8 +21,9 @@ def read(chgcar,frac_coord=True):
     chgdata=array(map(lambda x:float(x)/Tot_pnts,"".join(chgcar).split()))
 
     #To eliminate points that step outside a reasonable range
-#    avg = sum(chgdata)/len(chgdata)
-#    chgdata[where(chgdata > 100*avg)[0]]=avg
+    avg = sum(chgdata)/len(chgdata)
+
+    #chgdata[where(chgdata > 3*avg)[0]]=avg
 
     chgdata.shape=gridsz
     #Some chgcars seem to need their axes swapped, possible bug in VASP
