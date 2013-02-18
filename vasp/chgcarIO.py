@@ -39,8 +39,9 @@ def read(chgcar,SP=False,frac_coord=True):
             SP=False
 
     #To eliminate points that step outside a reasonable range
-#    avg = sum(chgdata)/len(chgdata)
-#    chgdata[where(chgdata > 100*avg)[0]]=avg
+    avg = sum(chgdata)/len(chgdata)
+
+    #chgdata[where(chgdata > 3*avg)[0]]=avg
 
 
     #Some chgcars seem to need their axes swapped, possible bug in VASP
