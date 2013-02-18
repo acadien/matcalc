@@ -4,11 +4,17 @@ import plotRemote as pr#mine
 
 import sys
 import pylab as pl
+#mine
+from datatools import windowAvg
 
 def usage():
-    print "\nUsage: %s <data-file> <x-data column> <y-data column>"%sys.argv[0].split("/")[-1]
+    print "\nUsage: %s <data-file> <x-data column><s><window size> <y-data column><s><window size>"%sys.argv[0].split("/")[-1]
     print "\nA general use plotter of 2D data. \nAttempts to find data in column format and plot the desired columns."
     print "If x-data column is -1 then range(len(y)) is used"
+    print "If the column number is followed by an \"s\" then a window average is applied to that data."
+    print "examples:"
+    print "./plot2.py datafile 0 1"
+    print "./plot2.py datafile 0s 5s50 # applies a window average of size 10 to column 0 and size 50 to column 5"
     print ""
 
 if len(sys.argv)!=4:
@@ -16,8 +22,27 @@ if len(sys.argv)!=4:
     exit(0)
 
 fname=sys.argv[1]
-xCol=int(sys.argv[2])
-yCol=int(sys.argv[3])
+
+#X-Data
+if "s" in sys.argv[2]:
+    xSmooth=True
+    xCol,xWAN=sys.argv[2].split("s")
+    xCol=int(xCol)
+    xWAN=int(xWAN) if len(xWAN)>0 else 10
+else:
+    xSmooth=False
+    xCol=int(sys.argv[2])
+
+#Y-Data
+if "s" in sys.argv[3]:
+    ySmooth=True
+
+    yCol,yWAN=sys.argv[3].split("s")
+    yCol=int(yCol)
+    yWAN=int(yWAN) if len(yWAN)>0 else 10
+else:
+    ySmooth=False
+    yCol=int(sys.argv[3])
 
 fraw = open(fname,"r").readlines()
 
@@ -61,6 +86,13 @@ if xCol==-1:
     xdata=range(len(ydata))
 else:
     xdata=data[xCol]
+
+#Smoothing:
+if xSmooth:
+    xdata=windowAvg(xdata,xWAN)
+if ySmooth:
+    ydata=windowAvg(ydata,yWAN)
+
 pl.plot(xdata,ydata)
 
 #Try to track down column labels

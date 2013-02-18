@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from numpy import matrix,linalg
+from numpy import matrix,linalg,array
 
 #Given the poscar (opened and read)
 #Returns: basis,atypes,atoms,head,poscar
@@ -29,7 +29,7 @@ def read(poscar,frac_coord=False):
 
     if not frac_coord:
         for i in range(len(ax)):
-            a,b,c = ax[i], ay[i], az[i]
+            a,b,c = array(ax[i]), array(ay[i]), array(az[i])
             ax[i]=v1[0]*a+v2[0]*b+v3[0]*c
             ay[i]=v1[1]*a+v2[1]*b+v3[1]*c
             az[i]=v1[2]*a+v2[2]*b+v3[2]*c
@@ -82,13 +82,13 @@ def write(poscarName,basis,atoms,types,header,frac=True,ratio=1.0):
     #Make the POSCAR
     data=""
     data+=" ".join(header.split("\n"))+"\n"
-    data+="%3.3f\n"%ratio
+    data+=" % 16.16f\n"%ratio
     for vec in basis:
-        data+="% 5.12e % 5.12e % 5.12e\n"%(vec[0],vec[1],vec[2])
-    data+=" ".join([str(i) for i in types])+"\n"
+        data+=" % 5.12e % 5.12e % 5.12e\n"%(vec[0],vec[1],vec[2])
+    data+=" "+" ".join([str(i) for i in types])+"\n"
     data+="Direct\n"
     for atom in atoms:
-        data+="% 5.12e % 5.12e % 5.12e\n"%(atom[0],atom[1],atom[2])
+        data+=" % 5.12e % 5.12e % 5.12e\n"%(atom[0],atom[1],atom[2])
 
     poscar=open(poscarName,"w")
     poscar.write(data)

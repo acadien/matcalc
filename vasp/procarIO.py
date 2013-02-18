@@ -1,6 +1,8 @@
 #!/usr/bin/python
 import scipy
-from scipy import array,zeros
+from numpy import *
+#mine
+import gaussFunctions
 
 #Helper function finds the header for next Kpoint and returns it at the ion label
 def grabKP(procar):
@@ -36,41 +38,64 @@ def grabE(procar):
 def grabOatB(procar, Nions):
     header=procar.readline().split()[1:]
     Norbs=len(header)
-    occ=zeros(Norbs)
-    occ=map(lambda x:sum(x),zip(*[map(float,procar.readline().split()[1:]) for i in range(Nions)]))
+
+    for i in range(Nions):
+        procar.readline()
+
+    #occ=map(lambda x:sum(x),zip(*[map(float,procar.readline().split()[1:]) for i in range(Nions)]))
+    occ = array(map(float,procar.readline().split()[1:]))
     return occ,header
 
-def read(procarFilename):
-    energy=list()
+#Generate a bunch of gaussians, centered at x with height y and sum the up on the grid sg
+#xgrid and ygrid must be arrays
+def sumgauss(xcenter,ycenter,xgrid,ygrid,sigma):
+    return gaussFunctions.gauss1D(xgrid,ygrid,ycenter,xcenter,sigma)
+
+#read(The unread procar file, the width of gaussians (0=points), ngPnts=number of grid points)
+def read(procarFilename,sigma=0.2,ngPnts=1000):
     kpoints=list()
     weights=list()
-    occupancies=list()#per kpoint, averaged over sites
-    avgoc=list()#occupancy averaged over kpoints
 
     procar=open(procarFilename)
+
     procar.readline()
+
     [Nkpoints,Nbands,Nions]=map(lambda x:int(x.split(":")[1]),procar.readline().split("#")[1:])
+    Norbs=Nbands
+
+    #Parsy Parsy noitch.
     print "Parsing PROCAR, this may take a moment..."
+    occupancies=zeros([Nkpoints,Nbands,Norbs])
+    energies = zeros([Nkpoints,Nbands])
     for i in range(Nkpoints):
         print "On Kpoint %d of %d"%(i+1,Nkpoints)
         k,w=grabKP(procar)
-        occupancies.append(list())
-        energy.append(list())
         for j in range(Nbands):
             e=grabE(procar)
             o,orbLabels=grabOatB(procar,Nions)
-            occupancies[i].append(o)
-            energy[i].append(e)
+            occupancies[i,j] = o
+            energies[i,j] = e
         kpoints.append(k)
         weights.append(w)
 
-    energy=array(energy)
-    occupancies=array([array(i).T for i in occupancies]) #occupancies[Nkpoints][Nbands][orbitals]
+    #Gaussian summations
+    eGrid=linspace(energies.min()-1.0,energies.max()+1,ngPnts)
+    ocGrids=zeros([Norbs,ngPnts]) #occupancy grid to sum the band-gaussians over
 
-    avgoc=[array(v)/Nkpoints for i,v in enumerate(occupancies)]#multiply by weights
-    avgoc=scipy.sum(avgoc,axis=0)
-    #avgoc=avgoc.T
-    avgen=map(lambda x:sum(x)/Nkpoints,zip(*energy))
+    if sigma>0:
+        #Sum up gaussians
+        for kp in range(Nkpoints): 
+            for b in range(Nbands):
+                for o in range(Norbs):
+                    ocGrids[o] = sumgauss( energies[kp,b] , occupancies[kp,b,o]*weights[kp]/Nkpoints ,eGrid,ocGrids[o],sigma)
+    else:
+        #Sump up points
+        for kp in range(Nkpoints): 
+            for b in range(Nbands):
+                for o in range(Norbs):
+                    a=digitize([energies[kp,b]],eGrid)
+                    ocGrids[o,a] += occupancies[kp,b,o]*weights[kp]/Nkpoints
 
-    #      Norbs    ,Nkpoints,Nkpoints,Nkpoints*NBands,Nkpoints*Norbs*Nbands,NBands,Norbs*Nbands
-    return orbLabels,kpoints ,weights ,energy         ,occupancies          ,avgen ,avgoc       
+    #lengths
+    #      Norbs    ,Nkpoints,Nkpoints,Nkpoints*NBands,Nkpoints*Norbs*Nbands,ngPnts,Norbs*ngPnts
+    return orbLabels,kpoints ,weights ,energies       ,occupancies          ,eGrid ,ocGrids

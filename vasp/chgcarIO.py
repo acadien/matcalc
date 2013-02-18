@@ -6,9 +6,10 @@ import operator
 import poscarIO
 
 
-#poscardata,gridsz,chgdata = chgcarIO.read(open(chgcarFileName,"r").readlines())
+#poscardata,chgdata = chgcarIO.read(open(chgcarFileName,"r").readlines())
+#if spin polarized, returns poscardata,chgdata_add,chgdata_sub
 #sum(sum(sum(chgdata))) = Total # of electrons (or valence electrons)
-def read(chgcar,frac_coord=True):
+def read(chgcar,SP=False,frac_coord=True):
     basis,types,atoms,header,chgcar=poscarIO.read(chgcar,frac_coord)
     poscardata=(basis,types,atoms,header)
 
@@ -17,17 +18,35 @@ def read(chgcar,frac_coord=True):
 
     Tot_pnts = reduce(operator.mul,gridsz)
 
+    npline=len(chgcar[0].split())
+    cur=Tot_pnts/npline
+    if cur*npline<Tot_pnts:
+        cur+=1
     #Divices by Tot_pnts to get absolute Charge (e.g. total # electrons)
-    chgdata=array(map(lambda x:float(x)/Tot_pnts,"".join(chgcar).split()))
+    chgdata=array(map(lambda x:float(x)/Tot_pnts,"".join(chgcar[:cur]).split()))
+    chgdata.shape=gridsz
+    chgcar=chgcar[cur:]
+
+    #Spin polarized chgcar, first half is chgdata-summed, second is subtracted
+    if SP:
+        if len(chgcar)>0:
+            chgdata_add=chgdata
+            chgcar = chgcar[2:]
+            chgdata_sub=array(map(lambda x:float(x)/Tot_pnts,"".join(chgcar[:cur]).split()))
+            chgdata_sub.shape=gridsz
+        else:
+            print "WARNING: Requested Spin-Polarized CHGCAR read from a non-spin polarized CHGCAR file."
+            SP=False
 
     #To eliminate points that step outside a reasonable range
 #    avg = sum(chgdata)/len(chgdata)
 #    chgdata[where(chgdata > 100*avg)[0]]=avg
 
-    chgdata.shape=gridsz
+
     #Some chgcars seem to need their axes swapped, possible bug in VASP
 #    chgdata=swapaxes(chgdata,0,2)
-
+    if SP:
+        return poscardata,chgdata_add,chgdata_sub
     return poscardata,chgdata
 
 #Writes a chargecar to vtk format

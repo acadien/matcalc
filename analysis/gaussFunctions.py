@@ -41,13 +41,17 @@ def gaussNorm2D(xs,ys,params):
 
 #f(x)=a e ^ ( (x-x0)^2 / (-2sig^2) ) 
 gauss1Dcode = """
-double xx=( i - x0 ) / sig;
-return_val = a * exp( xx*xx / -2. );
+double xx;
+for(int i=0;i<n;i++){
+  xx=( xs[i] - x0 ) / sig;
+  ys[i] += a * exp( xx*xx / -2. );
+}
 """
-def gauss1D(x,a,x0,sig):
+def gauss1D(xs,ys,a,x0,sig):
     a,x0,sig=map(float,[a,x0,sig])
-    x=map(float,x)
-    return [weave.inline(gauss1Dcode,['a','i','x0','sig']) for i in x]
+    n=len(xs)
+    weave.inline(gauss1Dcode,['a','n','x0','sig','xs','ys'])
+    return ys
 
     
 #f(x,y)=a e ^ ( (x-x0)^2 / ( -2sigx^2) + (y-y0)^2 / ( -2sigy^2) )

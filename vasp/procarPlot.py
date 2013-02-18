@@ -1,12 +1,16 @@
 #!/usr/bin/python
 
+import plotRemote as pr
+
 import sys
 import pylab as pl
+#from numpy import *
 #mine
 import procarIO
 
+
 def usage():
-    print "procarPlot.py <PROCAR File> <Value=avg or kp> <Xaxis=band or energy>"
+    print "procarPlot.py <PROCAR File> <Value=avg or kp> <Interp = gauss or point>"
 
 if len(sys.argv)!=4:
     usage()
@@ -17,17 +21,21 @@ if yvals not in ["avg","kp"]:
     usage()
     print "Select a valid value to plot."
     exit(0)
-xaxis=sys.argv[3]
-if xaxis not in ["band","energy"]:
+interp=sys.argv[3]
+if interp not in ["gauss","point"]:
     usage()
-    print "Select a valid xaxis."
+    print "Select a valid interpolation/summation method."
     exit(0)
 
-olabels,kpoints,ws,energy,occupancy,avgen,avgoc=procarIO.read(procarfile)
+if interp=='gauss':
+    olabels,kpoints,ws,energy,occupancy,enGrid,ocGrid=procarIO.read(procarfile)
+else:
+    olabels,kpoints,ws,energy,occupancy,enGrid,ocGrid=procarIO.read(procarfile,sigma=0)
 
 Norbs=len(olabels)
 porb='q'
 if yvals=='avg':
+
     for i in range(Norbs):
         orb=olabels[i][0]
         if orb=='s':
@@ -43,28 +51,15 @@ if yvals=='avg':
         if orb!=porb:
             if orb=='t': temp='total'
             else: temp=orb
-            if xaxis=='band':
-                pl.plot(avgoc[i],label=temp,color=c)
-            elif xaxis=='energy':
-                pl.plot(avgen,avgoc[i],label=temp,color=c)
+            pl.plot(enGrid,ocGrid[i],label=temp,color=c)
         else:
-            if xaxis=='band':
-                pl.plot(avgoc[i],color=c)
-            elif xaxis=='energy':
-                pl.plot(avgen,avgoc[i],color=c)
+            pl.plot(enGrid,ocGrid[i],color=c)
         porb=orb
-    if xaxis=='band':
-        pl.xlabel("Band#")
-    elif xaxis=='energy':
-        pl.xlabel("Energy (in eV)")
+
+    pl.xlabel("Energy (in eV)")
     pl.ylabel("DOS")
     pl.legend()
-    if xaxis=='band':
-        pl.xlim([0,len(avgen)+200])
-        pl.savefig("DOS_vsBand_from%s"%procarfile)
-    elif xaxis=='energy':
-        pl.xlim([min(avgen),max(avgen)+12.0])
-        pl.savefig("DOS_vsEnergy_from%s"%procarfile)
+    pr.prshow("DOS_from%s"%procarfile)
 
 elif yvals=='kp':
     for kp in range(len(kpoints)):
@@ -84,27 +79,14 @@ elif yvals=='kp':
             if orb!=porb:
                 if orb=='t': temp='total'
                 else: temp=orb
-                if xaxis=='band':
-                    pl.plot(occupancy[kp][i],label=temp,color=c)
-                elif xaxis=='energy':
-                    pl.plot(energy[kp],occupancy[kp][i],label=temp,color=c)
+                pl.plot(energy[kp],occupancy[kp][i],label=temp,color=c)
             else:
-                if xaxis=='band':
-                    pl.plot(occupancy[kp][i],color=c)
-                elif xaxis=='energy':
-                    pl.plot(energy[kp],occupancy[kp][i],color=c)
+                pl.plot(energy[kp],occupancy[kp][i],color=c)
             porb=orb
-        if xaxis=='band':
-            pl.xlabel("Band#")
-        elif xaxis=='energy':
-            pl.xlabel("Energy (in eV)")
+        pl.xlabel("Energy (in eV)")
         pl.ylabel("DOS")
         pl.title("KPoint %d at (%5.5g,%5.5g,%5.5g)"%(kp,kpoints[kp][0],kpoints[kp][1],kpoints[kp][2]));
         pl.legend()
-        if xaxis=='band':
-            pl.xlim([0,len(avgen)+200])
-            pl.savefig("DOS_vsBand_kp%d_from%s"%(kp,procarfile))
-        elif xaxis=='energy':
-            pl.xlim([min(avgen),max(avgen)+12.0])
-            pl.savefig("DOS_vsEnergy_kp%d_from%s"%(kp,procarfile))
+            #pl.xlim([min(avgen),max(avgen)+12.0])
+        pl.savefig("DOS_kp%d_from%s"%(kp,procarfile))
 

@@ -131,9 +131,9 @@ def mag(vec):
     return sqrt(dot(vec,vec))
 
 def normalize(vec):
-    a=mag(vec)
-    return vec/a
+    return vec/mag(vec)
 
+"""
 def rotmatx(vec1,vec2):#Returns the rotation matrix that rotates vector1 into vector2
     raxis=normalize(cross(vec1,vec2))
     [rx,ry,rz]=raxis
@@ -148,6 +148,17 @@ def rotmatx(vec1,vec2):#Returns the rotation matrix that rotates vector1 into ve
         ])
 
     return RM
+"""
+
+def rotmatx(u,v):
+    a=normalize(u)
+    b=normalize(v)
+
+    w=normalize(cross(a,b))
+    U=array([a,w,normalize(cross(a,w))])
+    V=array([b,w,normalize(cross(b,w))])
+    return dot(V.T,U)
+
 
 def volume(a,b,c):
     return fabs(dot(a,cross(b,c)))
