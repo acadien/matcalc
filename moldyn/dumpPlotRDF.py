@@ -12,7 +12,7 @@ from numpy import array,zeros
 
 def usage():
     print "%s <lammps-dump> <avg=0> <cutoff=10.0> <nbins=256> <smooth=0>"%sys.argv[0]
-    print "Avg=1 enables averaging accross all configurations in the dump-file"
+    print "Avg>=1 enables averaging, using at most the number of averages requested."
 
 if len(sys.argv)<2:
     usage()
@@ -43,9 +43,9 @@ def plotting(rbins,rdist):
     pl.xlabel("radius ($\AA$)")
     pl.ylabel("g(r)")
     pl.title("RDF | File:%s | Step:%s"%(sys.argv[1],head.split()[-1]))
-    pr.prshow()
+    pr.prshow("RDF_lammps.png")
 
-if avg==1:
+if avg>=1:
     rdistavg=zeros(nbins)
 
 cnt=0
@@ -60,9 +60,9 @@ while True:
         else:
             print "Found %d configurations."%cnt
         break
-
+    
     [rbins,rdist]=rdf_periodic(array(atoms),array(bounds),cutoff=cutoff,nbins=nbins)
-
+    
     if avg==0:
         if smooth==1:
             smdist=rdist[:]
@@ -72,5 +72,8 @@ while True:
             plotting(rbins,rdist)
     else:
         rdistavg+=rdist
-if avg==1:
+
+    if cnt==avg: break
+
+if avg>=1:
     plotting(rbins,rdistavg/cnt)

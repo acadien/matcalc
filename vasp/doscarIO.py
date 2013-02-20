@@ -9,7 +9,7 @@ def read(doscar):
     efermi = float(doscar[5].split()[3])
     doscar=doscar[5:]
     NDOS=int(doscar.pop(0).split()[2])
-    data=zip(*[map(float,i.split()) for i in doscar[1:]])
+    data=zip(*[map(float,i.split()) for i in doscar[1:NDOS]])
     bandE=data[0]
     if len(data)==3:
         dos=data[1]
