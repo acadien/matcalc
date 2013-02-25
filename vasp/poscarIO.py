@@ -23,9 +23,12 @@ def read(poscar,frac_coord=False):
         elements=vals
         atypes=[int(i) for i in poscar.pop(0).split()]
     N=sum(atypes)
-    poscar.pop(0)
 
-    ax,ay,az=map(list,zip(*[map(float,line.split()) for line in poscar[:N]]))
+    line = poscar.pop(0)
+    if "Sel" in line or "sel" in line: #selective dynamics
+        poscar.pop(0)
+
+    ax,ay,az=map(list,zip(*[map(float,line.split()[:3]) for line in poscar[:N]]))
 
     if not frac_coord:
         for i in range(len(ax)):

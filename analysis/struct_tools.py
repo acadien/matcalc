@@ -32,32 +32,23 @@ for(int i=0;i<3;i++){
 }
 return_val=sqrt(c);
 """
-#Calculates dist between 2 points enforcing periodic boundary conditions
+#Calculates dist between 2 points enforcing periodic boundary conditions on orthogonal unit cell
 def dist_periodic(a,b,lengths):
     return weave.inline(distcodeP,['a','b','lengths'])
 
-distSPcode = """
-double d=0.0,c=0.0;
-for(int tx=-1;tx<2;tx++){
-    for(int ty=-1;ty<2;ty++){
-        for(int tz=-1;tz<2;tz++){
-            c=0.0;
-            d=a[0]-b[0]+tx;
-            c+=d*d;
-            d=a[1]-b[1]+ty;
-            c+=d*d;
-            d=a[2]-b[2]+tz;
-            c+=d*d;
-            rs[(tx+1)*9+(ty+1)*3+tz+1]=c;
-        }
-    }
-}
-"""
-def distsp(a,b,l,rs=None):
-    if rs==None:
-        rs=zeros(27)
-    weave.inline(distSPcode,['a','b','l','rs'])
-    return rs
+
+translation_unit_vectors = array(zip( *[ [-1]*9 + [0]*9 + [1]*9       ,\
+                                     ( [-1]*3 + [0]*3 + [1]*3 )*3   ,\
+                                       [-1,0,1] * 9                ]))
+
+#Calculates dist between 2 points enforcing periodic boundary conditions in 3D, any basis
+def minImageDist(a,b,basis):
+    #Find all basis vector translations
+    translations = tensordot(basis.T, translation_unit_vectors,[1,1]).T
+    imageDists = (b-a)+translations
+
+    #Calculate all distances, return the smallest
+    return sqrt(min(diag(tensordot(imageDists,imageDists.T,1))))
 
 angcode = """
 double ang,x,dab=0.0,dac=0.0,dbc=0.0;
@@ -164,17 +155,22 @@ def volume(a,b,c):
     return fabs(dot(a,cross(b,c)))
 
 #===========  Neighbor List  ===================
-def neighbors(atoms,bounds,r,style="full"):
+#Fast neighbor list generation for orthogonal unit cell vectors
+def neighborOrtho(atoms,bounds,r,style="full"):
     atoms=array(atoms)
     #Assumes atom location is >=(min bound) but strictly <(max bound)
 
     #Makes a neighbor list for the list of atoms
     #Neighbors within a distance r are considered
-    #Added functionality for including periodicity
+    #Added functionality for including periodic boundary conditions
 
     stepsz=[0.0,0.0,0.0]
     bounds=[map(float,i) for i in bounds]
     lengths=array([i[1]-i[0] for i in bounds])
+
+    print r,dist_periodic(atoms[0],atoms[1],lengths)
+    print atoms[:20]
+    exit(0)
 
     for i,l in enumerate(lengths):
         div=1
@@ -220,15 +216,13 @@ def neighbors(atoms,bounds,r,style="full"):
     N=len(atoms)
     neighbs=[list() for i in range(N)]
     doneCells=set([ind for ind,cell in enumerate(cells) if len(cell)==0]) #skip all empty cells
+    
     for indA in set(range(Ncells)) - doneCells:
         cellA=cells[indA]
         for indB in cellNeighbs(indA) - doneCells:
-            #print indA,indB
-            #print "="*50
             cellB=cells[indB]
-
-            #Loop over atoms in each cell
             for a in cellA:
+                
                 atomA=atoms[a]
                 for b in cellB:
                     atomB=atoms[b]
@@ -243,23 +237,20 @@ def neighbors(atoms,bounds,r,style="full"):
         for i,a in enumerate(neighbs):
             for b in a:
                 neighbs[b].remove(i)
+    print "Generated Neighbor List with orthogonal unit cell."
+    print map(len,neighbs)
     return neighbs
 
+#Slow neighbor list generation for any set of basis vectors
+def neighborBasis(atoms,basis,rcut,style="full"):
 
-def old_neighbors(atoms,bounds,r,style="full"):
-    lengths=array(map(lambda x: x[1]-x[0],bounds))
+    neighbs = [[i+1+j for j,atomj in enumerate(atoms[i+1:])\
+                   if minImageDist(atomi,atomj,basis)<rcut ]\
+                   for i,atomi in enumerate(atoms)]
 
-    N=len(atoms)
-    neighbs=[list() for i in range(N)]
-    if style in ["h","H","half","Half"]:
-        neighbs = [ [j for j in range(i+1,N) if dist_periodic(atoms[i],atoms[j],lengths) < r] for i in range(N)]
-    elif style in ["f","F","Full","full"]:
-        for i,ai in enumerate(atoms):
-            for j,aj in enumerate(atoms[i+1:]):
-                j+=i+1
-                if dist_periodic(ai,aj,lengths) < r:
-                    neighbs[i].append(j)
-                    neighbs[j].append(i)
+    if style=="full":
+        return half2full(neighbs)
+
     return neighbs
 
 def half2full(hneighbors):
