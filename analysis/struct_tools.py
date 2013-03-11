@@ -168,9 +168,9 @@ def neighborOrtho(atoms,bounds,r,style="full"):
     bounds=[map(float,i) for i in bounds]
     lengths=array([i[1]-i[0] for i in bounds])
 
-    print r,dist_periodic(atoms[0],atoms[1],lengths)
-    print atoms[:20]
-    exit(0)
+    #print r,dist_periodic(atoms[0],atoms[1],lengths)
+    #print atoms[:20]
+    #exit(0)
 
     for i,l in enumerate(lengths):
         div=1
@@ -238,7 +238,6 @@ def neighborOrtho(atoms,bounds,r,style="full"):
             for b in a:
                 neighbs[b].remove(i)
     print "Generated Neighbor List with orthogonal unit cell."
-    print map(len,neighbs)
     return neighbs
 
 #Slow neighbor list generation for any set of basis vectors

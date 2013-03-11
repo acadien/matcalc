@@ -6,9 +6,10 @@ import math
 from operator import mul
 import pylab as pl
 #mine
-from struct_tools import sphang,neighborBasis,neighborOrtho
+from voronoiNeighbors import voronoiNeighbors
+from struct_tools import sphang,neighborBasis,neighborOrtho,dist_periodic
 from rdf import rdf
-from datatools import flatten
+from datatools import flatten,windowAvg
 
 #Raw functions for calculating order parameters such as bond orientation, translational and tetrahedral ordering.
 
@@ -41,6 +42,43 @@ def bondOrientation(atoms,bounds,l,ortho=True,atomi=-1,neighbCut=5.0,neighbs=Non
     Ql = [ (Qlm.conjugate()*Qlm *2*np.pi / (l+0.5)).sum()**0.5 for Qlm in Qlms] 
     print "done calc"
     return Ql
+
+
+def coordinationNumbers(atoms,basis,ortho=True,neighbs=None,rcut=None):
+    if rcut==None:
+        #Set rcut to be the first minimum of g(r)
+        rvals,gr = rdf(atoms,cutoff=6.0)
+
+        #Smoothed G(r)
+        sgr=windowAvg(gr,n=100)
+        #derivative of smoothed-G(r)
+        dsgr = windowAvg([sgr[i+1]-sgr[i] for i in range(len(sgr)-1)],n=50) 
+        
+        #Find the first minima by chopping at the first negative and the 2nd positive.
+        first_neg = [i for i,v in enumerate(dsgr) if v<0][0]
+        dsgr = dsgr[first_neg:]
+        second_pos = [i for i,v in enumerate(dsgr) if v>0][0]
+        dsgr = dsgr[:second_pos]
+        rcut = rvals[dsgr.index(min(dsgr))+first_neg ]
+        print rcut
+#        rcut=rcut*2
+#        pl.plot(rvals,gr)
+#        pl.plot(rvals,[i for i in sgr],lw=3)
+#        pl.plot([rcut,rcut],[min(sgr),max(sgr)])
+#        pl.show()
+
+    #First make the neighbor list
+    if neighbs==None:
+#        kwargs={"atoms":atoms,"basis":basis,"atypes":[len(atoms)],"style":"full"}
+#        neighbs=voronoiNeighbors(atoms=atoms,basis=basis,atypes=[len(atoms)],style="full")
+        bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
+#        neighbs=neighborOrtho(atoms,bounds,rcut,style="full")
+        neighbs=neighborBasis(atoms,basis,rcut,style="full")
+    cns = [sum([1 for j in ineighbs if dist_periodic(atoms[i],atoms[j],np.array(zip(*bounds)[1])) < rcut])\
+                    for i,ineighbs in enumerate(neighbs)]
+
+    return cns
+            
 
 #translational: t
 def translational(atoms,basis,neighbs=None,rcut=None):
