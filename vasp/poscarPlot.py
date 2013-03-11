@@ -58,9 +58,8 @@ if opFlag:
         aa=reorg[i]
         ax,ay,az=zip(*aa)
         mlab.points3d(ax,ay,az,color=cm.jet(i)[:3],scale_factor=1.0,vmin=0.0,vmax=1.0)
-    print sorted(set(ops))
 else:
-    mlab.points3d(ax,ay,az,ops,scale_factor=1.0,vmin=-1.0,vmax=4.0)
+    mlab.points3d(ax,ay,az,[1]*len(ax),scale_factor=1.0,vmin=-1.0,vmax=4.0)
 z=[0,0,0]
 mlab.plot3d([0,v1[0]],[0,v1[1]],[0,v1[2]],color=(1,1,1),line_width=0.1)
 mlab.plot3d([0,v2[0]],[0,v2[1]],[0,v2[2]],color=(1,1,1),line_width=0.1)
