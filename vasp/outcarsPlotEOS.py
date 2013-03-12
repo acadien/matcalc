@@ -10,7 +10,7 @@ from numpy import linspace
 from matplotlib import colors
 
 #mine
-import poscar2dump,poscarGrow,poscarVolume
+import poscar2lmpcfg,poscarGrow,poscarVolume
 
 bars2GPa=1./10000.
 kB2GPa=1./10.
@@ -54,7 +54,7 @@ def lammpsGenerateE(vaspPOSCAR,preCmd,postCmd,vRatio):
     shutil.copyfile(vaspPOSCAR,lammpsPOSCAR)
     poscarGrow.poscarGrow(lammpsPOSCAR,lammpsPOSCAR,2,1,1)
     poscarVolume.ratio(lammpsPOSCAR,vRatio)
-    poscar2dump.poscar2dump(lammpsPOSCAR,lammpsConfig)
+    poscar2lmpcfg.poscar2dump(lammpsPOSCAR,lammpsConfig)
     
     #Run lammps
     lmp=lammps.lammps()
