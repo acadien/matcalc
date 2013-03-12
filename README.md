@@ -14,10 +14,12 @@ Optional Libraries
 To Install
 ==========
 Edit your bashrc (or equivalent) and add:
-     matcalcdir="/path/to/matcalc/repo"
-     matcalcsubdirs=${matcalcdir}:$(find ${matcalcdir} -type d | tr '\n' ':' | sed 's/:$//')
-     export PYTHONPATH=$PYTHONPATH:${matcalcsubdirs}
-     export PATH=$PATH:${matcalcsubdirs}
+```
+matcalcdir="/path/to/matcalc/repo"
+matcalcsubdirs=${matcalcdir}:$(find ${matcalcdir} -type d | tr '\n' ':' | sed 's/:$//')
+export PYTHONPATH=$PYTHONPATH:${matcalcsubdirs}
+export PATH=$PATH:${matcalcsubdirs}
+```
 
 Description
 ===========
