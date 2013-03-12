@@ -1,4 +1,4 @@
-This is code developed throughout my doctorate, developing semi-empirical models of materials and studying atomic structures in disordered materials. I'm sharing these programs with you to use as you please, feel free to modify, chop-up or ruin this code as much as you like.  Programs will tell you how to run them if run without any arguements, in general the name of the code should be self explanatory.
+This has been developed with the central purpose of developing semi-empirical models from quantum simulations and x-ray diffraction data. They should be generally useful for anyone running VASP or LAMMPS simulations, as well those studying x-ray diffraction patterns. Use it as you please, feel free to modify, chop-up or ruin this code as much as you like.  Programs will tell you how to run them if run without any arguements, in general the name of the code should be self explanatory.  Feel free to contact me with requests.
 
 Required Libraries
 ==================
