@@ -98,5 +98,5 @@ while True:
         pl.title("Partial Radial Distribution for types %d and %d"%(type1,type2))
     else:
         pl.title("Radial Distribution %s"%sys.argv[1])
-    pr.prshow("poscarRDF.png")
-
+    #pr.prshow("poscarRDF.png")
+    pl.savefig("poscarRDF.png")

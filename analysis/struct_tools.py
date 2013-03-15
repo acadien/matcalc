@@ -10,6 +10,68 @@ import pylab as pl
 #mine
 from datatools import flatten       
 
+#=========== Create Ghost Atoms =========================
+makeghostcode = """
+//Assumes orthogonal basis
+
+double lx = basis[0];
+double ly = basis[4];
+double lz = basis[8];
+double bndlx = -6.0, bndhx = lx+6.0;
+double bndly = -6.0, bndhy = ly+6.0;
+double bndlz = -6.0, bndhz = lz+6.0;
+double ax,ay,az,nax,nay,naz;
+
+int curr = (int)na;
+for(int i=0;i<(int)na;i++){
+
+    ax=allatoms[i*3];
+    ay=allatoms[i*3+1];
+    az=allatoms[i*3+2];
+
+    for(int t1=-1;t1<2;t1++){
+        nax = ax+t1*lx;
+
+        if(nax<bndhx && nax>=bndlx)
+        for(int t2=-1;t2<2;t2++){
+            nay = ay+t2*ly;
+
+            if(nay<bndhy && nay>=bndly)
+            for(int t3=-1;t3<2;t3++){
+                if(t1==0 && t2==0 && t3==0)
+                    continue; //skip self cell
+
+                naz = az+t3*lz;
+                if(naz<bndhz && naz>=bndlz){
+                    allatoms[curr*3]=nax;
+                    allatoms[curr*3+1]=nay;
+                    allatoms[curr*3+2]=naz;
+                    curr++;
+                }
+    }}}
+
+}
+
+return_val=curr;
+"""
+def makeGhosts(atoms,basis):
+    #Prepare and reshape for weave
+    na = len(atoms) #counter of atoms + ghosts
+    atoms.shape = [na*3]
+    allatoms = zeros([len(atoms)*3*27]) 
+    allatoms[:na*3] = atoms
+    basis.shape = [9]
+
+    nall = weave.inline(makeghostcode,['na','allatoms','basis'])
+    print nall
+    #reshape for python
+    basis.shape = [3,3]
+    atoms.shape = [len(atoms)/3,3]
+    allatoms=allatoms[:nall*3]
+    allatoms.shape = [nall,3]
+
+    return allatoms
+
 #===========  Helper Geometry Functions  ================
 #returns the scalar distance between the 2 lists/arrays p1 and p2
 
@@ -240,16 +302,20 @@ def neighborOrtho(atoms,bounds,r,style="full"):
     print "Generated Neighbor List with orthogonal unit cell."
     return neighbs
 
+neighbBasisCode = """
+
+"""
+
 #Slow neighbor list generation for any set of basis vectors
-def neighborBasis(atoms,basis,rcut,style="full"):
-
-    neighbs = [[i+1+j for j,atomj in enumerate(atoms[i+1:])\
-                   if minImageDist(atomi,atomj,basis)<rcut ]\
-                   for i,atomi in enumerate(atoms)]
-
-    if style=="full":
-        return half2full(neighbs)
-
+def neighborBasis(atoms,natoms,basis,rcut):
+    print "re-write this to work with weave to speed up!!!!"
+    print "if that isn't fast enough, grab the neighbor list from lammps"
+    exit(0)
+    print natoms
+    neighbs = [[j for j,atomj in enumerate(atoms) if i!=j and dist(atomi,atomj)<rcut ]\
+                   for i,atomi in enumerate(atoms[:500]) ]
+    
+    print "finish"
     return neighbs
 
 def half2full(hneighbors):

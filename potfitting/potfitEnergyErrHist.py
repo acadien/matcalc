@@ -33,7 +33,8 @@ if fdb!=-1:
     eosDelE=[i for i,j in zip(absdelE,fdb) if "eos" in j]
     meltDelE=[i for i,j in zip(absdelE,fdb) if "heat" in j or "cool" in j]
     feedDelE=[i for i,j in zip(absdelE,fdb) if "feedback" in j]
-    pl.hist([eosDelE,meltDelE,feedDelE],20,label=["EOS","Melt","Feedback"],histtype='barstacked')
+    strainDelE=[i for i,j in zip(absdelE,fdb) if "strain" in j]
+    pl.hist([eosDelE,meltDelE,feedDelE,strainDelE],20,label=["EOS","Melt","Feedback","Elastic"],histtype='barstacked')
 else:
     pl.hist(absdelE,20)
 pl.xlabel("$|\Delta E|$")

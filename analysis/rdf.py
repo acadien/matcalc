@@ -139,49 +139,6 @@ def rdf_periodic(atoms,basis,cutoff=10.0,nbins=1000):
 
     return [rbins,rdist]
 
-
-#==================================================================
-def rdf_partial(atoms,types,type1,type2,inloop=0,cutoff=10.0,nbins=1000):
-    #atoms: list of atoms[N][3]
-    #types: list of types[N]
-    #type1, type2: which types to compare against
-    #inloop: number of atoms to do the summation over
-    #cutoff: float, max radius to measure radial distro out to
-    #nbins: number of bins to store in radial distro
-
-    print "ERROR: This method (rdf_partial) needs to be re-written using the PCPcode shortcut."
-    print "Maybe somebody should get off their lazy ass and write it. *cough*"
-    exit(0)
-    """
-    rdist=[0]*nbins
-    dr=float(cutoff)/nbins
-    N=len(atoms)
-    if inloop==0:
-        inloop=N
-
-    for i in range(inloop):
-        [xi,yi,zi]=atoms[i]
-        if types[i]!=type1: continue
-        
-        for j in range(i+1,N):
-            if types[j]!=type2: continue
-
-            [xj,yj,zj]=atoms[j]
-            r=((xj-xi)**2+(yj-yi)**2+(zj-zi)**2)**0.5
-            if r>cutoff:
-                continue
-            rdist[int(r/dr)]+=1
-    rbins=[(i+0.5)*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
-
-    for i,rad in enumerate(rbins):
-        if i==0:
-            vol=4.0*pi*rad*rad*rad/3.0
-        else:
-            vol=4.0*pi*rad*rad*dr
-        rdist[i]/=vol
-    """ 
-    return [rbins,rdist]
-
 #==================================================================
 ADFcode="""
 double aix,ajx,akx,aiy,ajy,aky,aiz,ajz,akz;

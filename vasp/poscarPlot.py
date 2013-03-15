@@ -4,22 +4,23 @@ import sys
 #mine
 import plotRemoteMaya as prm
 
-import poscarIO
 from colors import float2rgb
 from scipy import array
 from mayavi import mlab
+from numpy import linspace
 import matplotlib.cm as cm
 #mine
-#from voronoiNeighbors import voronoiNeighbors
-#from struct_tools import *
-from orderParam import coordinationNumbers
+from orderParam import coordinationNumber,bondOrientation
+import poscarIO
 
-orderParams={"cn":coordinationNumbers}
+orderParams={"CN":coordinationNumber, \
+             "BO":bondOrientation    }
 
 def usage():
     print "%s <POSCAR file> <order parameter>"%sys.argv[0]
     print "Order Parameter can be one of:"
-    print "   cn : Coordination Number"
+    print "   CN : Coordination Number"
+    print "   BO# : Bond Orientation (Q) with l=#"
     print ""
 
 if len(sys.argv) < 2:
@@ -27,8 +28,12 @@ if len(sys.argv) < 2:
     exit(0)
 
 opFlag = False
+lval=0
 if len(sys.argv)==3:
     op = sys.argv[2]
+    if op[:2]=="BO":
+        lval=int(op[-1])
+        op="BO"
     opFlag = True
 
 poscar=open(sys.argv[1],"r").readlines()
@@ -42,24 +47,31 @@ for i in atypes:
     types+=[j+1]*i
     j+=1
 
-if opFlag:
-    ops = orderParams[op](array(atoms),array(basis))
-    if max(ops)==min(ops):
-        opsn=[1]*len(ops)
-    else:
-        opsn = [(i-float(min(ops)))/float(max(ops)-min(ops)) for i in ops]
 fig=mlab.figure()
 
+#Get the order parameter and convert to integer format (opsn) for
+#coloring of atoms
 if opFlag:
-    reorg={}
-    for o in set(opsn):
-        reorg[o]=[v for j,v in enumerate(atoms) if opsn[j]==o]  
-    for i in reorg.keys():
-        aa=reorg[i]
-        ax,ay,az=zip(*aa)
-        mlab.points3d(ax,ay,az,color=cm.jet(i)[:3],scale_factor=1.0,vmin=0.0,vmax=1.0)
+    ops = orderParams[op](array(atoms),array(basis),lval)
+    mnop = min(ops)
+    mxop = max(ops)
+
+    #Only plot with coloring if there is some variance in the OP
+    if mxop - mnop > 1E-10:
+        mlab.points3d(ax,ay,az,ops,colormap='jet',scale_factor=1.0,scale_mode='none')
+        n=min(len(set(ops)),10)
+    else:
+        mlab.points3d(ax,ay,az,[mnop]*len(az),scale_factor=1.0,scale_mode='none')
+        n=2
+
+    #Color bar formatting
+    cb = mlab.colorbar(title=sys.argv[2], orientation='vertical', nb_labels=n,nb_colors=n)
+    cb.use_default_range = False
+    cb.data_range = (min(ops),max(ops))
+    
 else:
-    mlab.points3d(ax,ay,az,[1]*len(ax),scale_factor=1.0,vmin=-1.0,vmax=4.0)
+    mlab.points3d(ax,ay,az,scale_factor=1.0)
+
 z=[0,0,0]
 mlab.plot3d([0,v1[0]],[0,v1[1]],[0,v1[2]],color=(1,1,1),line_width=0.1)
 mlab.plot3d([0,v2[0]],[0,v2[1]],[0,v2[2]],color=(1,1,1),line_width=0.1)
