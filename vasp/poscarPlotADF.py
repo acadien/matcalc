@@ -5,8 +5,8 @@ import plotRemote as pr
 import poscarIO
 from duplicate import duplicate26
 from datatools import wsmooth
-from struct_tools import neighbors,dist,dist_periodic
-from voronoiNeighbors import voronoiNeighbors
+from struct_tools import dist,dist_periodic
+from neighbors import voronoiNeighbors
 from rdf import adf
 #notmine
 import sys
@@ -63,9 +63,7 @@ while True:
 
     lengths=array([basis[0][0],basis[1][1],basis[2][2]])
 
-    #dbounds=[[0.0,dbasis[0][0]],[0.0,dbasis[1][1]],[0.,dbasis[2][2]]]
-    #neighbs=voronoiNeighbors(atoms=datoms,atypes=dtypes,basis=dbasis,style='full')
-    neighbs=voronoiNeighbors(atoms=atoms,atypes=atypes,basis=basis,style='full')
+    neighbs = voronoiNeighbors(atoms,basis,atypes,style="full")
 
     if bl!=-1 and bw!=-1:
         neighbs=[[j for j in neighbs[i] if fabs(dist_periodic(atoms[i],atoms[j],lengths)-bl)<bw] for i in range(N)]

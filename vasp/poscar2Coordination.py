@@ -7,7 +7,7 @@ from scipy import *
 #mine
 import poscarIO
 from geometry import atomsAtLength
-from voronoiNeighbors import voronoiNeighbors
+from neighbors import voronoiNeighbors
 from struct_tools import *
 import coordinationIO
 
@@ -34,12 +34,8 @@ for i in sys.argv[2:]:
 atoms=array(atoms)
 lengths=array([basis[0][0],basis[1][1],basis[2][2]])
 
-#vHalfNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='half')
-#atLHalfNeighbors=[neighbors(atoms,array([[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]),maxlen,style='half') for maxlen in maxls]
 atLFullNeighbors=[neighbors(atoms,array([[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]),maxlen,style='full') for maxlen in maxls]
-vFullNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='full')
-#atLFullNeighbors=map(half2full,atLHalfNeighbors)
-#vFullNeighbors=half2full(vHalfNeighbors)
+vFullNeighbors=voronoiNeighbors(atoms,basis,atypes,style='full')
 vFullNeighbors=[[j for j in vFullNeighbors[i] if dist_periodic(atoms[i],atoms[j],lengths)<voronCap] for i in range(len(vFullNeighbors))]
 
 atLCoordNumbers=map(lambda x:map(len,x),atLFullNeighbors)

@@ -7,7 +7,7 @@ from scipy import *
 #mine
 import poscarIO
 from geometry import atomsAtLength
-from voronoiNeighbors import voronoiNeighbors
+from neighbors import voronoiNeighbors,half2full
 from struct_tools import *
 
 if len(sys.argv)<2:
@@ -23,8 +23,8 @@ if len(sys.argv)==3:
 [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
 bounds=array([basis[0][0],basis[1][1],basis[2][2]])
 
-#Generate neighbor lists and coordination numbers
-vhalfNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='half')
+#Generate neighbor lists, half and full
+vhalfNeighbors=voronoiNeighbors(atoms,basis,atypes,style='half')
 vfullNeighbors=half2full(vhalfNeighbors)
 
 #Check lengths of bonds
@@ -36,8 +36,6 @@ if mbl>0:
     vfullNeighbors= [[vfullNeighbors[i][j] for j,dist in enumerate(dists) if dist<=mbl] for i,dists in enumerate(ls)]
     for i,j in zip(vfullNeighbors,ls):
         print len(i),len(j)
-    
-
 
 coordNumbers=map(len,vfullNeighbors)
 
@@ -50,6 +48,5 @@ mx=min(max(coordNumbers)+5,len(CNhist))
 pl.plot(range(mn,mx+1),CNhist[mn:mx+1])
 
 pl.xlabel("Coordination Number")
-#pl.xlim([i
 pl.ylabel("Count")
 pl.show()

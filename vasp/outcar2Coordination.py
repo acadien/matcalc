@@ -7,7 +7,7 @@ from scipy import *
 import numpy as np
 #mine
 from geometry import atomsAtLength
-from voronoiNeighbors import voronoiNeighbors
+from neighbors import voronoiNeighbors
 from struct_tools import *
 import coordinationIO
 
@@ -52,11 +52,11 @@ def outcarCoordination(outcarfile,maxls,voronoiEnable):
                     else:
                         atoms=array(atoms)
 
-                    atLFullNeighbors=[neighbors(atoms,array([[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]),maxlen,style='full') for maxlen in maxls]
+                    atLFullNeighbors=[neighborOrtho(atoms,array([basis[0][0],basis[1][1],basis[2][2]]),6.0,style='full') for maxlen in maxls]
                     atLCoordNumbers=map(lambda x:map(len,x),atLFullNeighbors)
 
                     if voronoiEnable:
-                        vFullNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='full')
+                        vFullNeighbors=voronoiNeighbors(atoms,basis,atypes,style='full')
                         vFullNeighbors=[[j for j in vFullNeighbors[i] if dist_periodic(atoms[i],atoms[j],lengths)<voronCap] for i in range(len(vFullNeighbors))]
                         vCoordNumbers=map(len,vFullNeighbors)
                         atLCoordNumbers.append(vCoordNumbers)

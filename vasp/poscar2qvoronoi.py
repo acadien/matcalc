@@ -6,21 +6,7 @@ from scipy import *
 import poscarIO
 from duplicate import duplicate26
 
-def poscar2qvoronoi(**kwargs):
-    #Possible args: 
-    #Option1: poscar, [qvfile]
-    #Option2: atoms, basis, atypes, [qvfile]
-    if "poscar" in kwargs:
-        poscar=kwargs["poscar"]
-        [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)        
-    else:
-        atypes=kwargs["atypes"]
-        basis=kwargs["basis"]
-        atoms=kwargs["atoms"]
-    if "qvfile" in kwargs:
-        qvfile=kwargs["qvfile"]
-    else:
-        qvfile="QV_input"
+def poscar2qvoronoi(atoms,basis,atypes,qvfile="QV_input"):
 
     qvfp=open(qvfile,"w")
 
@@ -70,16 +56,15 @@ if __name__=="__main__":
         usage()
         exit(0)
 
-    poscar=open(sys.argv[1],"r").readlines()
+    poscarFile=open(sys.argv[1],"r").readlines()
+    basis,atypes,atoms,head,poscar = poscarIO.read(poscarFile)
 
     qvfile=None
     if len(sys.argv)>=3:
         qvfile=sys.argv[2]
-    
-    if qvfile==None:
-        dummy,basis,datoms,nreal=poscar2qvoronoi(poscar=poscar)
+        dummy,basis,datoms,nreal=poscar2qvoronoi(atoms,basis,atypes,qvfile)    
     else:
-        dummy,basis,datoms,nreal=poscar2qvoronoi(poscar,qvfile)
+        dummy,basis,datoms,nreal=poscar2qvoronoi(atoms,basis,atypes)
 
     print "Bounds of simulation area are:"
     for i in basis:

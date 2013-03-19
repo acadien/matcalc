@@ -73,7 +73,8 @@ while True:
     else:
         rdistavg+=rdist
 
-    if cnt==avg: break
+    if avg>=1 and cnt%avg==0 and cnt>0: 
+        plotting(rbins,rdistavg/avg)
+        rdistavg=zeros(nbins)
 
-if avg>=1:
-    plotting(rbins,rdistavg/cnt)
+

@@ -8,7 +8,8 @@ from scipy.weave import converters
 from numpy import *
 import pylab as pl
 #mine
-from datatools import flatten       
+from rdf import rdf
+from datatools import flatten,windowAvg 
 
 #=========== Create Ghost Atoms =========================
 makeghostcode = """
@@ -46,6 +47,7 @@ for(int i=0;i<(int)na;i++){
                     allatoms[curr*3]=nax;
                     allatoms[curr*3+1]=nay;
                     allatoms[curr*3+2]=naz;
+                    ghostReduce[curr]=i;
                     curr++;
                 }
     }}}
@@ -55,26 +57,33 @@ for(int i=0;i<(int)na;i++){
 return_val=curr;
 """
 def makeGhosts(atoms,basis):
+    #Creates a layer of ghost atoms around your super cell
+    #ghostReduce is the index of the real atom corresponding to the ghost atom
+
     #Prepare and reshape for weave
     na = len(atoms) #counter of atoms + ghosts
     atoms.shape = [na*3]
     allatoms = zeros([len(atoms)*3*27]) 
+    ghostReduce = zeros([len(atoms)*27])
     allatoms[:na*3] = atoms
+    ghostReduce[:na] = range(na)
     basis.shape = [9]
 
-    nall = weave.inline(makeghostcode,['na','allatoms','basis'])
-    print nall
+    nall = weave.inline(makeghostcode,['na','allatoms','basis','ghostReduce'])
+
     #reshape for python
     basis.shape = [3,3]
     atoms.shape = [len(atoms)/3,3]
     allatoms=allatoms[:nall*3]
     allatoms.shape = [nall,3]
+    ghostReduce = ghostReduce[:nall]
 
-    return allatoms
+    return allatoms,ghostReduce
 
 #===========  Helper Geometry Functions  ================
 #returns the scalar distance between the 2 lists/arrays p1 and p2
-
+#1.742/1.676
+#1.65/1.55
 distcode = """
 double c=0.0;
 for(int i=0;i<3;i++)
@@ -111,6 +120,13 @@ def minImageDist(a,b,basis):
 
     #Calculate all distances, return the smallest
     return sqrt(min(diag(tensordot(imageDists,imageDists.T,1))))
+
+def minImageAtom(a,b,basis):
+    translations = tensordot(basis.T, translation_unit_vectors,[1,1]).T
+    imageDists = (b-a)+translations
+    ds = diag(tensordot(imageDists,imageDists.T,1))
+    bnew = b+ translations[where(ds==min(ds))[0][0]]
+    return bnew
 
 angcode = """
 double ang,x,dab=0.0,dac=0.0,dbc=0.0;
@@ -212,125 +228,40 @@ def rotmatx(u,v):
     V=array([b,w,normalize(cross(b,w))])
     return dot(V.T,U)
 
-
 def volume(a,b,c):
     return fabs(dot(a,cross(b,c)))
 
-#===========  Neighbor List  ===================
-#Fast neighbor list generation for orthogonal unit cell vectors
-def neighborOrtho(atoms,bounds,r,style="full"):
-    atoms=array(atoms)
-    #Assumes atom location is >=(min bound) but strictly <(max bound)
+def generateRCut(atoms,debug=False):
+    #Set rcut to be the first minimum of g(r)
+    rvals,gr = rdf(atoms,cutoff=6.0)
 
-    #Makes a neighbor list for the list of atoms
-    #Neighbors within a distance r are considered
-    #Added functionality for including periodic boundary conditions
-
-    stepsz=[0.0,0.0,0.0]
-    bounds=[map(float,i) for i in bounds]
-    lengths=array([i[1]-i[0] for i in bounds])
-
-    #print r,dist_periodic(atoms[0],atoms[1],lengths)
-    #print atoms[:20]
-    #exit(0)
-
-    for i,l in enumerate(lengths):
-        div=1
-        while l/div > r:
-            div+=1
-            if div>5000:
-                print "Error in calculating division size in neighbors() function"
-                exit(0)
-        stepsz[i]=l/(div-1) if div>1 else l/div
-
-    [Ncx,Ncy,Ncz]=[int(lengths[i]/stepsz[i]) for i in range(3)]
-    Ncells=Ncx*Ncy*Ncz
-
-    #Returns the (1-D) index of a cell given its (3-D) coordinates
-    coord2ind=lambda (a,b,c): int(a*(Ncy*Ncz)+b*Ncz+c)
-
-    #Figure out which atom is in which cell
-    coord2cell=lambda at: coord2ind(map(int,[floor(at[0]/stepsz[0]),floor(at[1]/stepsz[1]),floor(at[2]/stepsz[2])]))
+    #Smoothed G(r)
+    sgr=windowAvg(gr,n=25)
+    #derivative of smoothed-G(r)
+    dsgr = windowAvg([(sgr[i+1]-sgr[i])/(rvals[1]-rvals[0]) for i in range(len(sgr)-1)],n=50) 
     
-    cells=[list() for i in range(Ncells)]
-    for ind,cell in enumerate(map(coord2cell,atoms)):
-        cells[cell].append(ind)
+    #Find the first minima by searching for the first 2 maxima and finding the minima between the two
+    #More robust version uses first point at which the first derivative becomes positive after the first peak
+    first_neg = [i for i,v in enumerate(dsgr) if v<0][0]
+    first_peak = sgr.index(max(sgr[:first_neg]))
+    first_rise = first_neg + [i for i,v in enumerate(dsgr[first_neg:]) if v>=0][0]
+
+    m = min(sgr[first_peak:first_rise])
+    rcut = rvals[sgr.index(m)]
+    
+     #Should probably check out this plot before continuing
+    if debug:
+        print rcut
+        pl.plot(rvals,[i for i in sgr],lw=3,c="green",label="Smooth G(r)")
+        pl.plot(rvals[1:],dsgr,c="red",label="Smooth G'(r)")
+        pl.plot([rcut,rcut],[min(gr),max(gr)],lw=3,c="black",label="rcut")
+        pl.plot([rvals[first_peak],rvals[first_peak]],[min(sgr),max(sgr)],c="blue",lw=3,label="low Rcut bound")
+        pl.plot([rvals[first_rise],rvals[first_rise]],[min(sgr),max(sgr)],c="red",lw=3,label="high Rcut bound")
+        pl.plot(rvals,gr,c="blue",label="G(r)")
+        pl.legend(loc=0)
+        pl.show()
         
-    #Returns the set of neighbor cells for celli, includes celli
-    def cellNeighbs(celli):
-        #Uses Ncell and Ncells, these must be defined correctly as 
-        #the total number of cells and cell dimensions respectively.
-
-        coordx=int(floor(celli/(Ncy*Ncz))) #Cell coordinates
-        coordy=int(floor(celli%(Ncy*Ncz)/Ncz))
-        coordz=int(celli%Ncz) 
-
-        cxs=[(coordx-1)%Ncx, coordx, (coordx+1)%Ncx ] #Neighbor coordinates
-        cys=[(coordy-1)%Ncy, coordy, (coordy+1)%Ncy ]
-        czs=[(coordz-1)%Ncz, coordz, (coordz+1)%Ncz ]
-
-        cneighbs= [[[(cx,cy,cz) for cz in czs] for cy in cys] for cx in cxs]
-        cneighbs= flatten(flatten(cneighbs))
-        cneighbs= set([coord2ind(cn) for i,cn in enumerate(cneighbs)])
-        return cneighbs
-
-    #Loop over cells, generate neighbor list
-    N=len(atoms)
-    neighbs=[list() for i in range(N)]
-    doneCells=set([ind for ind,cell in enumerate(cells) if len(cell)==0]) #skip all empty cells
-    
-    for indA in set(range(Ncells)) - doneCells:
-        cellA=cells[indA]
-        for indB in cellNeighbs(indA) - doneCells:
-            cellB=cells[indB]
-            for a in cellA:
-                
-                atomA=atoms[a]
-                for b in cellB:
-                    atomB=atoms[b]
-                    if a==b: continue
-                    if dist_periodic(atomA,atomB,lengths) < r:
-                        neighbs[a].append(b)
-                        if indA!=indB:
-                            neighbs[b].append(a)
-        doneCells |= set([indA])
-
-    if style in ["h","H","half","Half"]:
-        for i,a in enumerate(neighbs):
-            for b in a:
-                neighbs[b].remove(i)
-    print "Generated Neighbor List with orthogonal unit cell."
-    return neighbs
-
-neighbBasisCode = """
-
-"""
-
-#Slow neighbor list generation for any set of basis vectors
-def neighborBasis(atoms,natoms,basis,rcut):
-    print "re-write this to work with weave to speed up!!!!"
-    print "if that isn't fast enough, grab the neighbor list from lammps"
-    exit(0)
-    print natoms
-    neighbs = [[j for j,atomj in enumerate(atoms) if i!=j and dist(atomi,atomj)<rcut ]\
-                   for i,atomi in enumerate(atoms[:500]) ]
-    
-    print "finish"
-    return neighbs
-
-def half2full(hneighbors):
-    fneighbors=map(list,hneighbors)
-    for i,Neighbs in enumerate(hneighbors):
-        for j in Neighbs:
-            fneighbors[j].append(i)
-    return fneighbors
-
-def full2half(fneighbors):
-    hneighbors=map(list,fneighbors)
-    for i,a in enumerate(hneighbors):
-        for b in a:
-            hneighbors[b].remove(i)
-    return hneighbors
+    return rcut
 
 
 #========  Convert Cell Vector basis  ==========

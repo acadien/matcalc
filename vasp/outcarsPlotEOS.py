@@ -149,6 +149,7 @@ def dictScatter(xdict,ydict,items):
         c=cs.next()
         m=marks.next()
         pl.scatter(xdict[i],ydict[i],marker=m,c=c,label=i,s=40)
+        pl.plot(xdict[i],ydict[i],marker=m,c=c,lw=1.5)
 
 #VASP Plot
 pl.subplot(subs+1)

@@ -12,7 +12,7 @@ import pylab as pl
 #mine
 from struct_tools import dist_periodic
 import chgcarIO
-from voronoiNeighbors import voronoiNeighbors
+from neighbors import voronoiNeighbors
 from fieldPointAnalysis import fieldNeighbors3D
 
 def chgcarBondAnalysis(chgcarfile,bondLengths,normalize=False,verbose=False,Ninterps=None,loc=None):
@@ -32,7 +32,7 @@ def chgcarBondAnalysis(chgcarfile,bondLengths,normalize=False,verbose=False,Nint
     nGridPoints=reduce(operator.mul,gridSize)
 
     #Neighbors
-    halfNeighbors=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='half')
+    halfNeighbors=voronoiNeighbors(atoms,basis,atypes,style='half')
 
     a=chg.shape
     AvgChg=sum([sum([sum(line) for line in plane]) for plane in chg])/a[0]/a[1]/a[2]

@@ -5,7 +5,7 @@ from scipy import array
 import pylab as pl
 #mine
 from rdf import adf
-from voronoiNeighbors import *
+from neighbors import voronoiNeighbors
 import adfIO
 
 def usage():
@@ -45,7 +45,7 @@ def outcarADF(outcarfile,nbins,bl=-1.0,bw=-1.0):
                         atoms=dot(array(atoms),basis)
                     else:
                         atoms=array(atoms)
-                    neighbs=voronoiNeighbors(atoms=atoms,basis=basis,atypes=atypes,style='full')
+                    neighbs=voronoiNeighbors(atoms,basis,atypes,style='full')
                     if bl!=-1 and bw!=-1:
                         specbonds=[list() for i in range(len(atoms))]
                         for i in range(len(atoms)):

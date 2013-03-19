@@ -11,7 +11,7 @@ from scipy import *
 import pylab as pl
 #mine
 import elfcarIO
-from voronoiNeighbors import voronoiNeighbors
+from neighbors import voronoiNeighbors
 from fieldPointAnalysis import fieldNeighbors
 
 
