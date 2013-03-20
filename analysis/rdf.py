@@ -1,11 +1,12 @@
 
 from math import *
-from numpy import degrees
+from numpy import degrees,array,zeros
 from scipy import weave
 from scipy.weave import converters
-import operator
+import pylab as pl
 #mine
-from struct_tools import *
+from struct_tools import volume
+from datatools import windowAvg
 
 #==================================================================
 RDFcode="""
@@ -65,7 +66,7 @@ def rdf(atoms,inloop=0,cutoff=10.0,nbins=1000):
     return [rbins,rdist]
 
 #==================================================================
-PCPcode="""
+RDFPerCode="""
 double aix,ajx,aiy,ajy,aiz,ajz,c,d;
 double dr=cut/nbins;
 double cmin;
@@ -78,6 +79,7 @@ for(int i=0;i<natoms;i++){
         ajy=atoms[j*3+1];
         ajz=atoms[j*3+2];
         cmin=100000.;
+        //Minimum image distance
         for(int t1=-1;t1<2;t1++){
         for(int t2=-1;t2<2;t2++){
         for(int t3=-1;t3<2;t3++){
@@ -97,12 +99,12 @@ for(int i=0;i<natoms;i++){
     }
 }
 """
-def rdfpHelper(atoms,bins,cut,b):
+def rdfperHelper(atoms,bins,cut,b):
     natoms=len(atoms)
     atoms.shape=len(atoms)*3
     b.shape=9
     nbins=len(bins)
-    weave.inline(PCPcode,['atoms','natoms','bins','nbins','cut','b'])
+    weave.inline(RDFPerCode,['atoms','natoms','bins','nbins','cut','b'])
     atoms.shape=[len(atoms)/3,3]
     b.shape=[3,3]
     return bins
@@ -126,7 +128,7 @@ def rdf_periodic(atoms,basis,cutoff=10.0,nbins=1000):
     rdist=zeros(nbins)
     dr=float(cutoff)/nbins
     N=len(atomsp)
-    rdist=rdfpHelper(atomsp,rdist,cutoff,basis)
+    rdist=rdfperHelper(atomsp,rdist,cutoff,basis)
     rbins=[i*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
     Ndensity=N/volume(*basis)
@@ -341,3 +343,36 @@ def rdf_by_adf(atoms,neighbs,basis,nbins=360,angtype='deg'):
     abins = [(i+0.5)*180./nbins for i in range(nbins)]
     
     return [abins,bins]
+
+#Generates a cutoff based on the RDF of a collection of atoms
+def generateRCut(atoms,debug=False):
+    #Set rcut to be the first minimum of g(r)
+    rvals,gr = rdf(atoms,cutoff=6.0)
+
+    #Smoothed G(r)
+    sgr=windowAvg(gr,n=25)
+    #derivative of smoothed-G(r)
+    dsgr = windowAvg(windowAvg([(sgr[i+1]-sgr[i])/(rvals[1]-rvals[0]) for i in range(len(sgr)-1)],n=50),n=20) 
+    
+    #Find the first minima by searching for the first 2 maxima and finding the minima between the two
+    #More robust version uses first point at which the first derivative becomes positive after the first peak
+    first_neg = [i for i,v in enumerate(dsgr) if v<0][0]
+    first_peak = sgr.index(max(sgr[:first_neg]))
+    first_rise = first_neg + [i for i,v in enumerate(dsgr[first_neg:]) if v>=0][0]
+
+    m = min(dsgr[first_peak:first_rise])
+    rcut = rvals[dsgr[first_peak:].index(m)+first_peak]
+    
+     #Should probably check out this plot before continuing
+    if debug:
+        print rcut
+        pl.plot(rvals,[i for i in sgr],lw=3,c="green",label="Smooth G(r)")
+        pl.plot(rvals[1:],dsgr,c="red",label="Smooth G'(r)")
+        pl.plot([rcut,rcut],[min(gr),max(gr)],lw=3,c="black",label="rcut")
+        pl.plot([rvals[first_peak],rvals[first_peak]],[min(sgr),max(sgr)],c="blue",lw=3,label="low Rcut bound")
+        pl.plot([rvals[first_rise],rvals[first_rise]],[min(sgr),max(sgr)],c="red",lw=3,label="high Rcut bound")
+        pl.plot(rvals,gr,c="blue",label="G(r)")
+        pl.legend(loc=0)
+        pl.show()
+        
+    return rcut

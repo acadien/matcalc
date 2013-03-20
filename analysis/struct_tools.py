@@ -8,7 +8,6 @@ from scipy.weave import converters
 from numpy import *
 import pylab as pl
 #mine
-from rdf import rdf
 from datatools import flatten,windowAvg 
 
 #=========== Create Ghost Atoms =========================
@@ -230,39 +229,6 @@ def rotmatx(u,v):
 
 def volume(a,b,c):
     return fabs(dot(a,cross(b,c)))
-
-def generateRCut(atoms,debug=False):
-    #Set rcut to be the first minimum of g(r)
-    rvals,gr = rdf(atoms,cutoff=6.0)
-
-    #Smoothed G(r)
-    sgr=windowAvg(gr,n=25)
-    #derivative of smoothed-G(r)
-    dsgr = windowAvg([(sgr[i+1]-sgr[i])/(rvals[1]-rvals[0]) for i in range(len(sgr)-1)],n=50) 
-    
-    #Find the first minima by searching for the first 2 maxima and finding the minima between the two
-    #More robust version uses first point at which the first derivative becomes positive after the first peak
-    first_neg = [i for i,v in enumerate(dsgr) if v<0][0]
-    first_peak = sgr.index(max(sgr[:first_neg]))
-    first_rise = first_neg + [i for i,v in enumerate(dsgr[first_neg:]) if v>=0][0]
-
-    m = min(sgr[first_peak:first_rise])
-    rcut = rvals[sgr.index(m)]
-    
-     #Should probably check out this plot before continuing
-    if debug:
-        print rcut
-        pl.plot(rvals,[i for i in sgr],lw=3,c="green",label="Smooth G(r)")
-        pl.plot(rvals[1:],dsgr,c="red",label="Smooth G'(r)")
-        pl.plot([rcut,rcut],[min(gr),max(gr)],lw=3,c="black",label="rcut")
-        pl.plot([rvals[first_peak],rvals[first_peak]],[min(sgr),max(sgr)],c="blue",lw=3,label="low Rcut bound")
-        pl.plot([rvals[first_rise],rvals[first_rise]],[min(sgr),max(sgr)],c="red",lw=3,label="high Rcut bound")
-        pl.plot(rvals,gr,c="blue",label="G(r)")
-        pl.legend(loc=0)
-        pl.show()
-        
-    return rcut
-
 
 #========  Convert Cell Vector basis  ==========
 def vecs2lattice(v1,v2,v3):

@@ -48,12 +48,8 @@ def voronoiNeighbors(atoms,basis,atypes,style="half"):
             if jr not in neighbors[ir]:
                 neighbors[ir].append(jr)
 
-    #Build half-neighbor list if necessary
-    hneighbors=[list() for i in range(nRealAtoms)]
     if style in ["h","H","half","Half"]:
-        for i,neighbs in enumerate(neighbors):
-            hneighbors[i]=[j for j in neighbs if i not in hneighbors[j]]
-        return hneighbors
+        return full2half(neighbors)
     return neighbors
 
 #Fast neighbor list generation for orthogonal unit cell vectors
@@ -61,17 +57,9 @@ def neighbors(atoms,bounds,r,style="full"):
     atoms=array(atoms)
     #Assumes atom location is >=(min bound) but strictly <(max bound)
 
-    #Makes a neighbor list for the list of atoms
-    #Neighbors within a distance r are considered
-    #Added functionality for including periodic boundary conditions
-
     stepsz=[0.0,0.0,0.0]
     bounds=[map(float,i) for i in bounds]
     lengths=array([i[1]-i[0] for i in bounds])
-
-    #print r,dist_periodic(atoms[0],atoms[1],lengths)
-    #print atoms[:20]
-    #exit(0)
 
     for i,l in enumerate(lengths):
         div=1
@@ -89,7 +77,7 @@ def neighbors(atoms,bounds,r,style="full"):
     coord2ind=lambda (a,b,c): int(a*(Ncy*Ncz)+b*Ncz+c)
 
     #Figure out which atom is in which cell
-    coord2cell=lambda at: coord2ind(map(int,[floor(at[0]/stepsz[0]),floor(at[1]/stepsz[1]),floor(at[2]/stepsz[2])]))
+    coord2cell=lambda axyz: coord2ind(map(int,[floor(axyz[0]/stepsz[0]),floor(axyz[1]/stepsz[1]),floor(axyz[2]/stepsz[2])]))
     
     cells=[list() for i in range(Ncells)]
     for ind,cell in enumerate(map(coord2cell,atoms)):
