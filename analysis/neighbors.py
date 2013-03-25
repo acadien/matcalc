@@ -124,7 +124,7 @@ def neighbors(atoms,bounds,r,style="full"):
 
     if style in ["h","H","half","Half"]:
         neighbs=full2half(neighbs)
-    print "Generated Neighbor List with orthogonal unit cell."
+    print "Done generating Neighbor List."
     return neighbs
 
 def half2full(hneighbors):

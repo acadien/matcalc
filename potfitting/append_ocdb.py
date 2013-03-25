@@ -8,10 +8,10 @@ from outcarIO import outcarReadConfig
 
 def usage():
     print "Usage:"
-    print sys.argv[0].split("/")[-1]+" <force database> <OUTCAR file> <configuration #> <optional:weight>"
+    print sys.argv[0].split("/")[-1]+" <force database> <OUTCAR file> <configuration #> <optional:weight sweight>"
     exit(0)
 
-if not(len(sys.argv) in [4,5]):
+if not(len(sys.argv) in [4,5,6]):
     usage()
 
 ocfile = sys.argv[2] #outcar directory
@@ -20,8 +20,14 @@ forcefil= sys.argv[1]
 fordb = open(forcefil,"r")
 grabconfig=int(sys.argv[3])
 weight=-1
-if len(sys.argv)==5:
+sweight=-1
+if len(sys.argv)>=5:
     weight=int(sys.argv[4])
+if len(sys.argv)==6:
+    sweight=int(sys.argv[5])
+
+print weight,sweight
+exit(0)
 
 #get the force configuration number (the total number of configs in the forcefil)
 dbcnfgcnt=0 #Force Data Base Configuration Counter
@@ -50,8 +56,10 @@ line += "#Z\t %12.8f  %12.8f %12.8f\n"%tuple(basis[2])
 line += "#E\t %12.8f\n"%(TE/natom)
 
 #Weight
-if weight>0:
+if weight>0 and sweight<0:
     line += "#W\t %d\n"%weight
+elif weight>0 and sweight>0:
+    line += "#W\t %d %d\n"%(weight,sweight)
 
 #Stress Tensor
 line += "#S\t %12.8f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f\n"%(stress[0],stress[1],stress[2],stress[3],stress[4],stress[5]) 

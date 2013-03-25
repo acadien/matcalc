@@ -3,10 +3,11 @@
 #A collection of helper functions and general utilities for analzing a set of atoms
 
 #from math import *
-from scipy import weave
+from scipy import weave,special
 from scipy.weave import converters
 from numpy import *
 import pylab as pl
+import numpy as np
 #mine
 from datatools import flatten,windowAvg 
 
@@ -180,6 +181,11 @@ def sphang(a,b):
     if angs[1] != angs[1]: #test if phi is NaN, occurs if a and b lay on z-axis
         angs[1]=0
     return angs[0],angs[1] #theta,phi
+
+#the spherical harmonic corresponding to two atoms a and b
+def pairSphereHarms(a,b,l):
+    theta,phi=sphang(a,b)
+    return special.sph_harm(np.array(range(-l,l+1)),l,theta,phi)
 
 bounds_code="""
 double d=0.0;
