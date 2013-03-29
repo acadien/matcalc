@@ -10,17 +10,19 @@ from mayavi import mlab
 from numpy import linspace
 import matplotlib.cm as cm
 #mine
-from orderParam import coordinationNumber,bondOrientation
+from orderParam import coordinationNumber,bondOrientation, translational
 import poscarIO
 
 orderParams={"CN":coordinationNumber, \
-             "BO":bondOrientation    }
+             "BO":bondOrientation, \
+             "TN":translational }
 
 def usage():
     print "%s <POSCAR file> <order parameter>"%sys.argv[0]
     print "Order Parameter can be one of:"
     print "   CN : Coordination Number"
     print "   BO# : Bond Orientation (Q) with l=#"
+    print "   TN : Translational"
     print ""
 
 if len(sys.argv) < 2:
@@ -53,6 +55,8 @@ fig=mlab.figure(bgcolor=(1.0,1.0,1.0))
 #coloring of atoms
 if opFlag:
     ops = orderParams[op](array(atoms),array(basis),lval)
+    print ops
+    exit(0)
     mnop = min(ops)
     mxop = max(ops)
 

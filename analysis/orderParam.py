@@ -45,12 +45,10 @@ def bondAngleCorr(atoms,basis,l,neighbs=None,rcut=None,debug=False):
     if neighbs==None:
         #if rcut==None:
         #    rcut = generateRCut(atoms,debug=debug)
-        rcut = 10.0
+        rcut = 6.0
         bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
-        #Full neighbor list
-        fneighbs = neighbors(atoms,bounds,rcut)    
         #Half neighbor list
-        hneighbs = full2half(fneighbs)
+        hneighbs = neighbors(atoms,bounds,rcut,style="half")    
 
     #At distances rbins calculate the bond angle correlation function
     nbins = 256
@@ -58,21 +56,20 @@ def bondAngleCorr(atoms,basis,l,neighbs=None,rcut=None,debug=False):
 
     #Histogram of bond lengths
     rbins = [i*delr for i in range(nbins)]
-    bvals = [list() for i in range(nbins)]
+    bcnts = [0 for i in range(nbins)]
     gvals = [0.0 for i in range(nbins)]
 
-    #Bond lengths
-    blens = [[ minImageDist(atoms[i],atoms[j],basis) for j in ineighbs ] \
-                 for i,ineighbs in enumerate(hneighbs)]
-
     #Get the atomic pairs at each bond length
-    for i,ds in enumerate(blens):
-        for jj,d in enumerate(ds):
+    for i,ineighbs in enumerate(hneighbs):
+    #    print i,len(ineighbs)
+        for j in ineighbs:
             #i & j make an atom pair, d is the bond length between them
-            j = hneighbs[i][jj]
-            bvals[int(d/delr)]+=[(i,j)]
-
-    print "Generated Bond lengths"
+            jatom = minImageAtom(atoms[i],atoms[j],basis)
+            d = dist(atoms[i],jatom)
+            bbin=int(d/delr)
+            bcnts[bbin]+=1
+            theta,phi = sphang(atoms[i],jatom)
+            gvals[bbin]+= special.sph_harm(0,l,theta,phi)
 
     #At bond length 0, Qlm has one non-zero value at m=0
     Ql0 = conj(sph_harm(0,l,0,0))
@@ -80,16 +77,10 @@ def bondAngleCorr(atoms,basis,l,neighbs=None,rcut=None,debug=False):
     
     #always use m=0, due to Ql0 normalizing factor which is only non-zero at m=0.
     norm  = 2*(l+1)*Q0*Q0
-    for b,r in enumerate(rbins):
-        pairs = bvals[b]
-
-        n=len(pairs)
+    for i,n in enumerate(bcnts):
         if n>0:
-            theta,phi=sphang(atoms[i],minImageAtom(atoms[i],atoms[j],basis))
             w = Ql0/n/norm
-            gvals[b]= (sum([special.sph_harm(0,l,theta,phi) for (i,j) in pairs])*w).real
-            print n,gvals[b]
-
+            gvals[i] = (gvals[i]*w).real
 
     print "Finished binning bond angle values"
 
@@ -129,3 +120,5 @@ def translational(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     return tao
         
 
+def tetrahedral(atom,basis,l=None,neighbs=None,rcut=None,debug=False):
+    pass

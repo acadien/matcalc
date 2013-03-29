@@ -44,70 +44,74 @@ def parse(fname):
     return labels,parsed_data
 
 def usage():
-    print "\nUsage: %s <data-file> <x-data column><s><window size> <y-data column><s><window size>"%sys.argv[0].split("/")[-1]
+    print "\nUsage: %s <x-data column><s><window size> <y-data column><s><window size> <filenames>"%sys.argv[0].split("/")[-1]
     print "\nA general use plotter of 2D data. \nAttempts to find data in column format and plot the desired columns."
     print "If x-data column is -1 then range(len(y)) is used"
     print "If the column number is followed by an \"s\" then a window average is applied to that data."
     print "examples:"
-    print "./plot2.py datafile 0 1"
-    print "./plot2.py datafile 0s 5s50 # applies a window average of size 10 to column 0 and size 50 to column 5"
+    print "./plot2.py 0 1 datafile1 datafile2 datafile3..."
+    print "./plot2.py 0s 5s50 datafile1 datafile2... # applies a window average of size 10 to column 0 and size 50 to column 5"
     print ""
 
 if __name__=="__main__":
 
-    if len(sys.argv)!=4:
+    if len(sys.argv)<4:
         usage()
         exit(0)
 
-    #File
-    fname=sys.argv[1]
-
     #X-Data
-    if "s" in sys.argv[2]:
+    if "s" in sys.argv[1]:
         xSmooth=True
-        xCol,xWAN=sys.argv[2].split("s")
+        xCol,xWAN=sys.argv[1].split("s")
         xCol=int(xCol)
         xWAN=int(xWAN) if len(xWAN)>0 else 10
     else:
         xSmooth=False
-        xCol=int(sys.argv[2])
+        xCol=int(sys.argv[1])
 
     #Y-Data
-    if "s" in sys.argv[3]:
+    if "s" in sys.argv[2]:
         ySmooth=True
-        yCol,yWAN=sys.argv[3].split("s")
+        yCol,yWAN=sys.argv[2].split("s")
         yCol=int(yCol)
         yWAN=int(yWAN) if len(yWAN)>0 else 10
     else:
         ySmooth=False
-        yCol=int(sys.argv[3])
+        yCol=int(sys.argv[2])
 
-    labels,fdata = parse(fname)
+
+    #Files
+    fnames=sys.argv[3:]
+
+    labels,fdatas = zip(*map(parse,fnames))
+    labels=labels[0]
 
     #Error check on column selection
-    if yCol >= len(fdata):
-        print "Error: Max column number is %d, but %d requested."%(len(data)-1,yCol)
-    if xCol >= len(fdata):
-        print "Error: Max column number is %d, but %d requested."%(len(data)-1,xCol)
+    for i,fdata in enumerate(fdatas):
+        if yCol >= len(fdata):
+            print "Error: Max column number is %d, but %d requested."%(len(data)-1,yCol)
+        if xCol >= len(fdata):
+            print "Error: Max column number is %d, but %d requested."%(len(data)-1,xCol)
 
-    #Column selection
-    ydata=fdata[yCol]
-    if xCol==-1:
-        xdata=range(len(ydata))
-    else:
-        xdata=fdata[xCol]
+        #Column selection
+        ydata=fdata[yCol]
+        if xCol==-1:
+            xdata=range(len(ydata))
+        else:
+            xdata=fdata[xCol]
 
-    #Smoothing:
-    if xSmooth:
-        xdata=windowAvg(xdata,xWAN)
-    if ySmooth:
-        ydata=windowAvg(ydata,yWAN)
+        #Smoothing:
+        if xSmooth:
+            xdata=windowAvg(xdata,xWAN)
+        if ySmooth:
+            ydata=windowAvg(ydata,yWAN)
 
-    #Use column labels if available
-    if len(labels)==len(fdata):
-        if xCol!=-1:
-            pl.xlabel( labels[xCol] )
-        pl.ylabel( labels[yCol] )
+        #Use column labels if available
+        if i==0 and len(labels)==len(fdata):
+            if xCol!=-1:
+                pl.xlabel( labels[xCol] )
+            pl.ylabel( labels[yCol] )
 
-    pl.plot(xdata,ydata)
+        pl.plot(xdata,ydata,lw=1.5)
+    pl.legend(fnames,loc=0)
     pr.prshow("plot2.png")
