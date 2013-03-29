@@ -16,7 +16,7 @@ def readNextEntry(iFDB):
     
     bounds = list()
     energy = None
-    weight = None
+    weights = list()
     stress = list()
     for i,line in enumerate(iFDB):
         
@@ -27,7 +27,7 @@ def readNextEntry(iFDB):
             energy = float(line.split()[1])
 
         if line[:2] == "#W":
-            weight = int(line.split()[1])
+            weights = map( int , line.split()[1:] )
 
         if line[:2] == "#S":
             stress = map( float , line.split()[1:] )
@@ -39,18 +39,18 @@ def readNextEntry(iFDB):
     atominfo = [ map( float , line.split() ) for line in iFDB[:n] ]
     iFDB = iFDB[n:]
 
-    return [head,bounds,energy,weight,stress,atominfo],iFDB
+    return [head,bounds,energy,weights,stress,atominfo],iFDB
 
 
-def appendEntry(head,bounds,energy,weight,stress,atominfo,oFDB):
+def appendEntry(head,bounds,energy,weights,stress,atominfo,oFDB):
     data=[head]
     data.append( "#X\t %12.8f  %12.8f %12.8f\n"%tuple(bounds[0]) )
     data.append( "#Y\t %12.8f  %12.8f %12.8f\n"%tuple(bounds[1]) )
     data.append( "#Z\t %12.8f  %12.8f %12.8f\n"%tuple(bounds[2]) )
     data.append( "#E\t "+"%12.8f"%(energy) + "\n" )
 
-    if weight!=None:
-        data.append( "#W\t "+str(int(weight)) + "\n" )
+    if len(weights)>0:
+        data.append( "#W\t "+" ".join(map(str,weights)) + "\n" )
 
     data.append( "#S\t %12.8f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f\n"%tuple(stress) )
     data.append( "#F\t\n" )
@@ -58,7 +58,7 @@ def appendEntry(head,bounds,energy,weight,stress,atominfo,oFDB):
     oFDB.writelines(data)
 
 def scaleEntry(fdbEntry,A,B,C):
-    head,bounds,energy,weight,stress,atominfo = fdbEntry
+    head,bounds,energy,weights,stress,atominfo = fdbEntry
 
     head = head.strip() + " Scale (ABC) %4.4f, %4.4f, %4.4f.\n"%(A,B,C)
 
@@ -76,7 +76,7 @@ def scaleEntry(fdbEntry,A,B,C):
     #Scale energy by
     energy = scaleEnergy(energy)
 
-    fdbEntry = [head,bounds,energy,weight,stress,atominfo]
+    fdbEntry = [head,bounds,energy,weights,stress,atominfo]
     return fdbEntry
 
 if len(sys.argv) != 6:
@@ -103,3 +103,4 @@ for i in range(entries):
 
     #Stick it in a new force database
     appendEntry(*entry)
+

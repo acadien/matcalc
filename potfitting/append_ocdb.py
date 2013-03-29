@@ -26,9 +26,6 @@ if len(sys.argv)>=5:
 if len(sys.argv)==6:
     sweight=int(sys.argv[5])
 
-print weight,sweight
-exit(0)
-
 #get the force configuration number (the total number of configs in the forcefil)
 dbcnfgcnt=0 #Force Data Base Configuration Counter
 for line in fordb:
