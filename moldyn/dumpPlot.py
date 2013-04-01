@@ -2,35 +2,33 @@
 
 import plotRemoteMaya as prm #mine
 
-import sys
+import argparse
 import pylab as pl
 from numpy import array
 from mayavi import mlab
 
-def usage():
-    print "%s <dump file with atomic coordinates> <start config>"%sys.argv[0].split("/")[-1]
+parser = argparse.ArgumentParser(description="plots atoms and possibly forces of dump files from LAMMPS code")
+parser.add_argument('filename',type=str,nargs=1)
+parser.add_argument('-s',metavar='startConfig',dest='startConfig',type=int,nargs='?',default=0)
+#parser.add_argument('-d',dest='diff',default=False,action='store_true',help="If present, plots the vectors that are the difference from the starting atom loction to the final atom location.")
+parser.add_argument('-f',dest='forces',default=False,action='store_true',help="If present, plots force vectors for each atom when available in dump.")
 
-if len(sys.argv)<2:
-    usage()
-    exit(0)
+args = parser.parse_args()
+fname = args.filename[0]
+startConfig = args.startConfig
+takeDiff = args.diff
+plotForces = args.forces
 
-#Prepare data
-fname=sys.argv[1]
 fraw = open(fname,"r").readlines()
 configCount=0
 for i,line in enumerate(fraw):
     if "ITEM: TIMESTEP" in line:
         configCount +=1
 
-startConfig=0
-if len(sys.argv)>=3:
-    startConfig=int(sys.argv[2])
-
 #Prepare plotting
 mxc=20
 iline=0
 natoms=0
-plotForces=False
 c=0
 while True:
     cfgFound=False
@@ -42,8 +40,10 @@ while True:
             natoms=int(fraw[iline+i+1])
             info+="N-Atoms = %d\n"%natoms 
         if "ITEM: ATOMS" in line:
-            if "fx" in line:
+            if "fx" in line and plotForces:
                 plotForces=True
+            else:
+                plotForces=False
             cfgFound=True
             iline+=i+1
             break
@@ -53,7 +53,6 @@ while True:
     c+=1
     if c < startConfig:
         continue
-
 
     print c,"/",configCount
 
@@ -88,13 +87,18 @@ while True:
         ys*=(ymx-ymn)
         zs*=(zmx-zmn)
 
-    fig=mlab.figure(bgcolor=(0.0,0.0,0.0))
+    fig=mlab.figure(bgcolor=(1.0,1.0,1.0))
 
     if plotForces:
         mlab.quiver3d(xs,ys,zs,fx,fy,fz,scale_factor=1.0,scale_mode='none')
-        mlab.colorbar(title="intensity")
+        cb = mlab.colorbar(title="intensity",)
+        cb._title_text_property.color = (0.0,0.0,0.0)
+        cb._label_text_property.color = (0.0,0.0,0.0)
     else:
         mlab.points3d(xs,ys,zs,[1.0]*len(zs),scale_factor=0.1,scale_mode='none')
         
     mlab.show()
+
+    
+    
 #prm.prmshow(fname="blasni.png")
