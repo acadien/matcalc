@@ -114,7 +114,7 @@ def dumpReadConfig(dump,configN):
                 i+=1
                 atominfo=map(lambda x:map(float,x.split()),dump[i:i+natom])
                 atominfo.sort(key=lambda x:x[0])
-                order,types,ax,ay,az=zip(*atominfo)
+                order,types,ax,ay,az=zip(*atominfo)[:5]
                 types=map(int,types)
                 i+=natom
         else:

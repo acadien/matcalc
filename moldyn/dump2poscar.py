@@ -22,4 +22,4 @@ basis,types,atoms,header=lammpsIO.dumpReadConfig(dumpdata,configN)
 
 #Write out POSCAR data
 atypes=[types.count(j) for j in sorted(list(set(types)))]
-poscarIO.write(posname,basis,atoms,atypes,header,frac=False)
+poscarIO.write(posname,basis,atoms,atypes,header)

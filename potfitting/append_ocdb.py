@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import sys,os
-import numpy
+
 #mine
 from outcarIO import outcarReadConfig
 
@@ -74,112 +74,5 @@ for i in range(natom):
     line += "  %d\t %12.8f  %12.8f  %12.8f   %12.8f  %12.8f  %12.8f\n"%(types[i],atoms[i][0],atoms[i][1],atoms[i][2],forces[i][0],forces[i][1],forces[i][2])
 
 fordb.write(line)
-print "AWWWW YEAAAAAH. "+ocfile
+print "Added "+ocfile+" to force database."
 
-
-"""
-nums=""
-types=list()
-ax=list()
-ay=list()
-az=list()
-afx=list()
-afy=list()
-afz=list()
-PE=0
-N=sum(nums)
-countconfig=0
-md=True
-
-#NOTE TO SELF: NEVER COMPOSE READ LOOPS LIKE THIS.  TERRIBLE.
-while True:
-    #Start a new configuration
-    line=outcar.readline()
-    if "NIONS" in line and len(nums)==0:
-        nums=map(int,line.split("=")[-1].split())        
-        for i in range(len(nums)):
-            types+=[i]*nums[i]
-
-    if len(line)==0:
-        print "Configuration not found."
-        break
-    if "FREE ENERGIE OF THE ION-ELECTRON SYSTEM" in line:
-        countconfig+=1
-        if countconfig==grabconfig:
-            
-            #Lattice vectors
-            if "direct lattice vectors" in line:
-                line=outcar.readline()
-                v1=" ".join(line.split()[0:3])
-                line=outcar.readline()
-                v2=" ".join(line.split()[0:3])
-                line=outcar.readline()
-                v3=" ".join(line.split()[0:3])
-                break
-
-            #PE
-            while True:
-                line=outcar.readline()
-                if len(line)==0:
-                    break
-                if "TOTEN" in line:
-                    PE=float(line.split("=")[1].split()[0])
-                    break
-
-            #STRESS
-            while True:
-                line=outcar.readline()
-                if len(line)==0:
-                    break
-                if "in kB" in line:
-                    stresskb=line.split("in kB")[1].strip()
-                    break
-
-            #ATOMIC COORDS & FORCES
-            while True:
-                line=outcar.readline()
-                if len(line)==0:
-                    break
-                if "POSITION" in line:
-                    outcar.readline()
-        
-                    ax=list()
-                    ay=list()
-                    az=list()
-                    afx=list()
-                    afy=list()
-                    afz=list()
-
-                    try:
-                        while True:
-                            line=outcar.readline()
-                            if len(line)==0:
-                                break
-                            [x,y,z,fx,fy,fz]=map(float,line.split())
-                            ax.append(x)
-                            ay.append(y)
-                            az.append(z)
-                            afx.append(fx)
-                            afy.append(fy)
-                            afz.append(fz)
-                    except ValueError:
-                        pass
-                    break
-            natom=len(ax)
-            
-            #Check
-            val='n'
-            if(not(checkdisable)):
-                try:
-                    val=raw_input("Write to %s? (yes/no)"%(forcefil))
-                except NameError:
-                    print "OK not writing to force database, be that way... I'm quitting."
-                    break
-                if not(val[0] in ["Y","y"]):
-                    print "OK not writing to force database, be that way... I'm quitting."
-                    break
-                
-            #
-            #Write this configuration to the fordb
-            #
-"""

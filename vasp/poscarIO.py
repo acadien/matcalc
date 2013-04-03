@@ -61,7 +61,7 @@ def split(poscarin):
     return poscarin,poscarout
 
 
-def write(poscarName,basis,atoms,types,header,frac=True,ratio=1.0):
+def write(poscarName,basis,atoms,types,header,ratio=1.0):
 
     if len(types)==len(atoms):
         #fix types arrangement, reorder atoms as necessary
@@ -71,16 +71,15 @@ def write(poscarName,basis,atoms,types,header,frac=True,ratio=1.0):
         ntypes=[types.count(i) for i in range(sm,bg+1)]
 
     #If atoms are not in fractional coordinates, convert them
-    if frac:
-        #Check if they're already fractional
-        for d,atom in enumerate(atoms):
-            if len([1 for i in atom if i>1.0 or i<0.0])>0:
-                frac=False
-                break
-        #Convert if necessary (re-using the frac flag)
-        if not(frac):
-            A = matrix(basis)
-            atoms=[linalg.solve(A,atom)[:] for atom in atoms]
+    frac=True
+    com = array(atoms).sum().sum()/3/len(atoms)
+    if com > 1.0 or com < 0.0 :
+            frac=False
+    
+    #Convert if necessary (re-using the frac flag)
+    if not(frac):
+        A = matrix(basis)
+        atoms=[linalg.solve(A,atom)[:] for atom in atoms]
 
     #Make the POSCAR
     data=""
