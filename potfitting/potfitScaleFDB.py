@@ -18,8 +18,13 @@ def readNextEntry(iFDB):
     energy = None
     weights = list()
     stress = list()
+    scaleEnable = True
     for i,line in enumerate(iFDB):
-        
+
+        if line[:2] == "#N":
+            if "scaleEnable0" in line:
+                scaleEnable=False
+
         if line[:2] in ["#X","#Y","#Z"]:
             bounds.append( map( float , line.split()[1:] ) )
 
@@ -39,7 +44,7 @@ def readNextEntry(iFDB):
     atominfo = [ map( float , line.split() ) for line in iFDB[:n] ]
     iFDB = iFDB[n:]
 
-    return [head,bounds,energy,weights,stress,atominfo],iFDB
+    return [head,bounds,energy,weights,stress,atominfo],iFDB,scaleEnable
 
 
 def appendEntry(head,bounds,energy,weights,stress,atominfo,oFDB):
@@ -95,10 +100,11 @@ entries = sum([1 for line in iFDB if "#N"==line[:2]])
 for i in range(entries):
 
     #Grab an entry
-    entry, iFDB = readNextEntry(iFDB)
+    entry, iFDB, scaleEnable = readNextEntry(iFDB)
 
     #Scale the entry
-    entry = scaleEntry(entry,aRatio,tmRatio,eShift)
+    if scaleEnable:
+        entry = scaleEntry(entry,aRatio,tmRatio,eShift)
     entry.append(oFDB)
 
     #Stick it in a new force database

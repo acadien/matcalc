@@ -21,8 +21,6 @@ def poscar2dump(pcarFile,lmpFile,scale=None):
 
     [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
 
-    basis*=scale
-
     #Convert from POSCAR style basis vectors to LAMMPS style boundaries.
     xhi,yhi,zhi,xy,xz,yz=bounds2lohi(basis)
     basis=matrix([[xhi,0,0],[xy,yhi,0],[xz,yz,zhi]])

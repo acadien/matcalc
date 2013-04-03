@@ -43,7 +43,8 @@ def initLammpsCmds(potential):
     postLammpsCommands=[\
         "pair_style adp", "pair_coeff * * %s %s"%(potential," ".join(lmpelems)), \
         "variable v equal vol",\
-        "minimize 0.0 0.0 0 0",\
+        #"minimize 1E-4 0.0 1000 10000",\
+        "minimize 0 0 0 0",\
         ]
     return preLammpsCommands,postLammpsCommands
 
@@ -105,6 +106,9 @@ for phase in phases:
     natoms=natoms[0]
     Venergies[phase],Vvolumes[phase],Vpressures[phase] = \
         zip(* sorted(zip(es,vols,prss),key=lambda x:x[1]) )
+    Venergies[phase] = [i*1.4842+2.7100 for i in Venergies[phase]]
+    Vvolumes[phase] = [i*0.979**3 for i in Vvolumes[phase]]
+    Vpressures[phase] = [i*1.4842/(0.979**3) for i in Vpressures[phase]]
 
 #LAMMPS Data
 Lvolumes={}
@@ -149,9 +153,8 @@ def dictScatter(xdict,ydict,items):
         c=cs.next()
         m=marks.next()
         pl.scatter(xdict[i],ydict[i],marker=m,c=c,label=i,s=40)
-        pl.plot(xdict[i],ydict[i],marker=m,c=c,lw=1.5)
 
-#VASP Plot
+#Plot
 pl.subplot(subs+1)
 dictScatter(Vvolumes,Venergies,phases)
 if lmppot!=-1: dictPlot(Lvolumes,Lenergies,phases,"-",1.5)
@@ -171,37 +174,5 @@ if lmppot!=-1: dictPlot(Lpressures,Lenergies,phases,"-",1.5)
 pl.xlabel("Pressure ($GPa$)")
 pl.ylabel("Energy ($eV / atom$)")
 
-"""
-#VASP Plot
-pl.subplot(subs+1)
-dictPlot(Vvolumes,Venergies,phases)
-pl.xlabel("Volume ($\AA / atom$)")
-pl.ylabel("Energy ($eV / atom$)")
-pl.legend(loc=0,fontsize=10)
 
-pl.subplot(subs+2)
-dictPlot(Vvolumes,Vpressures,phases)
-pl.xlabel("Volume ($\AA / atom$)")
-pl.ylabel("Pressure ($GPa$)")
-
-#LAMMPS Plot
-if lmppot!=-1:
-    pl.subplot(subs+3)
-    dictPlot(Lvolumes,Lenergies,phases)
-    pl.xlabel("Volume ($\AA / atom$)")
-    pl.ylabel("Energy ($eV / atom$)")
-
-    pl.subplot(subs+4)
-    dictPlot(Lvolumes,Lpressures,phases)
-    pl.xlabel("Volume ($\AA / atom$)")
-    pl.ylabel("Pressure ($GPa$)")
-
-    pl.subplot(subs+5)
-    dictPlotDiff(Vvolumes,Lvolumes,Venergies,Lenergies,phases)
-
-    pl.subplot(subs+6)
-    dictPlotDiff(Vvolumes,Lvolumes,Vpressures,Lpressures,phases)
-"""
-#pl.savefig("/home/acadien/Dropbox/EVolEOS.png")
-#pl.show()
 pr.prshow("PVolEOS.png")

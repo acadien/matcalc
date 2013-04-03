@@ -16,7 +16,7 @@ parser.add_argument('-f',dest='forces',default=False,action='store_true',help="I
 args = parser.parse_args()
 fname = args.filename[0]
 startConfig = args.startConfig
-takeDiff = args.diff
+#takeDiff = args.diff
 plotForces = args.forces
 
 fraw = open(fname,"r").readlines()

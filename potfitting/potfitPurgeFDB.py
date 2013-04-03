@@ -8,37 +8,44 @@ from outcarIO import outcarReadConfig
 
 def usage():
     print "Usage:"
-    print sys.argv[0].split("/")[-1]+" <force database> <OUTCAR file> <configuration #> <optional:weight sweight> <optional: scale enable 0>"
+    print sys.argv[0].split("/")[-1]+" <force database> <configuration #>"
+    print "Configuration # is compared against ifconf, if equal, that configuration is removed and all others are decremented."
     exit(0)
 
-if not(len(sys.argv) in [4,5,6,7]):
+if len(sys.argv) != 3:
     usage()
-
-ocfile = sys.argv[2] #outcar directory
 
 forcefil= sys.argv[1]
 fordb = open(forcefil,"r")
-grabconfig=int(sys.argv[3])
-weight=-1
-sweight=-1
-scaleEnable=True
-if len(sys.argv)>=5:
-    weight=int(sys.argv[4])
-if len(sys.argv)==6:
-    sweight=int(sys.argv[5])
-if len(sys.argv)==7:
-    if sys.argv[6]==0:
-        scaleEnable=False
+grabconfig=int(sys.argv[2])
 
 #get the force configuration number (the total number of configs in the forcefil)
-dbcnfgcnt=0 #Force Data Base Configuration Counter
+removeFlag = False
+nfordb = []
 for line in fordb:
+
     if "#N" in line[0:2]:
-        dbcnfgcnt+=1
+        ifconf = int(line.split("ifconf=")[1].split(" ")[0])
 
+        removeFlag = False
+        if ifconf==grabconfig:
+            removeFlag = True
+
+        if ifconf>grabconfig:
+            #Remove 1 from ifconf for configurations after
+            pre,post = line.split("ifconf=")
+            post = " ".join(post.split()[1:])
+            ifconf = ifconf-1
+            line = pre + "ifconf=%d "%ifconf + post+"\n"
+
+    if not removeFlag:
+        nfordb.append(line)
+
+print ifconf,"configurations"
 fordb.close()
-fordb = open(forcefil,"a")
-
+open(forcefil,"w").writelines(nfordb)
+        
+"""
 TE,stress,basis,atoms,forces,types=outcarReadConfig(ocfile,grabconfig)
 #Change atoms to be in cartesian coords instead of fractional
 #bT=basis.T
@@ -77,7 +84,7 @@ fordb.write(line)
 print "AWWWW YEAAAAAH. "+ocfile
 
 
-"""
+
 nums=""
 types=list()
 ax=list()
