@@ -60,7 +60,7 @@ def poscarGrow(poscarName,outputName,cx,cy,cz):
 
     atypes=[i*nCopies for i in atypes]
 
-    poscarIO.write(outputName,basis,atoms,atypes,head,frac=False)
+    poscarIO.write(outputName,basis,atoms,atypes,head)
     return len(atoms),basis
 
 if __name__=="__main__":

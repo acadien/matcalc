@@ -133,7 +133,7 @@ if lmppot!=-1:
 mcolors=[pl.cm.spectral(i) for i in linspace(0,0.9,len(phases))]
 markers=['o','v','s','p','*','h','D']
 
-subs=130
+#subs=130
 #if lmppot!=-1:
 #    subs=220
 
@@ -155,24 +155,27 @@ def dictScatter(xdict,ydict,items):
         pl.scatter(xdict[i],ydict[i],marker=m,c=c,label=i,s=40)
 
 #Plot
-pl.subplot(subs+1)
+#pl.subplot(subs+1)
+pl.figure()
 dictScatter(Vvolumes,Venergies,phases)
 if lmppot!=-1: dictPlot(Lvolumes,Lenergies,phases,"-",1.5)
-pl.xlabel("Volume ($\AA / atom$)")
-pl.ylabel("Energy ($eV / atom$)")
-pl.legend(loc=0,fontsize=10)
+pl.xlabel("Volume ($\AA^3 / atom$)",size=17)
+pl.ylabel("Energy ($eV / atom$)",size=17)
 
-pl.subplot(subs+2)
+#pl.subplot(subs+2)
+pl.figure()
 dictScatter(Vvolumes,Vpressures,phases)
 if lmppot!=-1: dictPlot(Lvolumes,Lpressures,phases,"-",1.5)
-pl.xlabel("Volume ($\AA / atom$)")
-pl.ylabel("Pressure ($GPa$)")
+pl.xlabel("Volume ($\AA^3 / atom$)",size=17)
+pl.ylabel("Pressure ($GPa$)",size=17)
+pl.legend(loc=0,fontsize=12)
 
-pl.subplot(subs+3)
+#pl.subplot(subs+3)
+pl.figure()
 dictScatter(Vpressures,Venergies,phases)
 if lmppot!=-1: dictPlot(Lpressures,Lenergies,phases,"-",1.5)
-pl.xlabel("Pressure ($GPa$)")
-pl.ylabel("Energy ($eV / atom$)")
+pl.xlabel("Pressure ($GPa$)",size=17)
+pl.ylabel("Energy ($eV / atom$)",size=17)
 
 
 pr.prshow("PVolEOS.png")

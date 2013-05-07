@@ -22,6 +22,7 @@ grabconfig=int(sys.argv[2])
 #get the force configuration number (the total number of configs in the forcefil)
 removeFlag = False
 nfordb = []
+rline = ""
 for line in fordb:
 
     if "#N" in line[0:2]:
@@ -29,6 +30,7 @@ for line in fordb:
 
         removeFlag = False
         if ifconf==grabconfig:
+            rline = str(line)
             removeFlag = True
 
         if ifconf>grabconfig:
@@ -42,6 +44,8 @@ for line in fordb:
         nfordb.append(line)
 
 print ifconf,"configurations"
+print "Removed line:"+rline
+
 fordb.close()
 open(forcefil,"w").writelines(nfordb)
         

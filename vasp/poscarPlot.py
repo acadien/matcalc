@@ -56,7 +56,7 @@ fig=mlab.figure(bgcolor=(1.0,1.0,1.0))
 if opFlag:
     ops = orderParams[op](array(atoms),array(basis),lval)
     print ops
-    exit(0)
+#    exit(0)
     mnop = min(ops)
     mxop = max(ops)
 
