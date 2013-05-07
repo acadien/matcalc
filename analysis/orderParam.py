@@ -4,7 +4,7 @@
 import numpy as np
 from scipy.special import sph_harm as sph_harm
 from scipy import conj
-import math
+import math,cmath
 from operator import mul
 import pylab as pl
 #mine
@@ -107,6 +107,21 @@ def radialDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
      rbins,rdist = rdf_periodic(atoms,basis,cutoff=rcut)
      return rbins,rdist
 
+def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+    if rcut==None:
+        rcut = 10.0
+
+    im = complex(0,-1)
+
+    rbins,rdist = rdf_periodic(atoms,basis,cutoff=rcut)
+    density = atoms.shape[0] / (basis[0][0]*basis[1][1]*basis[2][2])
+    qbins = [float(i)/500.0*12.0 for i in range(500)]
+    print exp(im*0)
+    #qvals = [1+density*sum([cmath.exp(im*q*r).real*rdist[i]*rcut/len(rbins) for i,r in enumerate(rbins)]) for q in qbins]
+    qvals = [1+density*sum([sin(q*r)*rdist[i]*rcut/len(rbins) for i,r in enumerate(rbins)]) for q in qbins]
+        
+    return qbins,qvals
+            
 #translational order parameter
 def translational(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     #l: not used

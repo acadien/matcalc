@@ -6,7 +6,7 @@ import poscarIO
 from duplicate import duplicate26
 from datatools import wsmooth
 from struct_tools import dist,dist_periodic
-from neighbors import voronoiNeighbors
+from neighbors import neighbors
 from rdf import adf
 #notmine
 import sys
@@ -14,77 +14,44 @@ import pylab as pl
 from scipy import array
 from mpl_toolkits.mplot3d import Axes3D
 from math import fabs
-
+from numpy import array,zeros
 def usage():
-    print "%s <poscar/BestPOSCARs file> <nbins=360> <optional:minBondLen,maxBondLen>"%sys.argv[0]
+    print "%s <r-cut> <poscar files>"%sys.argv[0]
     print "Note: Periodicity of the system is accounted for."
 
-if len(sys.argv) not in [2,3,4]:
+if len(sys.argv) < 3:
     usage()
     exit(0)
 
-poscar=open(sys.argv[1],"r").readlines()
+poscars=[open(sys.argv[i],"r").readlines() for i in range(2,len(sys.argv))]
 
 nbins=360
-if len(sys.argv)>=3:
-    nbins=int(sys.argv[2])
-bl=-1.
-bw=-1.
-nbins=360
-bmin=0.0
-bmax=10.0
-if len(sys.argv)>=3:
-    nbins=int(sys.argv[2])
-if len(sys.argv)>=4:
-    if len(sys.argv)==4:
-        bmin,bmax=map(float,sys.argv[3].split(","))
-bl=float(bmin+bmax)/2.
-bw=bmax-bl
-
-while True:
+rcut=float(sys.argv[1])
+rdists=zeros(nbins)
+for poscar in poscars:
     [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
+    atoms=array(atoms)
 
-    if basis==-1:
-        break
-
-    j=1
-    types=list()
-    for i in atypes:
-        types+=[j]*i
-        j+=1
-    thetypes=str(set(types))
-
-    N=len(types)
-
-    #Duplicate
-    #datoms,dtypes,dbasis=duplicate26(atoms,types,basis)
+    N=atoms.shape[0]
 
     #Neighbors needed for angular distribution
-
     lengths=array([basis[0][0],basis[1][1],basis[2][2]])
-
-    neighbs = voronoiNeighbors(atoms,basis,atypes,style="full")
-
-    if bl!=-1 and bw!=-1:
-        neighbs=[[j for j in neighbs[i] if fabs(dist_periodic(atoms[i],atoms[j],lengths)-bl)<bw] for i in range(N)]
-    #Correlate
+    bounds = [[0,lengths[0]],[0,lengths[1]],[0,lengths[2]]]
+    neighbs = neighbors(atoms,bounds,rcut)
     [rbins,rdist]=adf(atoms,neighbs,basis,nbins=nbins)
-    
-    #Smooth
-    #if smooth==1:
-    #    smdist=rdist[:]
-    #    smdist = wsmooth(smdist,50)
+    rdists+=rdist
+rdists/=len(poscars)
+#Smooth
+smdist=rdists[:]
+smdist = wsmooth(smdist,10)
 
     #Plotting
-    pl.figure()
-    #if smooth==1:
-    #    pl.plot(rbins,smdist)
-    #    pl.plot(rbins,rdist)
-    #else:
-    pl.plot(rbins,rdist)
+pl.figure()
+pl.plot(rbins,rdists)
+pl.plot(rbins,smdist)
 
-    pl.xlabel("Angle (deg)")
-    pl.ylabel("Count")
-    pl.title("Distribution of Angles %s"%sys.argv[1])
-    pr.prshow("poscarADF.png")
+pl.xlabel("Angle (deg)")
+pl.ylabel("Count")
+pl.title("Distribution of Angles %s"%sys.argv[1])
+pr.prshow("poscarADF.png")
     
