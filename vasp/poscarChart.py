@@ -13,13 +13,14 @@ import pylab as pl
 from math import sqrt
 import re
 #mine
-from orderParam import coordinationNumber,bondOrientation,radialDistribution,bondAngleCorr
+from orderParam import *
 import poscarIO
 
 orderParams={"CN":  coordinationNumber, \
              "BO":  bondOrientation , \
              "RDF": radialDistribution , \
-             "BA":  bondAngleCorr }
+             "BA":  bondAngleCorr , \
+             "SF":  structureFactor}
 
 def usage():
     print "%s <order parameter> <POSCAR Files (space delim)>"%sys.argv[0].split("/")[-1]
@@ -28,6 +29,7 @@ def usage():
     print "   BO# : Bond Orientation (Q) with l=#"
     print "   RDF : Radial Distribution Function"
     print "   BA# : Bond Angle Correlation"
+    print "   SF  : Structure Factor"
     print ""
 
 if len(sys.argv) < 3:
@@ -88,5 +90,11 @@ elif op=="BA":
         pl.plot(ov[0],ov[1])
     pl.xlabel(r"R $( \AA )$")
     pl.ylabel(r"$G_%d ( r )$"%lval)
+
+elif op=="SF":
+    for ov in orderVals:
+        pl.plot(ov[0],ov[1])
+    pl.xlabel(r"Q $( \AA^{-1})$")
+    pl.ylabel(r"S(Q)")
 
 pr.prshow("%s_chart_%s.png"%(sys.argv[1],op))

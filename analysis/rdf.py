@@ -6,7 +6,7 @@ from scipy.weave import converters
 import pylab as pl
 #mine
 from struct_tools import volume
-from datatools import windowAvg
+from datatools import windowAvg,flatten
 
 #==================================================================
 RDFcode="""
@@ -56,12 +56,14 @@ def rdf(atoms,inloop=0,cutoff=10.0,nbins=1000):
     rdist=rdfHelper(atoms,rdist,cutoff,inloop)
     rbins=[(i+0.5)*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
-    #for i,rad in enumerate(rbins):
-    #    if i==0:
-    #        vol=4.0*pi*rad*rad*rad/3.0
-    #    else:
-    #        vol=4.0*pi*rad*rad*dr
-    #    rdist[i]/=vol
+    dr=float(cutoff)/nbins
+    Ndensity=N/volume(*basis)
+    for i,r in enumerate(rbins):
+        if i==0:
+            vol=4.0*pi*dr*dr*dr/3.0
+        else:
+            vol=4.0*pi*r*r*dr
+        rdist[i]/=vol*(Ndensity*N)
         
     return [rbins,rdist]
 
@@ -142,13 +144,22 @@ def rdf_periodic(atoms,basis,cutoff=10.0,nbins=1000):
     return [rbins,rdist]
 
 #==================================================================
+
+def sf(atoms,basis,cutoff=12.0,nbins=1000):
+    basis=array(basis)
+    atoms=array(atoms)
+
+#==================================================================
 ADFcode="""
 double aix,ajx,akx,aiy,ajy,aky,aiz,ajz,akz;
 double dij,dik,djk,x,a,d;
 int jn,kn,cn=0;
 double dang=180./nbins;
 
+double djx,djy,djz,dkx,dky,dkz,djr,dkr,c;
+
 double pi2=2.0*3.14159265;
+double pi=3.14159265;
 for(int i=0; i<natoms; i++){
     aix=atoms[i*3];
     aiy=atoms[i*3+1];
@@ -173,10 +184,15 @@ for(int i=0; i<natoms; i++){
         if(d>l[2]/2.0) ajz -= l[2];
         if(d<-l[2]/2.0) ajz += l[2];
 
-        for(int k=0; k<nneighbsf[i];k++){
+        djx = ajx-aix;
+        djy = ajy-aiy;
+        djz = ajz-aiz;
+        djr = djx*djx+djy*djy+djz*djz;
+
+        for(int k=j+1; k<nneighbsf[i];k++){
             kn=neighbsf[cn+k];
-            if(i==kn || kn==jn) 
-              continue;
+            //if(i==kn || kn==jn) 
+            //  continue;
 
             akx=atoms[kn*3];
             aky=atoms[kn*3+1];
@@ -193,22 +209,32 @@ for(int i=0; i<natoms; i++){
             if(d>l[2]/2.0) akz -= l[2];
             if(d<-l[2]/2.0) akz += l[2];
 
-            //Calculate Angle
-            dij = (aix-ajx)*(aix-ajx) + (aiy-ajy)*(aiy-ajy) + (aiz-ajz)*(aiz-ajz);
-            dik = (aix-akx)*(aix-akx) + (aiy-aky)*(aiy-aky) + (aiz-akz)*(aiz-akz);
-            djk = (ajx-akx)*(ajx-akx) + (ajy-aky)*(ajy-aky) + (ajz-akz)*(ajz-akz);  
-            x=(dij + djk - dik)/(2.0*sqrt(dij)*sqrt(djk));//possibly switch ik - jk
-            if(fabs(fabs(x)-1.0) <= 1e-9)
-              a=0.0;
-            else
-              a=(360*(acos(x)/pi2+1.0));
-            a-= static_cast<double>( static_cast<int>( a / 180.0 ) ) * 180.0;
+            dkx = akx-aix;
+            dky = aky-aiy;
+            dkz = akz-aiz;
+            dkr = dkx*dkx+dky*dky+dkz*dkz;
 
+            x = (djx*dkx + djy*dky + djz*dkz)/sqrt(djr*dkr);
+            a = acos(x)*180.0/pi;
+
+            //Calculate Angle
+            //dij = (aix-ajx)*(aix-ajx) + (aiy-ajy)*(aiy-ajy) + (aiz-ajz)*(aiz-ajz);
+            //dik = (aix-akx)*(aix-akx) + (aiy-aky)*(aiy-aky) + (aiz-akz)*(aiz-akz);
+            //djk = (ajx-akx)*(ajx-akx) + (ajy-aky)*(ajy-aky) + (ajz-akz)*(ajz-akz);  
+            //x=(dij + djk - dik)/(2.0*sqrt(dij)*sqrt(djk));//possibly switch ik - jk
+            //if(fabs(fabs(x)-1.0) <= 1e-9)
+            //  a=0.0;
+            //else
+            //  a=180*acos(x)/pi;
             //Bin the bond angle
+            //if(a<=180)
             bins[(int)(a/dang)]++;
+            //else
+            //  c=dky;
         }
     }
     cn+=nneighbsf[i];
+    return_val=c;
 }
 """
 
@@ -219,7 +245,7 @@ def adf(atoms,neighbs,basis,nbins=360,angtype='deg'):
     #angtype: 'deg' or 'rad'
     #nbins: number of bins to store in radial distro
     #The angular range is always 0-180 deg and angles are taken modulo 180
-
+    
     bins = zeros(nbins)
 
     natoms=len(atoms)
@@ -229,9 +255,8 @@ def adf(atoms,neighbs,basis,nbins=360,angtype='deg'):
     neighbsf=array([i for i in flatten(neighbs)])
 
     l=array([basis[0][0],basis[1][1],basis[2][2]])
-
-    weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','l'])
-
+    print l
+    print weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','l'],compiler=('gcc'))
     atoms.shape=[len(atoms)/3,3]    
     abins = [(i+0.5)*180./nbins for i in range(nbins)]
     
@@ -248,6 +273,7 @@ double dang=180./nbins;
 int binIndex;
 
 double pi2=2.0*3.14159265;
+/*
 for(int i=0; i<natoms; i++){
     ajx=atoms[i*3];
     ajy=atoms[i*3+1];
@@ -316,6 +342,7 @@ for(int i=0; i<natoms; i++){
         }
     }
     cn+=nneighbsf[i];
+*/
 }
 """
 

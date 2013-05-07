@@ -32,7 +32,8 @@ def outcarGrabFinalE(outcar):
             pres=float(line.split()[3])*kB2GPa
             return enrg,natoms,vol,pres
     print "Error: simulation didn't finish (not final TOTEN) in file %s"%outcar
-    exit(0)
+    return enrg,natoms,vol,pres
+    #exit(0)
 
 #Prepare LAMMPS single point energy calculations
 def initLammpsCmds(potential):
@@ -91,7 +92,7 @@ if len(sys.argv)>2:
     lmppot=sys.argv[2]
 
 #Prepare LAMMPS single point energy calculations
-phases=[i for i in os.listdir(basedir) if "eos" in i[-3:]]
+phases=[i for i in os.listdir(basedir) if "eos" in i]
 
 #VASP Data
 ratios={}
@@ -99,7 +100,8 @@ Vvolumes={}
 Vpressures={}
 Venergies={}
 for phase in phases:
-    ratios[phase]=[i for i in os.listdir(basedir+"/"+phase) if "." in i]
+    ratios[phase]=[i for i in os.listdir(basedir+"/"+phase) if os.path.isdir(basedir+"/"+phase+"/"+i)]
+
     es,natoms,vols,prss = zip(* \
         [outcarGrabFinalE("/".join([basedir,phase,rat,"OUTCAR"])) \
              for rat in ratios[phase]])
