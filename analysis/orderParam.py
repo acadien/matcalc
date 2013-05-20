@@ -8,18 +8,24 @@ import math,cmath
 from operator import mul
 import pylab as pl
 #mine
-from neighbors import neighbors,full2half
+from neighbors import neighbors,nNearestNeighbors,full2half
 from struct_tools import *
-from rdf import rdf,generateRCut,rdf_periodic
+from rdf import rdf,adf,generateRCut,rdf_periodic
 
 #local bond-orientational: Q_l for each atom.  atomi>-1 selects a specific atom
-def bondOrientation(atoms,basis,l,neighbs=None,rcut=None,debug=True):
+#rcut is interms of shells not a distance
+def bondOrientation(atoms,basis,l,neighbs=None,rcut=1,debug=True):
 
     if neighbs==None:
-        if rcut==None:
+        if rcut<=1:
             rcut = generateRCut(atoms,debug=debug)
-        bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
-        neighbs = neighbors(atoms,bounds,rcut)
+            bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
+            neighbs = neighbors(atoms,bounds,rcut)
+        elif rcut==2:
+            rcut = generateRCut(atoms,debug=debug)
+            bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
+            neighbs = neighbors(atoms,bounds,rcut)
+            neighbs = secondShell(neighbs)
 
     #sum the spherical harmonic over ever neighbor pair
     Qlms = [sum( [ pairSphereHarms(atoms[i],minImageAtom(atoms[i],atoms[j],basis),l) for j in ineighbs ] ) \
@@ -41,13 +47,12 @@ def bondOrientR(atoms,basis,l,atomi,atomj):
 def bondAngleCorr(atoms,basis,l,neighbs=None,rcut=None,debug=False):
     
     print "Start Bond Angle Correlation Calculation"
+    if rcut==None:
+        rcut = generateRCut(atoms,debug=debug)
 
     if neighbs==None:
-        #if rcut==None:
-        #    rcut = generateRCut(atoms,debug=debug)
         rcut = 6.0
         bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
-        #Half neighbor list
         hneighbs = neighbors(atoms,bounds,rcut,style="half")    
 
     #At distances rbins calculate the bond angle correlation function
@@ -103,9 +108,17 @@ def coordinationNumber(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
 def radialDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
      if rcut==None:
          rcut = 10.0
+ 
+     return rdf_periodic(atoms,basis,cutoff=rcut)#rbins,rdist
 
-     rbins,rdist = rdf_periodic(atoms,basis,cutoff=rcut)
-     return rbins,rdist
+def angleDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+    if rcut==None:
+        rcut = generateRCut(atoms,debug=debug)
+    if neighbs==None:
+        bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
+        neighbs = neighbors(atoms,bounds,rcut)
+
+    return adf(atoms,neighbs,basis,nbins=360)
 
 def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     if rcut==None:
@@ -122,18 +135,47 @@ def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
         
     return qbins,qvals
             
-#translational order parameter
+#translational order parameter, l=neighbor shell
 def translational(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     #l: not used
 
     if rcut==None:
-        rcut = generateRCut(atoms,debug=debug)
-    r,g = rdf(atoms,cutoff=rcut)
+        rcut = 10.0#generateRCut(atoms,debug=debug)
+    r,g = rdf_periodic(atoms,basis,cutoff=rcut)#rbins,rdist
+
     h=map(math.fabs,g-1)
-    
-    tao = sum(h)/len(r)
+
+    tao = [i/len(r) for i in h]
     return tao
         
+#Sg and Sk as defined by:
+#P.L. Chau and A.J. Hardwick, J. Mol. Phys, V93, pp511-518, No3, (1998)
+#Sg is 1 for tetrahedral, 3/4 for randomly arranged bonds and 0 for superimposed
+def tetrahedral(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+    atoms=array(atoms)
 
-def tetrahedral(atom,basis,l=None,neighbs=None,rcut=None,debug=False):
-    pass
+    if neighbs==None:
+        if rcut==None:
+            rcut = generateRCut(atoms,debug=debug)
+            rcut += 0.5
+        bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
+        #ensure only the 4 shortest bonds are used
+        neighbs = nNearestNeighbors(4,atoms,bounds,rcut)
+
+
+    third=1./3.
+    tets=list()
+    for i,ineighbs in enumerate(neighbs):
+        iatom=atoms[i]
+
+        Sg=0
+        for v,j in enumerate(ineighbs):
+            jatom=minImageAtom(iatom,atoms[j],basis)
+
+            for k in ineighbs[v+1:]:
+                katom=minImageAtom(iatom,atoms[k],basis)
+                a = ang(iatom,jatom,katom)
+                Sg+=cos(a+third)**2
+        Sg*=3./32.
+        tets.append(1-Sg)
+    return tets

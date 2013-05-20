@@ -19,8 +19,11 @@ import poscarIO
 orderParams={"CN":  coordinationNumber, \
              "BO":  bondOrientation , \
              "RDF": radialDistribution , \
+             "ADF": angleDistribution , \
              "BA":  bondAngleCorr , \
-             "SF":  structureFactor}
+             "SF":  structureFactor, \
+             "TET": tetrahedral, \
+             "TN":  translational}
 
 def usage():
     print "%s <order parameter> <POSCAR Files (space delim)>"%sys.argv[0].split("/")[-1]
@@ -28,8 +31,11 @@ def usage():
     print "   CN  : Coordination Number"
     print "   BO# : Bond Orientation (Q) with l=#"
     print "   RDF : Radial Distribution Function"
-    print "   BA# : Bond Angle Correlation"
+    print "   ADF : Angular Distribution Function"
+    print "   BA# : Bond Angle Correlation (g)"
     print "   SF  : Structure Factor"
+    print "   TET : Tetrahedral"
+    print "   TN  : Translational (tao)"
     print ""
 
 if len(sys.argv) < 3:
@@ -65,6 +71,10 @@ for pn in poscarNames:
 #======================================================
 #                       Plot!
 #======================================================
+if op not in ["BO","CN","TN","TET"]:
+    for ov in orderVals:
+        pl.plot(ov[0],ov[1])
+
 if op=="BO":
     for i,ov in enumerate(orderVals):
         vals,bins,dummy = pl.hist(ov,bins=int(sqrt(len(ov)))*5,normed=True,visible=False)#,histtype='step')
@@ -80,21 +90,31 @@ elif op=="CN":
     pl.ylabel(r"P(CN)")
 
 elif op=="RDF":
-    for ov in orderVals:
-        pl.plot(ov[0],ov[1])
     pl.xlabel(r"R $( \AA )$")
     pl.ylabel("# Bonds")
 
+elif op=="ADF":
+    pl.xlabel(r"$\theta (deg)$")
+    pl.ylabel("# Bond Angles")
+
 elif op=="BA":
-    for ov in orderVals:
-        pl.plot(ov[0],ov[1])
     pl.xlabel(r"R $( \AA )$")
     pl.ylabel(r"$G_%d ( r )$"%lval)
 
 elif op=="SF":
-    for ov in orderVals:
-        pl.plot(ov[0],ov[1])
     pl.xlabel(r"Q $( \AA^{-1})$")
     pl.ylabel(r"S(Q)")
 
-pr.prshow("%s_chart_%s.png"%(sys.argv[1],op))
+elif op=="TET":
+    print "Average Tetrahedral Order <Sg> ="
+    for i,ov in enumerate(orderVals):
+        print poscarNames[i],"\t\t",sum(ov)/len(ov)
+
+elif op=="TN":
+    print "Average Translational Order <tao> ="
+    for i,ov in enumerate(orderVals):
+        print poscarNames[i],"\t\t",sum(ov)
+
+#Don't plot for some values
+if op not in ["TN","TET"]:
+    pr.prshow("%s_chart_%s.png"%(sys.argv[1],op))

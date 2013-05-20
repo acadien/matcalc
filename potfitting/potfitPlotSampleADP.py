@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
+import plotRemote as pr
 import matplotlib
-#matplotlib.use('Agg')
 
 import sys
 import pylab as pl
@@ -65,22 +65,24 @@ lydata[3]=map(float,lmpdata[nrho+2*nr:nrho+3*nr])
 lxdata[4]=map(lambda x:x*dr,range(nr)) #w
 lydata[4]=map(float,lmpdata[nrho+3*nr:nrho+4*nr])
 #print "Variable : minval - maxval"
-pl.figure()
+pl.figure(figsize=(9,6))
 for i,var in enumerate(varnames):
 
     pl.subplot(321+i)
 
     pl.scatter(datax[i],datay[i])
+    xlims=pl.xlim()
     ylims=pl.ylim()
 
     pl.plot(lxdata[i],lydata[i],label=var)
-    #pl.ylim(ylims)
-#    print "%3.3s : %4.4e - %4.4e"%(var,min(datay[i]),max(datay[i]))
-    pl.title(var)
+    pl.xlim(xlims)
+    pl.ylim(ylims)
+#    prit "%3.3s : %4.4e - %4.4e"%(var,min(datay[i]),max(datay[i]))
+    pl.legend(loc=0)
     
 
 #pl.legend()
     #pl.savefig("/home/acadien/Dropbox/stuff%s.png"%var)
 pl.legend(loc=0)
-pl.show()
+pr.prshow("SampledPotential.eps")
 #pl.show()

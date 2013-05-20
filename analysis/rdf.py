@@ -255,8 +255,7 @@ def adf(atoms,neighbs,basis,nbins=360,angtype='deg'):
     neighbsf=array([i for i in flatten(neighbs)])
 
     l=array([basis[0][0],basis[1][1],basis[2][2]])
-    print l
-    print weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','l'],compiler=('gcc'))
+    weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','l'],compiler=('gcc'))
     atoms.shape=[len(atoms)/3,3]    
     abins = [(i+0.5)*180./nbins for i in range(nbins)]
     

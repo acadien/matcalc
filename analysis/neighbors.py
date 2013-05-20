@@ -9,6 +9,7 @@ from poscar2qvoronoi import poscar2qvoronoi
 from voronoiIO import readQVFi,readQVo
 from struct_tools import *
 from geometry import applyPeriodicBounds
+from datatools import flatten
 
 def roundify(atom):
     return map(lambda x:trunc(x*10.01),atom)
@@ -126,6 +127,21 @@ def neighbors(atoms,bounds,r,style="full"):
     print "Done generating Neighbor List."
     return neighbs
 
+#Generate a neighbor list of the N shortest bonds less than length r
+def nNearestNeighbors(n,atoms,bounds,r,style="full"):
+    neighbs=neighbors(atoms,bounds,r,style)
+    bounds=[map(float,i) for i in bounds]
+    lengths=array([i[1]-i[0] for i in bounds])
+
+    for i,ineighbs in enumerate(neighbs):
+        ds=[[j,dist_periodic(atoms[i],atoms[j],lengths)] for j in ineighbs]
+        
+        if len(ds)>n:
+            ds = sorted(ds,key=lambda x:x[1])[:n]
+
+        neighbs[i]=zip(*ds)[0]
+    return neighbs
+
 def half2full(hneighbors):
     fneighbors=map(list,hneighbors)
     for i,Neighbs in enumerate(hneighbors):
@@ -140,7 +156,17 @@ def full2half(fneighbors):
             hneighbors[b].remove(i)
     return hneighbors
 
+#Takes a neighbor list (1st shell) and generates the 2nd shell of neighbors for each atom
+def secondShell(neighbs):
+    shell2=list()
 
+    #loop over each central atoms
+    for i,ineighbs in enumerate(neighbs):
+        #use set to get uniques
+        ashell = list(set(flatten([neighbs[j] for j in ineighbs]+ineighbs)))
+        shell2.append(ashell)
+    
+    return shell2
 """
 if __name__=="__main__":
     def usage():

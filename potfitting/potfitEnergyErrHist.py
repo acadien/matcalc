@@ -31,10 +31,16 @@ absdelE=map(lambda x:float(x.split()[5]),efile)
 if fdb!=-1:
     #Alter these lines to affect how labeling of configs is done
     eosDelE=[i for i,j in zip(absdelE,fdb) if "eos" in j]
+    defectDelE=[i for i,j in zip(absdelE,fdb) if "defect" in j]
     meltDelE=[i for i,j in zip(absdelE,fdb) if "heat" in j or "cool" in j]
     feedDelE=[i for i,j in zip(absdelE,fdb) if "feedback" in j]
     strainDelE=[i for i,j in zip(absdelE,fdb) if "strain" in j]
-    pl.hist([eosDelE,meltDelE,feedDelE,strainDelE],20,label=["EOS","Melt","Feedback","Elastic"],histtype='barstacked')
+    print "EOSs: ",len(eosDelE)
+    print "Defects: ",len(defectDelE)
+    print "Melt/Quench: ",len(meltDelE)
+    print "Feedback: ",len(feedDelE)
+    print "Elastic: ",len(strainDelE)
+    pl.hist([eosDelE,meltDelE,feedDelE,defectDelE,strainDelE],20,label=["EOS","Melt","Feedback","Defects","Elastic"],histtype='barstacked',fill=True)
 else:
     pl.hist(absdelE,20)
 pl.xlabel("$|\Delta E|$")
