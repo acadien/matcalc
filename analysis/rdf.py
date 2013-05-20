@@ -57,13 +57,13 @@ def rdf(atoms,inloop=0,cutoff=10.0,nbins=1000):
     rbins=[(i+0.5)*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
     dr=float(cutoff)/nbins
-    Ndensity=N/volume(*basis)
+    #Ndensity=N/volume(*basis)
     for i,r in enumerate(rbins):
-        if i==0:
-            vol=4.0*pi*dr*dr*dr/3.0
-        else:
-            vol=4.0*pi*r*r*dr
-        rdist[i]/=vol*(Ndensity*N)
+    #    if i==0:
+    #        vol=4.0*pi*dr*dr*dr/3.0
+    #    else:
+    #        vol=4.0*pi*r*r*dr
+        rdist[i]/=N
         
     return [rbins,rdist]
 
