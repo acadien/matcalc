@@ -10,19 +10,19 @@ from mayavi import mlab
 from numpy import linspace
 import matplotlib.cm as cm
 #mine
-from orderParam import coordinationNumber,bondOrientation, translational
+from orderParam import coordinationNumber,bondOrientation,tetrahedral
 import poscarIO
 
 orderParams={"CN":coordinationNumber, \
              "BO":bondOrientation, \
-             "TN":translational }
+             "TET":tetrahedral}
 
 def usage():
-    print "%s <POSCAR file> <order parameter>"%sys.argv[0]
+    print "%s <order parameter> <POSCAR file>"%sys.argv[0]
     print "Order Parameter can be one of:"
     print "   CN : Coordination Number"
     print "   BO# : Bond Orientation (Q) with l=#"
-    print "   TN : Translational"
+    print "   TET : Tetrahedral order parameter (Sg)"
     print ""
 
 if len(sys.argv) < 2:
@@ -32,13 +32,13 @@ if len(sys.argv) < 2:
 opFlag = False
 lval=0
 if len(sys.argv)==3:
-    op = sys.argv[2]
+    op = sys.argv[1]
     if op[:2]=="BO":
         lval=int(op[-1])
         op="BO"
     opFlag = True
 
-poscar=open(sys.argv[1],"r").readlines()
+poscar=open(sys.argv[2],"r").readlines()
 
 [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
 ax,ay,az=zip(*atoms)
@@ -69,7 +69,7 @@ if opFlag:
         n=2
 
     #Color bar formatting
-    cb = mlab.colorbar(title=sys.argv[2], orientation='vertical', nb_labels=n,nb_colors=n)
+    cb = mlab.colorbar(title=sys.argv[1], orientation='vertical', nb_labels=n,nb_colors=n)
     cb.use_default_range = False
     cb.data_range = (min(ops),max(ops))
     
