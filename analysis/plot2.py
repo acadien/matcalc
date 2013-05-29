@@ -9,7 +9,7 @@ from datatools import windowAvg
 
 #returns a parsed file, keeping only rows that can be converted to floats
 #keeps rows with the most common number of columns.
-def parse(fname):
+def parse(fname,delim=""):
     fraw = open(fname,"r").readlines()
 
     data=list() 
@@ -22,7 +22,7 @@ def parse(fname):
         if line[0]=="#": continue
             
         #drop lines that don't contain columns of numbers
-        l=line.split()
+        l=line.split(delim)
         try:
             l=map(float,l)
         except ValueError:
@@ -39,7 +39,7 @@ def parse(fname):
 
     parsed_data=zip(*data)
 
-    labels=fraw[dataNum[0]-1].split()
+    labels=fraw[dataNum[0]-1].split(delim)
 
     return labels,parsed_data
 
@@ -82,8 +82,17 @@ if __name__=="__main__":
 
     #Files
     fnames=sys.argv[3:]
+    
+    labels=list()
+    fdatas=list()
+    for fname in fnames:
+        if fname[-3:]=="csv":
+            l,f = parse(fname,",")
+        else:
+            l,f = parse(fname)
+        labels.append(l)
+        fdatas.append(f)
 
-    labels,fdatas = zip(*map(parse,fnames))
     labels=labels[0]
 
     #Error check on column selection

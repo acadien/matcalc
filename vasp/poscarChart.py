@@ -76,12 +76,14 @@ if op not in ["BO","CN","TN","TET"]:
         pl.plot(ov[0],ov[1])
 
 if op=="BO":
+    print "Average Bond Order <BO%d> ="%lval
     for i,ov in enumerate(orderVals):
+        print poscarNames[i],"\t\t",sum(ov)/len(ov)
         vals,bins,dummy = pl.hist(ov,bins=int(sqrt(len(ov)))*5,normed=True,visible=False)#,histtype='step')
-        pl.plot(array(bins[:-1]),array(vals)+0.25*i)
+        pl.plot(array(bins[:-1]),array(vals),label=poscarNames[i])
     pl.xlabel(r"Bond Order $Q_%d$"%lval)
     pl.ylabel(r"$P ( Q_%d )$"%lval)
-
+    pl.legend(loc=0)
 elif op=="CN":
     pl.hist(orderVals,bins=range(0,16),normed=True,histtype='bar',align='left',rwidth=0.8)
     pl.legend(poscarNames,loc=0)
