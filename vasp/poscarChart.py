@@ -42,8 +42,7 @@ if len(sys.argv) < 3:
     usage()
     exit(0)
 
-lval=0
-
+lval=None
 op = sys.argv[1]
 if op[:2] in ["BO","BA"]:
     lval=int(op[-1])
@@ -61,12 +60,16 @@ except ValueError:
 
 
 #Gather the order parameters
+l=lval
+neighbs=None
+rcut=None
+debug=False
 for pn in poscarNames:
     poscar=open(pn,"r").readlines()
     [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
 
     #Get the order parameter
-    orderVals.append(orderParams[op](array(atoms),array(basis),lval,debug=False))
+    orderVals.append(orderParams[op](array(atoms),array(basis),l=l,neighbs=neighbs,rcut=rcut,debug=debug))
 
 #======================================================
 #                       Plot!
@@ -83,13 +86,14 @@ if op=="BO":
         pl.plot(array(bins[:-1]),array(vals),label=poscarNames[i])
     pl.xlabel(r"Bond Order $Q_%d$"%lval)
     pl.ylabel(r"$P ( Q_%d )$"%lval)
-    pl.legend(loc=0)
+
 elif op=="CN":
     pl.hist(orderVals,bins=range(0,16),normed=True,histtype='bar',align='left',rwidth=0.8)
-    pl.legend(poscarNames,loc=0)
     pl.xticks(range(min(map(min,orderVals)),max(map(max,orderVals))+1))
     pl.xlabel(r"Coordination Number")
     pl.ylabel(r"P(CN)")
+    for i,ov in enumerate(orderVals):
+        print "Average CN (%s):"%poscarNames[i],float(sum(ov))/len(ov)
 
 elif op=="RDF":
     pl.xlabel(r"R $( \AA )$")
@@ -117,6 +121,7 @@ elif op=="TN":
     for i,ov in enumerate(orderVals):
         print poscarNames[i],"\t\t",sum(ov)
 
+pl.legend(poscarNames,loc=0)
 #Don't plot for some values
 if op not in ["TN","TET"]:
     pr.prshow("%s_chart_%s.png"%(sys.argv[1],op))

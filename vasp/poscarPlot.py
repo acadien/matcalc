@@ -31,14 +31,15 @@ if len(sys.argv) < 2:
 
 opFlag = False
 lval=0
-if len(sys.argv)==3:
+if len(sys.argv)==2:
+    poscar=open(sys.argv[1],"r").readlines()
+elif len(sys.argv)==3:
     op = sys.argv[1]
     if op[:2]=="BO":
         lval=int(op[-1])
         op="BO"
     opFlag = True
-
-poscar=open(sys.argv[2],"r").readlines()
+    poscar=open(sys.argv[2],"r").readlines()
 
 [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
 ax,ay,az=zip(*atoms)
@@ -55,8 +56,6 @@ fig=mlab.figure(bgcolor=(1.0,1.0,1.0))
 #coloring of atoms
 if opFlag:
     ops = orderParams[op](array(atoms),array(basis),lval)
-    print ops
-#    exit(0)
     mnop = min(ops)
     mxop = max(ops)
 
@@ -74,7 +73,7 @@ if opFlag:
     cb.data_range = (min(ops),max(ops))
     
 else:
-    mlab.points3d(ax,ay,az,[1]*len(az),scale_factor=1.0,scale_mode='none')
+    mlab.points3d(ax,ay,az,types,scale_factor=1.0,scale_mode='none')
 
 z=[0,0,0]
 mlab.plot3d([0,v1[0]],[0,v1[1]],[0,v1[2]],color=(0,0,0),line_width=0.5)

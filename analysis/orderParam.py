@@ -8,7 +8,7 @@ import math,cmath
 from operator import mul
 import pylab as pl
 #mine
-from neighbors import neighbors,nNearestNeighbors,full2half
+from neighbors import neighbors,nNearestNeighbors,full2half,voronoiNeighbors
 from struct_tools import *
 from rdf import rdf,adf,generateRCut,rdf_periodic
 
@@ -18,11 +18,11 @@ def bondOrientation(atoms,basis,l,neighbs=None,rcut=1,debug=True):
 
     if neighbs==None:
         if rcut<=1:
-            rcut = generateRCut(atoms,debug=debug)
+            rcut = generateRCut(atoms,basis,debug=debug)
             bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
             neighbs = neighbors(atoms,bounds,rcut)
         elif rcut==2:
-            rcut = generateRCut(atoms,debug=debug)
+            rcut = generateRCut(atoms,basis,debug=debug)
             bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
             neighbs = neighbors(atoms,bounds,rcut)
             neighbs = secondShell(neighbs)
@@ -48,7 +48,7 @@ def bondAngleCorr(atoms,basis,l,neighbs=None,rcut=None,debug=False):
     
     print "Start Bond Angle Correlation Calculation"
     if rcut==None:
-        rcut = generateRCut(atoms,debug=debug)
+        rcut = generateRCut(atoms,basis,debug=debug)
 
     if neighbs==None:
         rcut = 6.0
@@ -94,13 +94,13 @@ def bondAngleCorr(atoms,basis,l,neighbs=None,rcut=None,debug=False):
 
 def coordinationNumber(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     #l: not used
-    
     if neighbs==None:
         if rcut==None:
-            rcut = generateRCut(atoms,debug=debug)
+            rcut = generateRCut(atoms,basis,debug=debug)
+        print "r-cutoff=",rcut
         bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
-        neighbs = neighbors(atoms,bounds,rcut)
-
+        neighbs = neighbors(atoms,bounds,rcut,style="full")
+        #neighbs = voronoiNeighbors(atoms,basis,[1]*len(atoms),style="full")
     cns = map(len,neighbs)
         
     return cns
@@ -113,7 +113,7 @@ def radialDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
 
 def angleDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     if rcut==None:
-        rcut = generateRCut(atoms,debug=debug)
+        rcut = generateRCut(atoms,basis,debug=debug)
     if neighbs==None:
         bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
         neighbs = neighbors(atoms,bounds,rcut)
@@ -140,7 +140,7 @@ def translational(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     #l: not used
 
     if rcut==None:
-        rcut = 10.0#generateRCut(atoms,debug=debug)
+        rcut = 10.0#generateRCut(atoms,basis,debug=debug)
     r,g = rdf_periodic(atoms,basis,cutoff=rcut)#rbins,rdist
 
     h=map(math.fabs,g-1)
@@ -156,7 +156,7 @@ def tetrahedral(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
 
     if neighbs==None:
         if rcut==None:
-            rcut = generateRCut(atoms,debug=debug)
+            rcut = generateRCut(atoms,basis,debug=debug)
             rcut += 0.5
         bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
         #ensure only the 4 shortest bonds are used

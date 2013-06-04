@@ -54,10 +54,17 @@ def poscarGrow(poscarName,outputName,cx,cy,cz):
         print "doh"
         exit(0)
 
-    print sum(ax)/len(ax)
-
     atoms=zip(ax,ay,az)
 
+    #Sort atoms by type, as required by POSCAR
+    types=list()
+    j=0
+    for i in atypes:
+        types+=[j+1]*i
+        j+=1
+    newtypes=types*cx*cy*cz
+
+    atoms,types=zip(*sorted(zip(atoms,newtypes),key=lambda x:x[1]))
     atypes=[i*nCopies for i in atypes]
 
     poscarIO.write(outputName,basis,atoms,atypes,head)

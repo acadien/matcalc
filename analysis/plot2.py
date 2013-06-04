@@ -9,7 +9,7 @@ from datatools import windowAvg
 
 #returns a parsed file, keeping only rows that can be converted to floats
 #keeps rows with the most common number of columns.
-def parse(fname,delim=""):
+def parse(fname,delim=None):
     fraw = open(fname,"r").readlines()
 
     data=list() 
@@ -115,6 +115,7 @@ if __name__=="__main__":
         if ySmooth:
             ydata=windowAvg(ydata,yWAN)
 
+
         #Use column labels if available
         if i==0 and len(labels)==len(fdata):
             if xCol!=-1:
@@ -122,5 +123,6 @@ if __name__=="__main__":
             pl.ylabel( labels[yCol] )
 
         pl.plot(xdata,ydata,lw=1.5)
+
     pl.legend(fnames,loc=0)
     pr.prshow("plot2.png")

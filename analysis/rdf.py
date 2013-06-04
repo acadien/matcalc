@@ -120,12 +120,11 @@ def rdf_periodic(atoms,basis,cutoff=10.0,nbins=1000):
     atoms=array(atoms)
 
     bt=basis.T
-    atomsp=atoms
 
     if sum(atoms[:,0])/len(atoms) < 1.0:
-        atomsp=[bt.dot(atom) for atom in atoms]
-        #atoms=array(map(lambda x: [x[i]* for i in range(3)],atoms))
-    atomsp=array(atomsp)
+        atomsp=array([bt.dot(atom) for atom in atoms])
+    else:
+        atomsp=array(atoms)
 
     rdist=zeros(nbins)
     dr=float(cutoff)/nbins
@@ -371,32 +370,30 @@ def rdf_by_adf(atoms,neighbs,basis,nbins=360,angtype='deg'):
     return [abins,bins]
 
 #Generates a cutoff based on the RDF of a collection of atoms
-def generateRCut(atoms,debug=False):
+def generateRCut(atoms,basis,debug=False):
     #Set rcut to be the first minimum of g(r)
-    rvals,gr = rdf(atoms,cutoff=6.0)
+    rvals,gr = rdf_periodic(atoms,basis,cutoff=6.0)
 
     #Smoothed G(r)
-    sgr=windowAvg(gr,n=25)
+    print len(gr)
+    sgr=windowAvg(gr,n=25).tolist()
+    print len(sgr)
     #derivative of smoothed-G(r)
-    dsgr = windowAvg(windowAvg([(sgr[i+1]-sgr[i])/(rvals[1]-rvals[0]) for i in range(len(sgr)-1)],n=50),n=20) 
+    dsgr = windowAvg(windowAvg([(sgr[i+1]-sgr[i])/(rvals[1]-rvals[0]) for i in range(len(sgr)-1)],n=50),n=20).tolist()#[47:]+[0]*47
     
     #Find the first minima by searching for the first 2 maxima and finding the minima between the two
     #More robust version uses first point at which the first derivative becomes positive after the first peak
     first_neg = [i for i,v in enumerate(dsgr) if v<0][0]
     first_peak = sgr.index(max(sgr[:first_neg]))
-    first_rise = first_neg + [i for i,v in enumerate(dsgr[first_neg:]) if v>=0][0]
+    rindex = first_neg + [i for i,v in enumerate(dsgr[first_neg:]) if v>=0][0]
+    rcut = rvals[rindex]
 
-    m = min(dsgr[first_peak:first_rise])
-    rcut = rvals[dsgr[first_peak:].index(m)+first_peak]
-    
      #Should probably check out this plot before continuing
     if debug:
         print rcut
         pl.plot(rvals,[i for i in sgr],lw=3,c="green",label="Smooth G(r)")
         pl.plot(rvals[1:],dsgr,c="red",label="Smooth G'(r)")
         pl.plot([rcut,rcut],[min(gr),max(gr)],lw=3,c="black",label="rcut")
-        pl.plot([rvals[first_peak],rvals[first_peak]],[min(sgr),max(sgr)],c="blue",lw=3,label="low Rcut bound")
-        pl.plot([rvals[first_rise],rvals[first_rise]],[min(sgr),max(sgr)],c="red",lw=3,label="high Rcut bound")
         pl.plot(rvals,gr,c="blue",label="G(r)")
         pl.legend(loc=0)
         pl.show()
