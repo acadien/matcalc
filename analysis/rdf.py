@@ -57,7 +57,7 @@ def rdf(atoms,inloop=0,cutoff=10.0,nbins=1000):
     rbins=[(i+0.5)*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
     dr=float(cutoff)/nbins
-    #Ndensity=N/volume(*basis)
+    #Ndensity=N/volume(basis)
     for i,r in enumerate(rbins):
     #    if i==0:
     #        vol=4.0*pi*dr*dr*dr/3.0
@@ -132,7 +132,7 @@ def rdf_periodic(atoms,basis,cutoff=10.0,nbins=1000):
     rdist=rdfperHelper(atomsp,rdist,cutoff,basis)
     rbins=[i*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
-    Ndensity=N/volume(*basis)
+    Ndensity=N/volume(basis)
     for i,r in enumerate(rbins):
         if i==0:
             vol=4.0*pi*dr*dr*dr/3.0

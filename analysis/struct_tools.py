@@ -233,8 +233,11 @@ def rotmatx(u,v):
     V=array([b,w,normalize(cross(b,w))])
     return dot(V.T,U)
 
-def volume(a,b,c):
+def volume(basis):
+    a,b,c=basis[0],basis[1],basis[2]
     return fabs(dot(a,cross(b,c)))
+
+
 
 #========  Convert Cell Vector basis  ==========
 def vecs2lattice(v1,v2,v3):

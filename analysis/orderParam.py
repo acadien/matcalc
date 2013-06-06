@@ -126,7 +126,7 @@ def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
 
     rbins,rdist = rdf_periodic(atoms,basis,cutoff=rcut)
     Nr=len(rbins)
-    density = atoms.shape[0] / volume(*basis)
+    density = atoms.shape[0] / volume(basis)
 
     Nq=500
     qbins = [float(i)/Nq*12.0 for i in range(Nq)[1:]]

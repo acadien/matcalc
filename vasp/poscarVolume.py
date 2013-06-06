@@ -2,6 +2,7 @@
 import sys
 #mine
 import poscarIO
+from struct_tools import volume
 
 def unFractional(posfile):
     [basis,atypes,atoms,head,poscar] = poscarIO.read(open(posfile,"r").readlines(),frac_coord=True)
@@ -32,14 +33,21 @@ def ratio(posfile,ratio):
 if __name__=="__main__":
     def usage():
         print "Usage:"
+        print "%s <POSCAR> //prints volume and atomic volume"
         print "%s <POSCAR> <frac/unfrac>"%sys.argv[0].split("/")[-1]
         print "%s <POSCAR> <ratio value>"%sys.argv[0].split("/")[-1]
 
-    if len(sys.argv)!=3:
+    if len(sys.argv) not in [2,3]:
         usage()
         exit(0)
 
-    if sys.argv[2]=="frac":
+    if len(sys.argv)==2:
+        [basis,atypes,atoms,head,poscar] = poscarIO.read(open(sys.argv[1],"r").readlines())
+        v = volume(basis)
+        print v,type(v)
+        print "Total Volume in AA^3 = %f"%v
+        print "Atomic Volume in AA^3 = %f"%(v/len(atoms))
+    elif sys.argv[2]=="frac":
         fractional(sys.argv[1])
     elif sys.argv[2]=="unfrac":
         unFractional(sys.argv[1])
