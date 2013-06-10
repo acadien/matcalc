@@ -78,7 +78,7 @@ def lammpsGenerateE(vaspPOSCAR,preCmd,postCmd,vRatio):
 #Processing input
 def usage():
     print "Usage:"
-    print sys.argv[0].split("/")[-1]+" <base eos directory> <optional: lammps potential>"
+    print sys.argv[0].split("/")[-1]+" <base eos directory> <optional:A B C scaling params> <optional: lammps potential>"
     print "Loops through all sub directories grabs OUTCARs and energies for EOS"
     print "If LAMMPS potential is given, compares LAMMPS and VASP EOS"
 
@@ -88,8 +88,21 @@ if len(sys.argv)<2:
 
 basedir = sys.argv[1].rstrip("/")
 lmppot=-1
+A=1.0
+B=1.0
+C=0.0
 if len(sys.argv)>2:
-    lmppot=sys.argv[2]
+    if len(sys.argv)==3:
+        lmppot=sys.argv[2]
+    elif len(sys.argv)==5:
+        A=float(sys.argv[2])
+        B=float(sys.argv[3])
+        C=float(sys.argv[4])
+    elif len(sys.argv)==6:
+        A=float(sys.argv[2])
+        B=float(sys.argv[3])
+        C=float(sys.argv[4])
+        lmppot=sys.argv[5]
 
 #Prepare LAMMPS single point energy calculations
 phases=[i for i in os.listdir(basedir) if "eos" in i]
@@ -108,9 +121,9 @@ for phase in phases:
     natoms=natoms[0]
     Venergies[phase],Vvolumes[phase],Vpressures[phase] = \
         zip(* sorted(zip(es,vols,prss),key=lambda x:x[1]) )
-    Venergies[phase] = [i*1.4842+2.7100 for i in Venergies[phase]]
-    Vvolumes[phase] = [i*0.979**3 for i in Vvolumes[phase]]
-    Vpressures[phase] = [i*1.4842/(0.979**3) for i in Vpressures[phase]]
+    Venergies[phase] = [i*B-C for i in Venergies[phase]]
+    Vvolumes[phase] = [i*A**3 for i in Vvolumes[phase]]
+    Vpressures[phase] = [i*B/(A**3) for i in Vpressures[phase]]
 
 #LAMMPS Data
 Lvolumes={}
