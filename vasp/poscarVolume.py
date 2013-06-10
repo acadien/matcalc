@@ -44,7 +44,6 @@ if __name__=="__main__":
     if len(sys.argv)==2:
         [basis,atypes,atoms,head,poscar] = poscarIO.read(open(sys.argv[1],"r").readlines())
         v = volume(basis)
-        print v,type(v)
         print "Total Volume in AA^3 = %f"%v
         print "Atomic Volume in AA^3 = %f"%(v/len(atoms))
     elif sys.argv[2]=="frac":

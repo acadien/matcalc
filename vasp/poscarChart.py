@@ -28,7 +28,7 @@ orderParams={"CN":  coordinationNumber, \
 def usage():
     print "%s <order parameter> <POSCAR Files (space delim)>"%sys.argv[0].split("/")[-1]
     print "Order Parameter must be one of:"
-    print "   CN  : Coordination Number"
+    print "   CN#.#  : Coordination Number with rcutoff (optional)"
     print "   BO# : Bond Orientation (Q) with l=#"
     print "   RDF : Radial Distribution Function"
     print "   ADF : Angular Distribution Function"
@@ -48,6 +48,11 @@ if op[:2] in ["BO","BA"]:
     lval=int(op[-1])
     op=op[:2]
 
+rcut=None
+if op[:2] == "CN" and len(op)>2:
+    rcut=float(op[2:])
+    op=op[:2]
+
 orderVals=list()
 poscarNames=sys.argv[2:]
 #Sort POSCAR names only based on the numbers in them
@@ -62,7 +67,6 @@ except ValueError:
 #Gather the order parameters
 l=lval
 neighbs=None
-rcut=None
 debug=False
 for pn in poscarNames:
     poscar=open(pn,"r").readlines()
@@ -74,6 +78,7 @@ for pn in poscarNames:
 #======================================================
 #                       Plot!
 #======================================================
+labels=[]
 if op not in ["BO","CN","TN","TET"]:
     for ov in orderVals:
         pl.plot(ov[0],ov[1])
@@ -88,12 +93,15 @@ if op=="BO":
     pl.ylabel(r"$P ( Q_%d )$"%lval)
 
 elif op=="CN":
-    pl.hist(orderVals,bins=range(0,16),normed=True,histtype='bar',align='left',rwidth=0.8)
-    pl.xticks(range(min(map(min,orderVals)),max(map(max,orderVals))+1))
+    hd,rcuts=zip(*orderVals)
+    pl.hist(hd,bins=range(0,16),normed=True,histtype='bar',align='left',rwidth=0.8)
+    pl.xticks(range(min(map(min,hd)),max(map(max,hd))+1))
     pl.xlabel(r"Coordination Number")
     pl.ylabel(r"P(CN)")
     for i,ov in enumerate(orderVals):
-        print "Average CN (%s):"%poscarNames[i],float(sum(ov))/len(ov)
+        cn=float(sum(ov[0]))/len(ov[0])
+        print "Average CN (%s):"%poscarNames[i],cn
+        labels.append("CN%3.3f rcut%3.3f %s"%(cn,rcuts[i],poscarNames[i]))
 
 elif op=="RDF":
     pl.xlabel(r"R $( \AA )$")
@@ -121,7 +129,10 @@ elif op=="TN":
     for i,ov in enumerate(orderVals):
         print poscarNames[i],"\t\t",sum(ov)
 
-pl.legend(poscarNames,loc=0)
+if len(labels)>0:
+    pl.legend(labels,loc=0)
+else:
+    pl.legend(poscarNames,loc=0)
 #Don't plot for some values
 if op not in ["TN","TET"]:
     pr.prshow("%s_chart_%s.png"%(sys.argv[1],op))

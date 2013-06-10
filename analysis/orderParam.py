@@ -103,7 +103,7 @@ def coordinationNumber(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
         #neighbs = voronoiNeighbors(atoms,basis,[1]*len(atoms),style="full")
     cns = map(len,neighbs)
         
-    return cns
+    return cns,rcut
             
 def radialDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
      if rcut==None:
