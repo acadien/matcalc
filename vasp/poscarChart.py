@@ -7,7 +7,7 @@ import plotRemote as pr
 from colors import float2rgb
 from scipy import array
 from mayavi import mlab
-from numpy import linspace
+from numpy import linspace,savetxt
 import matplotlib.cm as cm
 import pylab as pl
 from math import sqrt
@@ -26,7 +26,7 @@ orderParams={"CN":  coordinationNumber, \
              "TN":  translational}
 
 def usage():
-    print "%s <order parameter> <POSCAR Files (space delim)>"%sys.argv[0].split("/")[-1]
+    print "%s <order parameter> <POSCAR Files (space delim)> <S = save to file instead of plotting>"%sys.argv[0].split("/")[-1]
     print "Order Parameter must be one of:"
     print "   CN  : Coordination Number"
     print "   BO# : Bond Orientation (Q) with l=#"
@@ -50,6 +50,11 @@ if op[:2] in ["BO","BA"]:
 
 orderVals=list()
 poscarNames=sys.argv[2:]
+saveFlag=False
+if poscarNames[-1]=="S":
+    poscarNames.pop()
+    saveFlag=True
+
 #Sort POSCAR names only based on the numbers in them
 try:
     poscarNumbers=map(lambda x:float("".join(re.findall('\d+',x))),poscarNames)
@@ -74,6 +79,13 @@ for pn in poscarNames:
 #======================================================
 #                       Plot!
 #======================================================
+if saveFlag:
+    if lval==None:
+        lval=""
+    for ov,pn in zip(orderVals,poscarNames):
+        savetxt(pn+"."+op+str(lval),array(ov).T,delimiter=" ")
+    exit(0)
+
 if op not in ["BO","CN","TN","TET"]:
     for ov in orderVals:
         pl.plot(ov[0],ov[1])

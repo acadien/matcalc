@@ -14,6 +14,7 @@ import poscar2lmpcfg,poscarGrow,poscarVolume
 
 bars2GPa=1./10000.
 kB2GPa=1./10.
+aa3GPa2eV=160.217656
 
 #Grab thermodynamic values from VASP simulations
 def outcarGrabFinalE(outcar):
@@ -30,10 +31,10 @@ def outcarGrabFinalE(outcar):
             enrg=float(line.split()[-2])/natoms
         if "external pressure" in line:
             pres=float(line.split()[3])*kB2GPa
-            return enrg,natoms,vol,pres
+            enth=enrg+vol*pres*aa3GPa2eV
+            return enrg,natoms,vol,pres,enth
     print "Error: simulation didn't finish (not final TOTEN) in file %s"%outcar
-    return enrg,natoms,vol,pres
-    #exit(0)
+    return enrg,natoms,vol,pres,enth
 
 #Prepare LAMMPS single point energy calculations
 def initLammpsCmds(potential):
@@ -69,11 +70,12 @@ def lammpsGenerateE(vaspPOSCAR,preCmd,postCmd,vRatio):
     pe = lmp.extract_compute("thermo_pe",0,0)/natom 
     prs = lmp.extract_compute("thermo_press",0,0)*bars2GPa 
     vol = lmp.extract_variable("v",0,0)/natom
-    
+    h = pe + prs*vol*aa3GPa2eV
+
     os.remove(lammpsConfig)
     os.remove(lammpsPOSCAR)
     
-    return pe,prs,vol
+    return pe,prs,vol,h
 
 #Processing input
 def usage():
@@ -112,6 +114,7 @@ ratios={}
 Vvolumes={}
 Vpressures={}
 Venergies={}
+Venthalpies={}
 for phase in phases:
     ratios[phase]=[i for i in os.listdir(basedir+"/"+phase) if os.path.isdir(basedir+"/"+phase+"/"+i)]
 
@@ -124,6 +127,7 @@ for phase in phases:
     Venergies[phase] = [i*B-C for i in Venergies[phase]]
     Vvolumes[phase] = [i*A**3 for i in Vvolumes[phase]]
     Vpressures[phase] = [i*B/(A**3) for i in Vpressures[phase]]
+    Venthalpies[phase] = [ for e,v,p in zip(Venergies
 
 #LAMMPS Data
 Lvolumes={}
@@ -176,6 +180,7 @@ dictScatter(Vvolumes,Venergies,phases)
 if lmppot!=-1: dictPlot(Lvolumes,Lenergies,phases,"-",1.5)
 pl.xlabel("Volume ($\AA^3 / atom$)",size=17)
 pl.ylabel("Energy ($eV / atom$)",size=17)
+pr.prshow("EVolEOS.png")
 
 #pl.subplot(subs+2)
 pl.figure()
@@ -184,6 +189,7 @@ if lmppot!=-1: dictPlot(Lvolumes,Lpressures,phases,"-",1.5)
 pl.xlabel("Volume ($\AA^3 / atom$)",size=17)
 pl.ylabel("Pressure ($GPa$)",size=17)
 pl.legend(loc=0,fontsize=12)
+pr.prshow("PVolEOS.png")
 
 #pl.subplot(subs+3)
 pl.figure()
@@ -191,6 +197,4 @@ dictScatter(Vpressures,Venergies,phases)
 if lmppot!=-1: dictPlot(Lpressures,Lenergies,phases,"-",1.5)
 pl.xlabel("Pressure ($GPa$)",size=17)
 pl.ylabel("Energy ($eV / atom$)",size=17)
-
-
-pr.prshow("PVolEOS.png")
+pr.prshow("PEEOS.png")
