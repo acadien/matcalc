@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import sys
+import sys,os
 
 class _Getch:
     """Gets a single character from standard input.  Does not echo to the

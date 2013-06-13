@@ -14,7 +14,7 @@ import poscar2lmpcfg,poscarGrow,poscarVolume
 
 bars2GPa=1./10000.
 kB2GPa=1./10.
-aa3GPa2eV=160.217656
+aa3GPa2eV=1./160.217656
 
 #Grab thermodynamic values from VASP simulations
 def outcarGrabFinalE(outcar):
@@ -114,8 +114,7 @@ Vpressures={}
 Venergies={}
 Venthalpies={}
 for phase in phases:
-    ratios[phase]=[i for i in os.listdir(basedir+"/"+phase) if os.path.isdir(basedir+"/"+phase+"/"+i)]
-
+    ratios[phase]=[i for i in os.listdir(basedir+"/"+phase) if os.path.isdir(basedir+"/"+phase+"/"+i) and "original" not in i]
     es,natoms,vols,prss = zip(* \
         [outcarGrabFinalE("/".join([basedir,phase,rat,"OUTCAR"])) \
              for rat in ratios[phase]])
@@ -203,7 +202,7 @@ pr.prshow("EOS_PE.png")
 #pl.subplot(subs+4)
 pl.figure()
 dictScatter(Vpressures,Venthalpies,phases)
-if lmmppot!=-1: dictPlot(Lpressures,Lenthalpies,phases,"-",1.5)
+if lmppot!=-1: dictPlot(Lpressures,Lenthalpies,phases,"-",1.5)
 pl.xlabel("Pressure ($GPa$)",size=17)
 pl.ylabel("Enthalpy ($eV / atom$)",size=17)
 pl.legend(loc=0,fontsize=12)

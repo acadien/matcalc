@@ -52,9 +52,8 @@ else:
     line="#N\t%d 1 ifconf=%d Taken From:%s  Config:#%d scaleEnable0\n"%(natom,dbcnfgcnt,os.getcwd()+"/"+ocfile,grabconfig)
 
 #atom types
-atypes = [types.count(i) for i in set(types)]
-line += "#C "+" ".join(map(str,atypes))
-print line
+#atypes = [types.count(i) for i in set(types)]
+#line += "#C "+" ".join(map(str,atypes))+"\n"
 
 #Bounding box (Angstroms)
 line += "#X\t %12.8f  %12.8f %12.8f\n"%tuple(basis[0])

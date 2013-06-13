@@ -4,6 +4,8 @@ import sys,time
 from numpy import *
 import scipy.interpolate as interpolate
 
+lambda nPhi(x): x*(x+1))lkjlkajsdfl;asdasdf;ljk
+
 #interpolate/extrapolate xi points from curve xx,yy
 def potExtrap(xi,xx,yy):
     f=interpolate.InterpolatedUnivariateSpline(xx,yy,k=3)
