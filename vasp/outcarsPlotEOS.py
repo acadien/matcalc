@@ -31,10 +31,9 @@ def outcarGrabFinalE(outcar):
             enrg=float(line.split()[-2])/natoms
         if "external pressure" in line:
             pres=float(line.split()[3])*kB2GPa
-            enth=enrg+vol*pres*aa3GPa2eV
-            return enrg,natoms,vol,pres,enth
+            return enrg,natoms,vol,pres
     print "Error: simulation didn't finish (not final TOTEN) in file %s"%outcar
-    return enrg,natoms,vol,pres,enth
+    return enrg,natoms,vol,pres
 
 #Prepare LAMMPS single point energy calculations
 def initLammpsCmds(potential):
@@ -70,12 +69,11 @@ def lammpsGenerateE(vaspPOSCAR,preCmd,postCmd,vRatio):
     pe = lmp.extract_compute("thermo_pe",0,0)/natom 
     prs = lmp.extract_compute("thermo_press",0,0)*bars2GPa 
     vol = lmp.extract_variable("v",0,0)/natom
-    h = pe + prs*vol*aa3GPa2eV
 
     os.remove(lammpsConfig)
     os.remove(lammpsPOSCAR)
     
-    return pe,prs,vol,h
+    return pe,prs,vol
 
 #Processing input
 def usage():
@@ -127,12 +125,13 @@ for phase in phases:
     Venergies[phase] = [i*B-C for i in Venergies[phase]]
     Vvolumes[phase] = [i*A**3 for i in Vvolumes[phase]]
     Vpressures[phase] = [i*B/(A**3) for i in Vpressures[phase]]
-    Venthalpies[phase] = [ for e,v,p in zip(Venergies
+    Venthalpies[phase] = [e + p*v*aa3GPa2eV for e,v,p in zip(Venergies[phase],Vvolumes[phase],Vpressures[phase])]
 
 #LAMMPS Data
 Lvolumes={}
 Lpressures={}
 Lenergies={}
+Lenthalpies={}
 if lmppot!=-1:
     preCmd,postCmd=initLammpsCmds(lmppot)
     for phase in phases:
@@ -147,12 +146,14 @@ if lmppot!=-1:
 
         Lenergies[phase],Lpressures[phase],Lvolumes[phase] = \
             zip(* sorted(epv,key=lambda x:x[2]) )
+        
+        Lenthalpies[phase] = [e + p*v*aa3GPa2eV for e,v,p in zip(Lenergies[phase],Lvolumes[phase],Lpressures[phase])]
 
 #Plotting 
 mcolors=[pl.cm.spectral(i) for i in linspace(0,0.9,len(phases))]
 markers=['o','v','s','p','*','h','D']
 
-#subs=130
+#subs=140
 #if lmppot!=-1:
 #    subs=220
 
@@ -180,7 +181,7 @@ dictScatter(Vvolumes,Venergies,phases)
 if lmppot!=-1: dictPlot(Lvolumes,Lenergies,phases,"-",1.5)
 pl.xlabel("Volume ($\AA^3 / atom$)",size=17)
 pl.ylabel("Energy ($eV / atom$)",size=17)
-pr.prshow("EVolEOS.png")
+pr.prshow("EOS_EVol.png")
 
 #pl.subplot(subs+2)
 pl.figure()
@@ -189,7 +190,7 @@ if lmppot!=-1: dictPlot(Lvolumes,Lpressures,phases,"-",1.5)
 pl.xlabel("Volume ($\AA^3 / atom$)",size=17)
 pl.ylabel("Pressure ($GPa$)",size=17)
 pl.legend(loc=0,fontsize=12)
-pr.prshow("PVolEOS.png")
+pr.prshow("EOS_PVol.png")
 
 #pl.subplot(subs+3)
 pl.figure()
@@ -197,4 +198,13 @@ dictScatter(Vpressures,Venergies,phases)
 if lmppot!=-1: dictPlot(Lpressures,Lenergies,phases,"-",1.5)
 pl.xlabel("Pressure ($GPa$)",size=17)
 pl.ylabel("Energy ($eV / atom$)",size=17)
-pr.prshow("PEEOS.png")
+pr.prshow("EOS_PE.png")
+
+#pl.subplot(subs+4)
+pl.figure()
+dictScatter(Vpressures,Venthalpies,phases)
+if lmmppot!=-1: dictPlot(Lpressures,Lenthalpies,phases,"-",1.5)
+pl.xlabel("Pressure ($GPa$)",size=17)
+pl.ylabel("Enthalpy ($eV / atom$)",size=17)
+pl.legend(loc=0,fontsize=12)
+pr.prshow("EOS_PH.png")
