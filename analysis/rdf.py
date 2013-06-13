@@ -257,7 +257,8 @@ def adf(atoms,neighbs,basis,nbins=360,angtype='deg'):
     weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','l'],compiler=('gcc'))
     atoms.shape=[len(atoms)/3,3]    
     abins = [(i+0.5)*180./nbins for i in range(nbins)]
-    
+    bins /= max(bins)
+
     return [abins,bins]
     
 
