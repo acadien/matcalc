@@ -5,11 +5,11 @@ from numpy import *
 import scipy.interpolate as interpolate
 
 def nPotentials(x):
-    nPhi = x*(x+1))/2
+    nPhi = x*(x+1)/2.
     nRho = x
     nF = x
-    nU = x*(x+1))/2
-    nW = x*(x+1))/2
+    nU = x*(x+1)/2.
+    nW = x*(x+1)/2.
     return nPhi,nRho,nF,nU,nW
 
 #interpolate/extrapolate xi points from curve xx,yy
@@ -39,7 +39,7 @@ def parse_samples(samplefile):
 def parse_pfend(pfend):
     pfData=open(pfend,"r").readlines()
 
-    nPots = nPotentials(something)
+    #nPots = nPotentials(something)
     #X-data for Phi,Rho,F,U,W
     genXs=lambda x:arange(x[0],x[1]+0.1,(x[1]-x[0])/(x[2]-1))
 

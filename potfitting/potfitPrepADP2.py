@@ -5,12 +5,12 @@ from numpy import *
 import scipy.interpolate as interpolate
 
 def nPotentials(x):
-    nPhi = x*(x+1))/2
+    nPhi = x*(x+1)/2.
     nRho = x
     nF = x
-    nU = x*(x+1))/2
-    nW = x*(x+1))/2
-    return nPhi,nRho,nF,nU,nW
+    nU = x*(x+1)/2.
+    nW = x*(x+1)/2.
+    return map(int, [nPhi,nRho,nF,nU,nW])
 
 #interpolate/extrapolate xi points from curve xx,yy
 def potExtrap(xi,xx,yy):
@@ -39,38 +39,79 @@ def parse_samples(samplefile):
 def parse_pfend(pfend):
     pfData=open(pfend,"r").readlines()
 
-    nPots = nPotentials(something)
-    #X-data for Phi,Rho,F,U,W
-    genXs=lambda x:arange(x[0],x[1]+0.1,(x[1]-x[0])/(x[2]-1))
+    #Parse the header
+    dummy, nt, n = pfData[0].split()
+    if nt!='3':
+        print "This parser can only handle type 3 potfit formats for ADP potentials"
+        exit(0)\
 
-    l=map(float,pfData[4].split())
-    xPhi=genXs(l)
-    l=map(float,pfData[5].split())
-    xRho=genXs(l)
-    l=map(float,pfData[6].split())
-    xF=genXs(l)
-    l=map(float,pfData[7].split())
-    xU=genXs(l)
-    l=map(float,pfData[8].split())
-    xW=genXs(l)
-    pfData=pfData[10:]
+    while True:
+        line = pfData.pop(0)
+        if line[:2] == "#C":
+            elems=line[2:].strip().split()
+        if line[:2] == "#G":
+            n = len(line.split())-1
+            nElement = (-7+sqrt(49+24*float(n)))/6
+        if line[:2] == "#E":
+            break
+    print "nElement types :",nElement
+    nPots = nPotentials(nElement)
+    xPhis,yPhis,yPhiDerivs = list(),list(),list()
+    xRhos,yRhos,yRhoDerivs = list(),list(),list()
+    xFs,yFs,yFDerivs = list(),list(),list()
+    xUs,yUs,yUDerivs = list(),list(),list()
+    xWs,yWs,yWDerivs = list(),list(),list()
+
+    #Drop the spaces and comments
+    pfData = [line for line in pfData if len(line.strip())>0 and line[0]!="#"]
+
+    #X-Data
+    genXs=lambda x:arange(x[0],x[1]+0.1,(x[1]-x[0])/(x[2]-1))
+    for i in range(nPots[0]):
+        l=map(float,pfData.pop(0).split())
+        xPhis.append(genXs(l))
+
+    for i in range(nPots[1]):
+        l=map(float,pfData.pop(0).split())
+        xRhos.append(genXs(l))
+
+    for i in range(nPots[2]):
+        l=map(float,pfData.pop(0).split())
+        xFs.append(genXs(l))
+
+    for i in range(nPots[3]):
+        l=map(float,pfData.pop(0).split())
+        xUs.append(genXs(l))
+
+    for i in range(nPots[4]):
+        l=map(float,pfData.pop(0).split())
+        xWs.append(genXs(l))
 
     #Y-data
-    yPhiDerivs=map(float,pfData[0].split())
-    yPhi=array(map(float,pfData[1:1+size(xPhi)]))
-    pfData=pfData[2+size(xPhi):]
-    yRhoDerivs=map(float,pfData[0].split())
-    yRho=array(map(float,pfData[1:1+size(xRho)]))
-    pfData=pfData[2+size(xRho):]
-    yFDerivs=map(float,pfData[0].split())
-    yF=array(map(float,pfData[1:1+size(xF)]))
-    pfData=pfData[2+size(xF):]
-    yUDerivs=map(float,pfData[0].split())
-    yU=array(map(float,pfData[1:1+size(xU)]))
-    pfData=pfData[2+size(xU):]
-    yWDerivs=map(float,pfData[0].split())
-    yW=array(map(float,pfData[1:1+size(xW)]))
-    pfData=pfData[2+size(xW):]
+    for xPhi in xPhis:
+        yPhiDerivs.append(map(float,pfData[0].split()))
+        yPhis.append(array(map(float,pfData[1:size(xPhi)+1])))
+        pfData=pfData[1+size(xPhi):]
+
+    for xRho in xRhos:
+        yRhoDerivs.append(map(float,pfData[0].split()))
+        yRhos.append(array(map(float,pfData[1:size(xRho)+1])))
+        pfData=pfData[1+size(xRho):]
+
+    for xF in xFs:
+        yFDerivs.append(map(float,pfData[0].split()))
+        yFs.append(array(map(float,pfData[1:size(xF)+1])))
+        pfData=pfData[1+size(xF):]
+
+    for xU in xUs:
+        yUDerivs.append(map(float,pfData[0].split()))
+        yUs.append(array(map(float,pfData[1:size(xU)+1])))
+        pfData=pfData[1+size(xU):]
+
+    for xW in xWs:
+        yWDerivs.append(map(float,pfData[0].split()))
+        yWs.append(array(map(float,pfData[1:size(xW)+1])))
+        pfData=pfData[1+size(xW):]
 
     #Insert new points at both ends to account for derivatives
     step=1e-3
@@ -80,16 +121,24 @@ def parse_pfend(pfend):
 
         x=insert(x,-1,[x[-1]-step])
         y=insert(y,-1,[y[-1]-primes[1]*step])
-
         return x,y
 
-    xPhi,yPhi=appendDerivs(xPhi,yPhi,yPhiDerivs,step)
-    xRho,yRho=appendDerivs(xRho,yRho,yRhoDerivs,step)
-    xF,yF=appendDerivs(xF,yF,yFDerivs,step)
-    xU,yU=appendDerivs(xU,yU,yUDerivs,step)
-    xW,yW=appendDerivs(xW,yW,yWDerivs,step)
+    xPhis,yPhis = zip(*[appendDerivs(xPhi,yPhi,yPhiDeriv,step) \
+                  for xPhi,yPhi,yPhiDeriv in zip(xPhis,yPhis,yPhiDerivs)])
+        
+    xRhos,yRhos = zip(*[appendDerivs(xRho,yRho,yRhoDeriv,step) \
+                  for xRho,yRho,yRhoDeriv in zip(xRhos,yRhos,yRhoDerivs)])
 
-    return [xF,xRho,xPhi,xU,xW],[yF,yRho,yPhi,yU,yW] #return in lammps order!
+    xFs,yFs = zip(*[appendDerivs(xF,yF,yFDeriv,step) \
+              for xF,yF,yFDeriv in zip(xFs,yFs,yFDerivs)])
+
+    xUs,yUs = zip(*[appendDerivs(xU,yU,yUDeriv,step) \
+              for xU,yU,yUDeriv in zip(xUs,yUs,yUDerivs)])
+
+    xWs,yWs = zip(*[appendDerivs(xW,yW,yWDeriv,step) \
+              for xW,yW,yWDeriv in zip(xWs,yWs,yWDerivs)])
+
+    return elems,[xFs,xRhos,xPhis,xUs,xWs],[yFs,yRhos,yPhis,yUs,yWs] #return in lammps order!
 
 def usage():
     print "%s <pf_end_??.adp> <output potential> <optional:lammps potential>"%sys.argv[0].split("/")[-1]
@@ -99,32 +148,42 @@ if len(sys.argv)<3:
     exit(0)
 
 #Reformat potential and write it
-#knotx,knoty=parse_samples(pntdata)
-knotx,knoty=parse_pfend(sys.argv[1]) #F,rho,phi,u,w
-cutx=max(map(max,knotx))
+elems,knotXs,knotYs=parse_pfend(sys.argv[1]) #F,rho,phi,u,w
+nElem = len(elems)
+cutx= max([max(map(max,i)) for i in knotXs])
 Npnt=1001
 dr=cutx/(Npnt-1.)
 drho=1./(Npnt-1.)
+
 axx=map(lambda x:x*dr,range(Npnt))
-[LRho,LPhi,LU,LW]=[potExtrap(axx,x,y) for i,(x,y) in enumerate(zip(knotx[1:],knoty[1:]))] 
+LRhos = [potExtrap(axx,x,y) for x,y in zip(knotXs[1],knotYs[1])]
+LPhis = [potExtrap(axx,x,y) for x,y in zip(knotXs[2],knotYs[2])]
+LUs = [potExtrap(axx,x,y) for x,y in zip(knotXs[3],knotYs[3])]
+LWs = [potExtrap(axx,x,y) for x,y in zip(knotXs[4],knotYs[4])]
+
 arho=[i*drho for i in range(Npnt)]
-LFrho=potExtrap(arho,knotx[0],knoty[0])
+LFrhos=[potExtrap(arho,x,y) for x,y in zip(knotXs[0],knotYs[0])]
 
 #Write element specific data
-
-potential=[ "LAMMPS ADP potential generated by Adam Cadien, George Mason University\n",\
+potential=[ "LAMMPS ADP potential generated by Adam Cadien\n",\
                 "%s\n"%time.strftime("%d %b %Y %H:%M:%S", time.localtime()),\
                 "-----\n",\
-                "1 Ge\n",\
-                "%d % 6.6f %d % 6.6f % 6.6f\n"%(Npnt,drho,Npnt,dr,cutx),\
-                "32 72.64 0 dummy\n"]
+                "%d %s\n"%(nElem," ".join(elems))]
+for i in range(nElem):
+    potential.append("%d % 6.6f %d % 6.6f % 6.6f\n"%(Npnt,drho,Npnt,dr,cutx))
+    potential.append("atomNumber mass latConst latType\n")
 
 #LAMMPS format
-potential+="".join(map(lambda x:"%6.6e\n"%x,LFrho))  
-potential+="".join(map(lambda x:"%6.6e\n"%x,LRho))
-potential+="".join(map(lambda x:"%6.6e\n"%x,LPhi*axx))
-potential+="".join(map(lambda x:"%6.6e\n"%x,LU))
-potential+="".join(map(lambda x:"%6.6e\n"%x,LW))
+for LFrho in LFrhos:
+    potential+="".join(map(lambda x:"%6.6e\n"%x,LFrho))  
+for LRho in LRhos:
+    potential+="".join(map(lambda x:"%6.6e\n"%x,LRho))
+for LPhi in LPhis:
+    potential+="".join(map(lambda x:"%6.6e\n"%x,LPhi*axx))
+for LU in LUs:
+    potential+="".join(map(lambda x:"%6.6e\n"%x,LU))
+for LW in LWs:
+    potential+="".join(map(lambda x:"%6.6e\n"%x,LW))
 open(sys.argv[2],"w").writelines(potential)
 
 #If the optional arguement for the potfit lammps file is included, plots a comparison of the two
@@ -177,7 +236,8 @@ if len(sys.argv)==4:
     pl.title("Phi(r)")
     pl.scatter(knotx[2],knoty[2])
     yl=pl.ylim()
-    pl.plot(axx,LPhi,label="mine")
+    for LPhi in LPhis:
+        pl.plot(axx,LPhi,label="bleh")
     pl.plot(rs,PhiPF,label="potfit")
 #    pl.ylim(yl)
     pl.legend(loc=0)
@@ -186,7 +246,8 @@ if len(sys.argv)==4:
     pl.title("U(r)")
     pl.scatter(knotx[3],knoty[3])
     yl=pl.ylim()
-    pl.plot(axx,LU,label="mine")
+    for LU in LUs:
+        pl.plot(axx,LU,label="mine")
     pl.plot(rs,UPF,label="potfit")
 #    pl.ylim(yl)
     pl.legend(loc=0)
@@ -195,7 +256,8 @@ if len(sys.argv)==4:
     pl.title("W(r)")
     pl.scatter(knotx[4],knoty[4])
     yl=pl.ylim()
-    pl.plot(axx,LW,label="mine")
+    for LW in LWs:
+        pl.plot(axx,LW,label="mine")
     pl.plot(rs,WPF,label="potfit")
 #    pl.ylim(yl)
     pl.legend(loc=0)
@@ -204,17 +266,20 @@ if len(sys.argv)==4:
     pl.title("Rho(r)")
     pl.scatter(knotx[1],knoty[1])
     yl=pl.ylim()
-    pl.plot(axx,LRho,label="mine")
+    for LRho in LRhos:
+        pl.plot(axx,LRho,label="mine")
     pl.plot(rs,RhoPF,label="potfit")
     #pl.ylim(yl)
     pl.legend(loc=0)
 
     pl.subplot(235)
     pl.title("F(rho)")
-    pl.plot(arho,LFrho,label="mine")
+    for LFrho in LFrhos:
+        pl.plot(arho,LFrho,label="mine")
     pl.plot(rhos,FRhoPF,label="potfit")
     pl.scatter(knotx[0],knoty[0])
     pl.legend(loc=0)
 
     pl.show()
 
+print "this code is untested for LAMMPS potentials with multiple atom types, specifically the location of the 2nd/3rd/4th chemical's information (lattice/lattice type etc) and where that goes"
