@@ -40,7 +40,9 @@ if fdb!=-1:
     print "Melt/Quench: ",len(meltDelE)
     print "Feedback: ",len(feedDelE)
     print "Elastic: ",len(strainDelE)
-    pl.hist([eosDelE,meltDelE,feedDelE,defectDelE,strainDelE],20,label=["EOS","Melt","Feedback","Defects","Elastic"],histtype='barstacked',fill=True)
+
+    toHist = [i for i in [eosDelE,meltDelE,feedDelE,defectDelE,strainDelE] if len(i)>0]
+    pl.hist(toHist,20,label=["EOS","Melt","Feedback","Defects","Elastic"],histtype='barstacked',fill=True)
 else:
     pl.hist(absdelE,20)
 pl.xlabel("$|\Delta E|$")

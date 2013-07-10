@@ -14,7 +14,7 @@ import poscar2lmpcfg,poscarGrow,poscarVolume
 
 bars2GPa=1./10000.
 kB2GPa=1./10.
-aa3GPa2eV=1./160.217656
+aa3GPa2eV=1./1602.17656
 
 #Grab thermodynamic values from VASP simulations
 def outcarGrabFinalE(outcar):
@@ -164,7 +164,6 @@ def dictPlot(xdict,ydict,items,ls,lw):
         m=marks.next()
         pl.plot(xdict[i],ydict[i],c=c,ls=ls,lw=lw)#mfc=c,marker=m,ls=ls,lw=lw)
 
-
 def dictScatter(xdict,ydict,items):
     cs=itertools.cycle(mcolors)
     marks=itertools.cycle(markers)
@@ -173,6 +172,16 @@ def dictScatter(xdict,ydict,items):
         m=marks.next()
         pl.scatter(xdict[i],ydict[i],marker=m,c=c,label=i,s=40)
 
+def dictScatterInset(xdict,ydict,items,xlim,ylim,xticks,yticks):
+    a = pl.axes([.185, .55, .3, .3], axisbg='gray')
+    cs=itertools.cycle(mcolors)
+    marks=itertools.cycle(markers)
+    for i in items:
+        c=cs.next()
+        m=marks.next()
+        pl.scatter(xdict[i],ydict[i],marker=m,c=c,label=i,s=40)
+        pl.plot(xdict[i],ydict[i],c=c)
+        pl.setp(a,xlim=xlim,ylim=ylim,xticks=xticks,yticks=yticks)
 #Plot
 #pl.subplot(subs+1)
 pl.figure()
@@ -180,6 +189,7 @@ dictScatter(Vvolumes,Venergies,phases)
 if lmppot!=-1: dictPlot(Lvolumes,Lenergies,phases,"-",1.5)
 pl.xlabel("Volume ($\AA^3 / atom$)",size=17)
 pl.ylabel("Energy ($eV / atom$)",size=17)
+pl.legend(loc=0,fontsize=12)
 pr.prshow("EOS_EVol.png")
 
 #pl.subplot(subs+2)
@@ -197,13 +207,20 @@ dictScatter(Vpressures,Venergies,phases)
 if lmppot!=-1: dictPlot(Lpressures,Lenergies,phases,"-",1.5)
 pl.xlabel("Pressure ($GPa$)",size=17)
 pl.ylabel("Energy ($eV / atom$)",size=17)
+pl.ylim([-8.5,-2])
+pl.xlim([-100,500])
+pl.legend(loc=0,fontsize=12)
+dictScatterInset(Vpressures,Venergies,phases,xlim=[-20,20],ylim=[-8,-7.5], xticks=[-20,0,20], yticks=[-8,-7.5])
 pr.prshow("EOS_PE.png")
 
 #pl.subplot(subs+4)
 pl.figure()
 dictScatter(Vpressures,Venthalpies,phases)
+pl.xlim([0,500])
+pl.ylim([-8.5,-2])
 if lmppot!=-1: dictPlot(Lpressures,Lenthalpies,phases,"-",1.5)
 pl.xlabel("Pressure ($GPa$)",size=17)
 pl.ylabel("Enthalpy ($eV / atom$)",size=17)
 pl.legend(loc=0,fontsize=12)
+dictScatterInset(Vpressures,Venergies,phases,xlim=[0,100],ylim=[-8,-7], xticks=[0,20,40,60,80,100], yticks=[-8,-7])
 pr.prshow("EOS_PH.png")

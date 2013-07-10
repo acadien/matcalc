@@ -3,8 +3,9 @@
 import sys,threading
 from math import sqrt
 from os import path
+from numpy import array
 #mine
-from poscarIO import readposcar
+import poscarIO
 from datatools import flatten
 
 def plot3(md,ax,ay,az,afx,afy,afz,v1,v2,v3,types):
@@ -77,7 +78,13 @@ def plot3sphere(md,ax,ay,az,afx,afy,afz,v1,v2,v3,rx,ry,rz,rr):
                 types2[i]=1.75
 
     print "\nFound %d atoms inside of the sphere." % (cnt)
-    mlab.clf()
+    #mlab.close()
+    #print "here"
+    #mlab.points3d(ax,ay,az,types,scale_factor=1,vmin=-1.0,vmax=4.0)
+    #exit(0)
+#    mlab.points3d(ax,ay,az,types,scale_factor=1,vmin=-1.0,vmax=4.0)
+#    mlab.show(stop=True)
+#    print "here"
     if md==True:
         mlab.points3d(ax,ay,az,types,scale_factor=1,vmin=-1.0,vmax=4.0)
         #mlab.quiver3d(ax,ay,az,afx,afy,afz,line_width=3,scale_factor=1)
@@ -111,7 +118,7 @@ def plot3sphere(md,ax,ay,az,afx,afy,afz,v1,v2,v3,rx,ry,rz,rr):
     mlab.plot3d([v3[0],v3[0]+v2[0]],[v3[1],v3[1]+v2[1]],[v3[2],v3[2]+v2[2]],color=(0,1,0))
     mlab.plot3d([v3[0]+v1[0],v1[0]+v2[0]+v3[0]],[v3[1]+v1[1],v1[1]+v2[1]+v3[1]],[v3[2]+v1[2],v1[2]+v2[2]+v3[2]],color=(0,1,0))
 
-    sphere = mlab.points3d(rx, ry, rz, scale_mode='none', scale_factor=rr*2, color=(0.67, 0.77, 0.93), resolution=50, opacity=0.6, name='Earth')
+    sphere = mlab.points3d(rx, ry, rz, scale_mode='none', scale_factor=rr*2, color=(0.67, 0.77, 0.93), resolution=50, opacity=0.6, name='Earth', figure=fg)
 
     # These parameters, as well as the color, where tweaked through the GUI, with the record mode to produce lines of code usable in a script.
     sphere.actor.property.specular = 0.45
@@ -145,6 +152,26 @@ def prompt_iface(md,count,stresskb,T,PE,KE,ax,ay,az,afx,afy,afz,v1,v2,v3,types):
         try:
             val=raw_input("Input coords and radius of sphere (x y z r) or (Enter) to continue:\n")
             [rx,ry,rz,rr]=[float(k) for k in val.split()]
+            N=len(ax)
+            atoms=[[ax[i],ay[i],az[i],types[i]] for i in range(N) if sqrt((ax[i]-rx)**2+(ay[i]-ry)**2+(az[i]-rz)**2)<=rr]
+            atoms.sort(key=lambda x:x[3])
+            d1,d2,d3,types=zip(*atoms)
+            cs=[types.count(i) for i in range(N)]
+            #sphere = mlab.points3d(rx, ry, rz, scale_mode='none', scale_factor=rr*2, color=(0.67, 0.77, 0.93), resolution=50, opacity=0.6, name='Earth')
+                        #cut off types list after last non-zero number
+            last=0
+            for i,v in enumerate(cs):
+                if v>0:
+                    last=i
+                cs=cs[:last+1]
+
+            for atom in atoms:
+                print "% 5.5g  % 5.5g  % 5.5g" % (tuple(atom[:3]))
+
+            poscarIO.write("POSCAR.CLUSTER%d"%len(atoms),array([v1,v2,v3])*1.5,[atom[:3] for atom in atoms],cs,"Cluster genearted by grabcluster.py")
+            print "POSCAR.CLUSTER%d written to."%len(atoms) 
+            exit(0)        
+
         except ValueError:
             if len(val)==0:
                 break
@@ -193,7 +220,10 @@ elif path.isfile(sys.argv[1]):
     outcar = False
     poscar = open(sys.argv[1],"r")
 
-v1,v2,v3,atypes,ax,ay,az,head,poscar=readposcar(poscar.readlines())
+[basis,atypes,atoms,head,poscar]=poscarIO.read(poscar.readlines())
+[v1,v2,v3]=basis
+atoms=zip(*atoms)
+ax,ay,az=atoms[0],atoms[1],atoms[2]
 afx,afy,afz=[0]*len(ax),[0]*len(ay),[0]*len(az)
 types=[i for i in flatten([[i]*num for i,num in enumerate(atypes)])]
 startconfig=0

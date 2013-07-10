@@ -79,5 +79,5 @@ z=[0,0,0]
 mlab.plot3d([0,v1[0]],[0,v1[1]],[0,v1[2]],color=(0,0,0),line_width=0.5)
 mlab.plot3d([0,v2[0]],[0,v2[1]],[0,v2[2]],color=(0,0,0),line_width=0.5)
 mlab.plot3d([0,v3[0]],[0,v3[1]],[0,v3[2]],color=(0,0,0),line_width=0.5)
-
+print ax
 prm.prmshow(fname="POSCAR.png")

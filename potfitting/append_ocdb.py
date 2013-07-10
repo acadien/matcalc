@@ -8,10 +8,10 @@ from outcarIO import outcarReadConfig
 
 def usage():
     print "Usage:"
-    print sys.argv[0].split("/")[-1]+" <force database> <OUTCAR file> <configuration #> <optional:weight sweight> <optional: scale enable 0>"
+    print sys.argv[0].split("/")[-1]+" <force database> <OUTCAR file> <configuration #> <elements (comma separated)> <optional:weight sweight> <optional: scale enable 0>"
     exit(0)
 
-if not(len(sys.argv) in [4,5,6,7]):
+if not(len(sys.argv) in [5,6,7,8]):
     usage()
 
 ocfile = sys.argv[2] #outcar directory
@@ -19,15 +19,16 @@ ocfile = sys.argv[2] #outcar directory
 forcefil= sys.argv[1]
 fordb = open(forcefil,"r")
 grabconfig=int(sys.argv[3])
+elems = " ".join(sys.argv[4].split(","))
 weight=-1
 sweight=-1
 scaleEnable=True
-if len(sys.argv)>=5:
-    weight=int(sys.argv[4])
-if len(sys.argv)==6:
-    sweight=int(sys.argv[5])
+if len(sys.argv)>=6:
+    weight=int(sys.argv[5])
 if len(sys.argv)==7:
-    if sys.argv[6]==0:
+    sweight=int(sys.argv[6])
+if len(sys.argv)==8:
+    if sys.argv[7]==0:
         scaleEnable=False
 
 #get the force configuration number (the total number of configs in the forcefil)
@@ -52,8 +53,7 @@ else:
     line="#N\t%d 1 ifconf=%d Taken From:%s  Config:#%d scaleEnable0\n"%(natom,dbcnfgcnt,os.getcwd()+"/"+ocfile,grabconfig)
 
 #atom types
-#atypes = [types.count(i) for i in set(types)]
-#line += "#C "+" ".join(map(str,atypes))+"\n"
+line += "#C\t"+elems+"\n"
 
 #Bounding box (Angstroms)
 line += "#X\t %12.8f  %12.8f %12.8f\n"%tuple(basis[0])

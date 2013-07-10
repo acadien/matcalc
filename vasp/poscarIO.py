@@ -79,7 +79,9 @@ def write(poscarName,basis,atoms,types,header,ratio=1.0):
     #Convert if necessary (re-using the frac flag)
     if not(frac):
         A = matrix(basis)
-        atoms=[linalg.solve(A,atom)[:] for atom in atoms]
+        print A
+        print atoms[0]
+        atoms=[linalg.solve(A,array(atom))[:] for atom in atoms]
 
     #Make the POSCAR
     data=""
