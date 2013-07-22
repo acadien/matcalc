@@ -128,7 +128,7 @@ if op not in ["BO","CN","TN","TET"] and not averageFlag:
     for ov in orderVals:
         pl.plot(ov[0],ov[1])
     pl.xlabel(xylabels[op][0])
-    pl.xlabel(xylabels[op][1])
+    pl.ylabel(xylabels[op][1])
 
 if op=="BO":
     print "Average Bond Order <BO%d> ="%lval
