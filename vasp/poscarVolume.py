@@ -11,7 +11,7 @@ def unFractional(posfile):
             print "Error: it appears these are already unfractional coordinates. %s"%posfile
             exit(0)
     [basis,atypes,atoms,head,poscar] = poscarIO.read(open(posfile,"r").readlines(),frac_coord=False)
-    poscarIO.write(posfile,basis, atoms,atypes,head,frac=False)
+    poscarIO.write(posfile,basis, atoms,atypes,head,frac=True,autoFrac=False)
 
 def fractional(posfile):
     [basis,atypes,atoms,head,poscar] = poscarIO.read(open(posfile,"r").readlines(),frac_coord=True)
