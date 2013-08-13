@@ -49,7 +49,6 @@ def poscarGrow(poscarName,outputName,cx,cy,cz):
     A=matrix([[float(cx),0.0,0.0],[0.0,float(cy),0.0],[0.0,0.0,float(cz)]])
     ax,ay,az=zip(*[linalg.solve(A,array(p).T)[:] for p in zip(ax,ay,az)])
 
-
     if max(ax)>1.0 or max(ay)>1.0 or max(az)>1.0:
         print "doh"
         exit(0)

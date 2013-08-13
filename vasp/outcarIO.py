@@ -50,14 +50,14 @@ def outcar2poscar(outcarF,wantconfig=-1):
                     basis[2]=map(float,line.split()[0:3])
                     v3=" ".join(line.split()[0:3])
                     break
-                
+
             while True:
                 line=outcar.readline()
                 if "POSITION" in line:
                     outcar.readline()
                     while True:
                         line=outcar.readline()
-                        atom=linalg.solve(basis,array(map(float,line.split()[0:3])))
+                        atom=linalg.solve(basis.T,array(map(float,line.split()[0:3])))
                         posi.append(" ".join(map(str,atom)))
                         if len(posi)==Natoms:
                             break
@@ -161,7 +161,7 @@ def outcarReadConfig(outcarF,wantconfig=-1):
                     outcar.readline()
                     while True:
                         line=outcar.readline()
-                        atom=linalg.solve(basis,array(map(float,line.split()[0:3])))
+                        atom=linalg.solve(basis.T,array(map(float,line.split()[0:3])))
                         force=array(map(float,line.split()[3:6]))
                         atoms.append(atom)
                         forces.append(force)

@@ -113,8 +113,15 @@ Vvolumes={}
 Vpressures={}
 Venergies={}
 Venthalpies={}
+toremove=list()
 for phase in phases:
+    if len([i for i in os.listdir(basedir+"/"+phase)]) == 0:
+        print phase,"directy empty, skipping and moving on"
+        toremove.append(phase)
+        continue
+
     ratios[phase]=[i for i in os.listdir(basedir+"/"+phase) if os.path.isdir(basedir+"/"+phase+"/"+i) and "original" not in i]
+
     es,natoms,vols,prss = zip(* \
         [outcarGrabFinalE("/".join([basedir,phase,rat,"OUTCAR"])) \
              for rat in ratios[phase]])
@@ -125,6 +132,9 @@ for phase in phases:
     Vvolumes[phase] = [i*A**3 for i in Vvolumes[phase]]
     Vpressures[phase] = [i*B/(A**3) for i in Vpressures[phase]]
     Venthalpies[phase] = [e + p*v*aa3GPa2eV for e,v,p in zip(Venergies[phase],Vvolumes[phase],Vpressures[phase])]
+
+for i in toremove:
+    phases.remove(i)
 
 #LAMMPS Data
 Lvolumes={}
@@ -152,9 +162,9 @@ if lmppot!=-1:
 mcolors=[pl.cm.spectral(i) for i in linspace(0,0.9,len(phases))]
 markers=['o','v','s','p','*','h','D']
 
-#subs=140
-#if lmppot!=-1:
-#    subs=220
+subs=140
+if lmppot!=-1:
+    subs=220
 
 def dictPlot(xdict,ydict,items,ls,lw):
     cs=itertools.cycle(mcolors)
@@ -183,44 +193,45 @@ def dictScatterInset(xdict,ydict,items,xlim,ylim,xticks,yticks):
         pl.plot(xdict[i],ydict[i],c=c)
         pl.setp(a,xlim=xlim,ylim=ylim,xticks=xticks,yticks=yticks)
 #Plot
-#pl.subplot(subs+1)
-pl.figure()
+pl.subplot(subs+1)
+#pl.figure()
 dictScatter(Vvolumes,Venergies,phases)
 if lmppot!=-1: dictPlot(Lvolumes,Lenergies,phases,"-",1.5)
 pl.xlabel("Volume ($\AA^3 / atom$)",size=17)
 pl.ylabel("Energy ($eV / atom$)",size=17)
 pl.legend(loc=0,fontsize=12)
-pr.prshow("EOS_EVol.png")
+#pr.prshow("EOS_EVol.png")
 
-#pl.subplot(subs+2)
-pl.figure()
+pl.subplot(subs+2)
+#pl.figure()
 dictScatter(Vvolumes,Vpressures,phases)
 if lmppot!=-1: dictPlot(Lvolumes,Lpressures,phases,"-",1.5)
 pl.xlabel("Volume ($\AA^3 / atom$)",size=17)
 pl.ylabel("Pressure ($GPa$)",size=17)
 pl.legend(loc=0,fontsize=12)
-pr.prshow("EOS_PVol.png")
+#pr.prshow("EOS_PVol.png")
 
-#pl.subplot(subs+3)
-pl.figure()
+pl.subplot(subs+3)
+#pl.figure()
 dictScatter(Vpressures,Venergies,phases)
 if lmppot!=-1: dictPlot(Lpressures,Lenergies,phases,"-",1.5)
 pl.xlabel("Pressure ($GPa$)",size=17)
 pl.ylabel("Energy ($eV / atom$)",size=17)
-pl.ylim([-8.5,-2])
-pl.xlim([-100,500])
+#pl.ylim([-8.5,-2])
+#pl.xlim([-100,500])
 pl.legend(loc=0,fontsize=12)
-dictScatterInset(Vpressures,Venergies,phases,xlim=[-20,20],ylim=[-8,-7.5], xticks=[-20,0,20], yticks=[-8,-7.5])
-pr.prshow("EOS_PE.png")
+#dictScatterInset(Vpressures,Venergies,phases,xlim=[-20,20],ylim=[-8,-7.5], xticks=[-20,0,20], yticks=[-8,-7.5])
+#pr.prshow("EOS_PE.png")
 
-#pl.subplot(subs+4)
-pl.figure()
+pl.subplot(subs+4)
+#pl.figure()
 dictScatter(Vpressures,Venthalpies,phases)
-pl.xlim([0,500])
-pl.ylim([-8.5,-2])
+#pl.xlim([0,500])
+#pl.ylim([-8.5,-2])
 if lmppot!=-1: dictPlot(Lpressures,Lenthalpies,phases,"-",1.5)
 pl.xlabel("Pressure ($GPa$)",size=17)
 pl.ylabel("Enthalpy ($eV / atom$)",size=17)
 pl.legend(loc=0,fontsize=12)
-dictScatterInset(Vpressures,Venergies,phases,xlim=[0,100],ylim=[-8,-7], xticks=[0,20,40,60,80,100], yticks=[-8,-7])
-pr.prshow("EOS_PH.png")
+#dictScatterInset(Vpressures,Venergies,phases,xlim=[0,100],ylim=[-8,-7], xticks=[0,20,40,60,80,100], yticks=[-8,-7])
+#pr.prshow("EOS_PH.png")
+pl.show()

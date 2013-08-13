@@ -29,7 +29,7 @@ N=sum(atypes)
 
 #Calculate fractional coordinates of atoms
 A=matrix(basis)
-[fx,fy,fz]=[list(i) for i in zip(*[linalg.solve(A,p)[:] for p in atoms])]
+[fx,fy,fz]=[list(i) for i in zip(*[linalg.solve(A.T,p)[:] for p in atoms])]
 
 #Calculate lattice parameters
 a,b,c,A,B,C=vecs2lattice(*basis)
