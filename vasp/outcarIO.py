@@ -12,7 +12,13 @@ def outcar2poscar(outcarF,wantconfig=-1):
             nums=line.split("=")[1].strip()
             Natoms=sum(map(int,nums.split()))
         if "Iteration" in line:
-            nsteps=int(line.split()[2].strip("("))
+            l=line.split()
+            if l[2].strip("(") == "****":
+                if l[3].strip(")") == "1":
+                    nsteps+=1
+            else:
+                nsteps=int(line.split()[2].strip("("))
+
     outcar.close()
     outcar= open(outcarF,"r")
 

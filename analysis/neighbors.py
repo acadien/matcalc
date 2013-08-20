@@ -138,8 +138,12 @@ def nNearestNeighbors(n,atoms,bounds,r,style="full"):
         
         if len(ds)>n:
             ds = sorted(ds,key=lambda x:x[1])[:n]
+        
+        if len(ds)==0:
+            neighbs[i]=[]
+        else:
+            neighbs[i]=zip(*ds)[0]
 
-        neighbs[i]=zip(*ds)[0]
     return neighbs
 
 def half2full(hneighbors):

@@ -168,6 +168,9 @@ def tetrahedral(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     for i,ineighbs in enumerate(neighbs):
         iatom=atoms[i]
 
+        if len(ineighbs)<3:
+            continue
+
         Sg=0
         for v,j in enumerate(ineighbs):
             jatom=minImageAtom(iatom,atoms[j],basis)

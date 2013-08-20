@@ -13,7 +13,7 @@ def readNextEntry(iFDB):
 
     head = iFDB.pop(0)
     n = int(head.split()[1]) #number of atoms
-    
+
     bounds = list()
     energy = None
     weights = list()
@@ -24,6 +24,9 @@ def readNextEntry(iFDB):
         if line[:2] == "#N":
             if "scaleEnable0" in line:
                 scaleEnable=False
+
+        if line[:2] == "#C":
+            elems = line.split()[1:]
 
         if line[:2] in ["#X","#Y","#Z"]:
             bounds.append( map( float , line.split()[1:] ) )
@@ -44,11 +47,12 @@ def readNextEntry(iFDB):
     atominfo = [ map( float , line.split() ) for line in iFDB[:n] ]
     iFDB = iFDB[n:]
 
-    return [head,bounds,energy,weights,stress,atominfo],iFDB,scaleEnable
+    return [head,elems,bounds,energy,weights,stress,atominfo],iFDB,scaleEnable
 
 
-def appendEntry(head,bounds,energy,weights,stress,atominfo,oFDB):
+def appendEntry(head,elems,bounds,energy,weights,stress,atominfo,oFDB):
     data=[head]
+    data.append( "#C\t %s\n"%" ".join(elems) )
     data.append( "#X\t %12.8f  %12.8f %12.8f\n"%tuple(bounds[0]) )
     data.append( "#Y\t %12.8f  %12.8f %12.8f\n"%tuple(bounds[1]) )
     data.append( "#Z\t %12.8f  %12.8f %12.8f\n"%tuple(bounds[2]) )
@@ -63,7 +67,7 @@ def appendEntry(head,bounds,energy,weights,stress,atominfo,oFDB):
     oFDB.writelines(data)
 
 def scaleEntry(fdbEntry,A,B,C):
-    head,bounds,energy,weights,stress,atominfo = fdbEntry
+    head,elems,bounds,energy,weights,stress,atominfo = fdbEntry
 
     head = head.strip() + " Scale (ABC) %4.4f, %4.4f, %4.4f.\n"%(A,B,C)
 
@@ -81,7 +85,7 @@ def scaleEntry(fdbEntry,A,B,C):
     #Scale energy by
     energy = scaleEnergy(energy)
 
-    fdbEntry = [head,bounds,energy,weights,stress,atominfo]
+    fdbEntry = [head,elems,bounds,energy,weights,stress,atominfo]
     return fdbEntry
 
 if len(sys.argv) != 6:
