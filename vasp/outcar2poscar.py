@@ -10,7 +10,7 @@ def outcar2poscar(outcar,outposcar,wantconfig):
 if __name__ == "__main__":
     if len(sys.argv)<3:
         print "Usage:"
-        print sys.argv[0]+" <OUTCAR> <output poscar name> <desired config #, 0-indexed (default is last)>"
+        print sys.argv[0].split("/")[-1]+" <OUTCAR> <output POSCAR> <desired config #, 0-indexed (default is last)>"
         exit(0)
 
     outcar=sys.argv[1]

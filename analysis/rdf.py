@@ -376,9 +376,7 @@ def generateRCut(atoms,basis,debug=False):
     rvals,gr = rdf_periodic(atoms,basis,cutoff=6.0)
 
     #Smoothed G(r)
-    print len(gr)
     sgr=windowAvg(gr,n=25).tolist()
-    print len(sgr)
     #derivative of smoothed-G(r)
     dsgr = windowAvg(windowAvg([(sgr[i+1]-sgr[i])/(rvals[1]-rvals[0]) for i in range(len(sgr)-1)],n=50),n=20).tolist()#[47:]+[0]*47
     
