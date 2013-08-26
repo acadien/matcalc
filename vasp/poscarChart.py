@@ -161,12 +161,12 @@ elif op=="TN":
         print poscarNames[i],"\t\t",sum(ov)
 
 if averageFlag:
-    pl.legend(["Average "+" ".join(poscarNames)])
+    pl.legend(["Average "+" ".join(poscarNames)],loc=0,fontsize=10)
 else:
     if len(labels)>0:
-        pl.legend(labels,loc=0)
+        pl.legend(labels,loc=0,fontsize=10)
     else:
-        pl.legend(poscarNames,loc=0)
+        pl.legend(poscarNames,loc=0,fontsize=10)
 #Don't plot for some values
 if op not in ["TN","TET"]:
     pr.prshow("%s_chart_%s.png"%(sys.argv[1],op))
