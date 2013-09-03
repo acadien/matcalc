@@ -62,13 +62,14 @@ def split(poscarin):
 
 
 def write(poscarName,basis,atoms,types,header,ratio=1.0,frac=True,autoFrac=True):
-
     if len(types)==len(atoms):
         #fix types arrangement, reorder atoms as necessary
         atoms,types = zip(*sorted(zip(atoms,types),key=lambda x:x[1]))
         sm=min(types)
         bg=max(types)
         ntypes=[types.count(i) for i in range(sm,bg+1)]
+    else:
+        ntypes=types
 
     #If atoms are not in fractional coordinates, convert them
     if autoFrac==True:
@@ -89,7 +90,7 @@ def write(poscarName,basis,atoms,types,header,ratio=1.0,frac=True,autoFrac=True)
     data+=" % 16.16f\n"%ratio
     for vec in basis:
         data+=" % 5.12e % 5.12e % 5.12e\n"%(vec[0],vec[1],vec[2])
-    data+=" "+" ".join([str(i) for i in types])+"\n"
+    data+=" "+" ".join([str(i) for i in ntypes])+"\n"
     data+="Direct\n"
     for atom in atoms:
         data+=" % 5.12e % 5.12e % 5.12e\n"%(atom[0],atom[1],atom[2])

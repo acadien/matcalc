@@ -2,10 +2,12 @@
 import sys
 from numpy import *
 import scipy.linalg
+#mine
+import poscarIO
 
 if len(sys.argv)<2:
     print "Usage:"
-    print sys.argv[0].split("/")[-1]+" <force database file> <config#> <output-directory>"
+    print sys.argv[0].split("/")[-1]+" <force database file> <config#> <output POSCAR>"
     print "Parses the force database and generates a POSCAR with the proper information from the configuration given."
     exit(0)
 
@@ -27,14 +29,20 @@ while True:
     
     #Print the header
     print "Header"
+    head = line
     print line
 
     #Number of atoms in configuration
-    natom=int(line.split()[1])
+    natom = int(line.split()[1])
     msg = line.split("=")[1].split()[1]
 
-    #Bounding box vectors
+    #Element types
     line=forcedb.readline()
+    if line[:2]=="#C":
+        elems=line[2:].split()
+        line=forcedb.readline()
+
+    #Bounding box vectors
     boundx=" ".join(line.split()[1:])
     bndx=[float(i) for i in boundx.split()]
 
@@ -46,14 +54,19 @@ while True:
     boundz=" ".join(line.split()[1:])
     bndz=[float(i) for i in boundz.split()]
 
+    basis=[bndx,bndy,bndz]
     vol=round(dot(bndx,cross(bndy,bndz)),2)
 
     #Cohesive energy
     line=forcedb.readline()
     Ecoh=line.split()[1]
-    
-    #Stresses
+
+    #Weights (ignore)
     line=forcedb.readline()
+    if line[:2]=="#W":
+        line=forcedb.readline()
+
+    #Stresses
     stress=" ".join(line.split()[1:])
  
     #Atomic locations and forces.
@@ -67,16 +80,14 @@ while True:
     afz=[0.0]*natom
     for i in range(natom):
         line=forcedb.readline().split()
-        atype[i]=float(line[0])
+        atype[i]=int(line[0])
         [ax[i],ay[i],az[i],afx[i],afy[i],afz[i]]=[float(j) for j in line[1:7]]
 
     if(count==confignum):
-        pcar=sys.argv[3]+"/POSCAR"
-        try:
-            raw_input("About to overwrite \"%s\", continue?"%(pcar))
-        except (SyntaxError,NameError):
-            pass
+        pcar=sys.argv[3]
+        poscarIO.write(pcar,array(basis),zip(ax,ay,az),atype,head)
 
+        """
         wrt=pcar+" "+msg+"\n"
         wrt+="1.0\n"
         wrt+=boundx+"\n"
@@ -94,6 +105,7 @@ while True:
         ofil=open(pcar,"w")
         ofil.write(wrt)
         ofil.close()
+        """
         done=1
         break
 
@@ -101,5 +113,5 @@ while True:
     count+=1
     if done==1: break
 
-print "All is well."
+print "Wrote to %s"%sys.argv[3]
 

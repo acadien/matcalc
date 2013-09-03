@@ -8,6 +8,7 @@ import lammps #requires lammps.so file exists and environment be setup
 import pylab as pl
 from numpy import linspace
 from matplotlib import colors
+import matplotlib.pyplot as plt
 
 #mine
 import poscar2lmpcfg,poscarGrow,poscarVolume
@@ -193,8 +194,10 @@ def dictScatterInset(xdict,ydict,items,xlim,ylim,xticks,yticks):
         pl.plot(xdict[i],ydict[i],c=c)
         pl.setp(a,xlim=xlim,ylim=ylim,xticks=xticks,yticks=yticks)
 #Plot
+
+pl.figure(figsize=(12,8))
 pl.subplot(subs+1)
-#pl.figure()
+
 dictScatter(Vvolumes,Venergies,phases)
 if lmppot!=-1: dictPlot(Lvolumes,Lenergies,phases,"-",1.5)
 pl.xlabel("Volume ($\AA^3 / atom$)",size=17)
@@ -203,15 +206,6 @@ pl.legend(loc=0,fontsize=12)
 #pr.prshow("EOS_EVol.png")
 
 pl.subplot(subs+2)
-#pl.figure()
-dictScatter(Vvolumes,Vpressures,phases)
-if lmppot!=-1: dictPlot(Lvolumes,Lpressures,phases,"-",1.5)
-pl.xlabel("Volume ($\AA^3 / atom$)",size=17)
-pl.ylabel("Pressure ($GPa$)",size=17)
-pl.legend(loc=0,fontsize=12)
-#pr.prshow("EOS_PVol.png")
-
-pl.subplot(subs+3)
 #pl.figure()
 dictScatter(Vpressures,Venergies,phases)
 if lmppot!=-1: dictPlot(Lpressures,Lenergies,phases,"-",1.5)
@@ -223,7 +217,7 @@ pl.legend(loc=0,fontsize=12)
 #dictScatterInset(Vpressures,Venergies,phases,xlim=[-20,20],ylim=[-8,-7.5], xticks=[-20,0,20], yticks=[-8,-7.5])
 #pr.prshow("EOS_PE.png")
 
-pl.subplot(subs+4)
+pl.subplot(subs+3)
 #pl.figure()
 dictScatter(Vpressures,Venthalpies,phases)
 #pl.xlim([0,500])
@@ -234,4 +228,18 @@ pl.ylabel("Enthalpy ($eV / atom$)",size=17)
 pl.legend(loc=0,fontsize=12)
 #dictScatterInset(Vpressures,Venergies,phases,xlim=[0,100],ylim=[-8,-7], xticks=[0,20,40,60,80,100], yticks=[-8,-7])
 #pr.prshow("EOS_PH.png")
+
+pl.subplot(subs+4)
+#pl.figure()
+dictScatter(Vvolumes,Vpressures,phases)
+if lmppot!=-1: dictPlot(Lvolumes,Lpressures,phases,"-",1.5)
+pl.xlabel("Volume ($\AA^3 / atom$)",size=17)
+pl.ylabel("Pressure ($GPa$)",size=17)
+pl.legend(loc=0,fontsize=12)
+#pr.prshow("EOS_PVol.png")
+
+
+
+
+plt.tight_layout(pad=0.1,h_pad=0.1,w_pad=0.1)
 pl.show()
