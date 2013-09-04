@@ -38,12 +38,24 @@ def outcarGrabFinalE(outcar):
 
 #Prepare LAMMPS single point energy calculations
 def initLammpsCmds(potential):
-    lmpelems=open(potential,"r").readlines()[3].split()[1:]
+    if "adp" in potential:
+        pairstyle="pair_style adp"
+        lmpelems=open(potential,"r").readlines()[3].split()[1:]
+    elif ("cbb" in potential) or ("CBB" in potential) or ("kawa" in potential):
+        pairstyle="pair_style kawamura 7.0"
+        masses=["mass 1 28.0855","mass 2 15.9994"]
+        lmpelems=[]
+    else:
+        print "Error: Potential style not recognized"
+        exit(0)
+
+
+
     preLammpsCommands=[\
         "units metal","boundary p p p","atom_style atomic", \
         "neighbor 0.3 bin","neigh_modify delay 5"]
-    postLammpsCommands=[\
-        "pair_style adp", "pair_coeff * * %s %s"%(potential," ".join(lmpelems)), \
+    postLammpsCommands=masses+[\
+        pairstyle, "pair_coeff * * %s %s"%(potential," ".join(lmpelems)), \
         "variable v equal vol",\
         #"minimize 1E-4 0.0 1000 10000",\
         "minimize 0 0 0 0",\
