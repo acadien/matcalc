@@ -7,6 +7,7 @@ import sys
 import pylab as pl
 #mine
 from datatools import windowAvg
+from colors import vizSpec
 
 #returns a parsed file, keeping only rows that can be converted to floats
 #keeps rows with the most common number of columns.
@@ -80,7 +81,6 @@ if __name__=="__main__":
         ySmooth=False
         yCol=int(sys.argv[2])
 
-
     #Files
     fnames=sys.argv[3:]
     try:
@@ -89,6 +89,12 @@ if __name__=="__main__":
             fnames=zip(*sorted(zip(fnames,fnamenumbers),key=lambda x:x[1]))[0]
     except ValueError:
         pass
+
+    #Colors
+    colors = None
+    if len(fnames)>4:
+        #colors = [float2rgb_fire(i,0,len(fnames)) for i in range(len(fnames))]
+        colors=True
 
     labels=list()
     fdatas=list()
@@ -128,7 +134,10 @@ if __name__=="__main__":
                 pl.xlabel( labels[xCol] )
             pl.ylabel( labels[yCol] )
 
-        pl.plot(xdata,ydata,lw=1.5)
+        if colors==None:
+            pl.plot(xdata,ydata,lw=1.5)
+        else:
+            pl.plot(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)))
 
     pl.legend(fnames,loc=0)
     pr.prshow("plot2.png")
