@@ -29,11 +29,11 @@ orderParams={"CN":  coordinationNumber,
 def usage():
     print "%s <order parameter> <POSCAR Files (space delim)> <S = save to file instead of plotting> <A = average POSCAR results if possible>"%sys.argv[0].split("/")[-1]
     print "Order Parameter must be one of:"
-    print "   CN#.#  : Coordination Number with rcutoff (optional)"
+    print "   CN#.#  : Coordination Number with rcut (optional)"
     print "   BO# : Bond Orientation (Q) with l=#"
     print "   RDF : Radial Distribution Function"
-    print "   ADF : Angular Distribution Function"
-    print "   BA# : Bond Angle Correlation (g)"
+    print "   ADF# : Angular Distribution Function with rcut (optional)"
+    print "   BA# : Bond Angle Correlation (g#)"
     print "   SF  : Structure Factor"
     print "   TET : Tetrahedral"
     print "   TN  : Translational (tao)"
@@ -50,9 +50,12 @@ if op[:2] in ["BO","BA"]:
     op=op[:2]
 
 rcut=None
-if op[:2] == "CN" and len(op)>2:
+if op[:2] in ["CN"] and len(op)>2:
     rcut=float(op[2:])
     op=op[:2]
+if op[:3] in ["ADF"] and len(op)>3:
+    rcut=float(op[3:])
+    op=op[:3]
 
 orderVals=list()
 poscarNames=sys.argv[2:]
@@ -110,6 +113,8 @@ if averageFlag:
     if saveFlag:
         if op in ["TN","TET"]:
             savetxt("AVERAGE."+op+str(lval),array([avgx,avgy]).T,delimiter=" ")
+        elif op in ["ADF"]:
+            savetxt("AVERAGE."+op+str(rcut),array([avgx,avgy]).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
         else:
             savetxt("AVERAGE."+op+str(lval),array([avgx,avgy]).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
         exit(0)
@@ -120,8 +125,14 @@ if saveFlag:
     for ov,pn in zip(orderVals,poscarNames):
         if op in ["TN","TET"]:
             savetxt(pn+"."+op+str(lval),array(ov).T,delimiter=" ")
+        elif op in ["ADF"]:
+            savetxt(pn+"."+op+str(rcut),array(ov).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
+        elif op in ["BO"]:
+            vals,bins,dummy = pl.hist(ov,bins=int(sqrt(len(ov)))*5,normed=True,visible=False)
+            savetxt(pn+"."+op+str(lval),array(zip(bins[:-1],vals)),delimiter=" ",header=" ".join(xylabels[op]),comments="")
         else:
             savetxt(pn+"."+op+str(lval),array(ov).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
+
     exit(0)
 
 if op not in ["BO","CN","TN","TET"] and not averageFlag:

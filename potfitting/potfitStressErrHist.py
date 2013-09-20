@@ -26,7 +26,7 @@ fdb=-1
 if len(sys.argv)>=3:
     fdb=["/".join(line.split("home")[1].split("OUTCAR")[0].split("/")[6:]) for line in open(sys.argv[2],"r").readlines() if "ifconf" in line]
 
-mxerr=0.1
+mxerr=0.05
 if len(sys.argv)==4:
     mxerr=float(sys.argv[3])
 sfile = map(lambda x: x.split(),sfile)

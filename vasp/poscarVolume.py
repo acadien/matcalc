@@ -6,20 +6,19 @@ from struct_tools import volume
 
 def unFractional(posfile):
     [basis,atypes,atoms,head,poscar] = poscarIO.read(open(posfile,"r").readlines(),frac_coord=True)
-    for x,y,z in atoms:
-        if x>1.0 or y>1.0 or z>1.0 or x<0.0 or y<0.0 or z<0.0:
-            print "Error: it appears these are already unfractional coordinates. %s"%posfile
-            exit(0)
+    xs,ys,zs = zip(*atoms)
+    if sum(xs)/len(xs)>1.0 or sum(ys)/len(ys)>1.0 or sum(zs)/len(zs)>1.0:
+        print "Error: it appears these are already unfractional coordinates. %s"%posfile
+        exit(0)
     [basis,atypes,atoms,head,poscar] = poscarIO.read(open(posfile,"r").readlines(),frac_coord=False)
     poscarIO.write(posfile,basis, atoms,atypes,head,frac=True,autoFrac=False)
 
 def fractional(posfile):
     [basis,atypes,atoms,head,poscar] = poscarIO.read(open(posfile,"r").readlines(),frac_coord=True)
     fraced=False
-    for x,y,z in atoms:
-        if x>1.0 or y>1.0 or z>1.0 or x<0.0 or y<0.0 or z<0.0:
-            fraced=True
-            break
+    xs,ys,zs = zip(*atoms)
+    if sum(xs)/len(xs)>1.0 or sum(ys)/len(ys)>1.0 or sum(zs)/len(zs)>1.0:
+        fraced=True
     if not fraced:
         print "Error: it appears these are already fractional coordiantes. %s"%posfile
         exit(0)

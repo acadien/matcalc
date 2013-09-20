@@ -2,6 +2,7 @@
 
 import plotRemote as pr#mine
 
+import re
 import sys
 import pylab as pl
 #mine
@@ -54,7 +55,7 @@ def usage():
     print ""
 
 if __name__=="__main__":
-
+    pl.figure(figsize=[18,9])
     if len(sys.argv)<4:
         usage()
         exit(0)
@@ -82,7 +83,13 @@ if __name__=="__main__":
 
     #Files
     fnames=sys.argv[3:]
-    
+    try:
+        fnamenumbers=map(lambda x:float("".join(re.findall('\d+',x))),fnames)
+        if len(fnames) == len(fnamenumbers):
+            fnames=zip(*sorted(zip(fnames,fnamenumbers),key=lambda x:x[1]))[0]
+    except ValueError:
+        pass
+
     labels=list()
     fdatas=list()
     for fname in fnames:
@@ -114,7 +121,6 @@ if __name__=="__main__":
             xdata=windowAvg(xdata,xWAN)
         if ySmooth:
             ydata=windowAvg(ydata,yWAN)
-
 
         #Use column labels if available
         if i==0 and len(labels)==len(fdata):

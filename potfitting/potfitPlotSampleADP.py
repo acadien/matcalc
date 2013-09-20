@@ -2,6 +2,7 @@
 
 import plotRemote as pr
 import matplotlib
+from math import *
 
 import sys
 import pylab as pl

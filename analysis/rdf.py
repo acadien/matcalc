@@ -157,7 +157,6 @@ double dang=180./nbins;
 
 double djx,djy,djz,dkx,dky,dkz,djr,dkr,c;
 
-double pi2=2.0*3.14159265;
 double pi=3.14159265;
 for(int i=0; i<natoms; i++){
     aix=atoms[i*3];
@@ -257,7 +256,7 @@ def adf(atoms,neighbs,basis,nbins=360,angtype='deg'):
     weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','l'],compiler=('gcc'))
     atoms.shape=[len(atoms)/3,3]    
     abins = [(i+0.5)*180./nbins for i in range(nbins)]
-    bins /= max(bins)
+    #bins /= max(bins)
 
     return [abins,bins]
     

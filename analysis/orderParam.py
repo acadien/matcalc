@@ -117,7 +117,7 @@ def angleDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     if neighbs==None:
         bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
         neighbs = neighbors(atoms,bounds,rcut)
-
+    print "Rcut for ADF: %f"%rcut
     return adf(atoms,neighbs,basis,nbins=360)
 
 def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
@@ -129,10 +129,18 @@ def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     density = atoms.shape[0] / volume(basis)
 
     Nq=500
-    qbins = [float(i)/Nq*12.0 for i in range(Nq)[1:]]
+    maxq=12.0
+    qbins = np.linspace(0,maxq,Nq+1)[1:]
+
+    #qvals = np.zeros([Nq])
+    #for i,ai in enumerate(atoms):
+    #    for j,aj in enumerate(atoms):
+    #        if i!=j:
+    #            v = qbins*np.linalg.norm(minImageAtom(ai,aj,basis)-ai)
+    #            qvals += sin(v)/v
+    #qvals=qvals/len(atoms) + 1
 
     qvals = [1+2*pi*sum([sin(q*r)*(rdist[i]-1)*r/Nr/q for i,r in enumerate(rbins)]) for q in qbins]
-        
     return qbins,qvals
             
 #translational order parameter, l=neighbor shell
