@@ -17,20 +17,21 @@ from rdf import rdf,adf,generateRCut,rdf_periodic
 def bondOrientation(atoms,basis,l,neighbs=None,rcut=1,debug=True):
 
     if neighbs==None:
+        bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
         if rcut<=1:
             rcut = generateRCut(atoms,basis,debug=debug)
-            bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
             neighbs = neighbors(atoms,bounds,rcut)
         elif rcut==2:
             rcut = generateRCut(atoms,basis,debug=debug)
-            bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
             neighbs = neighbors(atoms,bounds,rcut)
             neighbs = secondShell(neighbs)
+        else:
+            neighbs = neighbors(atoms,bounds,rcut)
 
     #sum the spherical harmonic over ever neighbor pair
-    Qlms = [sum( [ pairSphereHarms(atoms[i],minImageAtom(atoms[i],atoms[j],basis),l) for j in ineighbs ] ) \
+    Qlms = [sum( [ pairSphereHarms(atoms[i],minImageAtom(atoms[i],atoms[j],basis),l) for j in ineighbs ] ) / len(ineighbs) \
                 for i,ineighbs in enumerate(neighbs) ] 
-    Ql = [ ((Qlm.conjugate()*Qlm *2*np.pi / (l+0.5)).sum()**0.5).real for Qlm in Qlms] 
+    Ql = [ (((Qlm.conjugate()*Qlm *4*np.pi / (2*l+1.))).real)**0.5 for Qlm in Qlms] 
 
     return Ql
 
@@ -39,7 +40,6 @@ def bondOrientR(atoms,basis,l,atomi,atomj):
     ai = atoms[atomi]
     aj = atoms[atomj]
     Qlm = pairSphereHarms(ai,minImageAtom(ai,aj,basis),l)
-
     return Qlm
 
 #Bond antle correlation function Gl as defined in:
@@ -75,7 +75,7 @@ def bondAngleCorr(atoms,basis,l,neighbs=None,rcut=None,debug=False):
             bcnts[bbin]+=1
             theta,phi = sphang(atoms[i],jatom)
             gvals[bbin]+= special.sph_harm(0,l,theta,phi)
-
+    
     #At bond length 0, Qlm has one non-zero value at m=0
     Ql0 = conj(sph_harm(0,l,0,0))
     Q0=bondOrientR(atoms,basis,0,0,1) #always 0.28209479 = 1/sqrt(4*pi)
@@ -84,6 +84,7 @@ def bondAngleCorr(atoms,basis,l,neighbs=None,rcut=None,debug=False):
     norm  = 2*(l+1)*Q0*Q0
     for i,n in enumerate(bcnts):
         if n>0:
+            print "here"
             w = Ql0/n/norm
             gvals[i] = (gvals[i]*w).real
 
@@ -109,6 +110,7 @@ def radialDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
      if rcut==None:
          rcut = 10.0
  
+    #return rdf_periodic(atoms,basis,cutoff=rcut)#rbins,rdist
      return rdf_periodic(atoms,basis,cutoff=rcut)#rbins,rdist
 
 def angleDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):

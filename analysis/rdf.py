@@ -12,36 +12,53 @@ from datatools import windowAvg,flatten
 RDFcode="""
 double aix,ajx,aiy,ajy,aiz,ajz,c,d;
 double dr=cut/nbins;
-for(int i=0;i<inloop;i++){
+double cut2=cut*cut;
+for(int i=0;i<natoms;i++){
     aix=atoms[i*3];
     aiy=atoms[i*3+1];
     aiz=atoms[i*3+2];
-    for(int j=i+1;j<natoms;j++){
+    for(int j=0;j<natoms;j++){
+        if(i==j)
+          continue;
+
         ajx=atoms[j*3];
         ajy=atoms[j*3+1];
         ajz=atoms[j*3+2];
-        d=aix-ajx;
+
+        d=aix-ajx;        
+        if(d>l[0]/2.0) d -= l[0];
+        if(d<-l[0]/2.0) d += l[0];
         c=d*d;
-        d=aiy-ajy;
+
+        d = ajy-aiy;
+        if(d>l[1]/2.0) d -= l[1];
+        if(d<-l[1]/2.0) d += l[1];
         c+=d*d;
-        d=aiz-ajz;
+
+        d = ajz-aiz;
+        if(d>l[2]/2.0) d -= l[2];
+        if(d<-l[2]/2.0) d += l[2];
         c+=d*d;
-        c=sqrt(c);
-        if(c<=cut)
-            bins[(int)(c/dr)]+=2;
+
+        if(c<=cut2){
+            c=sqrt(c);
+            bins[(int)(c/dr)]+=1;
+        }
     }
 }
 """
-def rdfHelper(atoms,bins,cut,inloop):
+def rdfHelper(atoms,basis,bins,cut):
     natoms=len(atoms)
     atoms.shape=len(atoms)*3
     nbins=len(bins)
-    weave.inline(RDFcode,['atoms','natoms','bins','nbins','cut','inloop'])
+    l=array([basis[0][0],basis[1][1],basis[2][2]])
+
+    weave.inline(RDFcode,['atoms','natoms','bins','nbins','cut','l'])
     atoms.shape=[len(atoms)/3,3]
     return bins
 
 #==================================================================
-def rdf(atoms,inloop=0,cutoff=10.0,nbins=1000):
+def rdf(atoms,basis,cutoff=10.0,nbins=1000):
     #atoms: list of atoms[N][3]
     #inloop: number of atoms to do the summation over
     #cutoff: float, max radius to measure radial distro out to
@@ -50,25 +67,22 @@ def rdf(atoms,inloop=0,cutoff=10.0,nbins=1000):
     rdist=zeros(nbins)
     dr=float(cutoff)/nbins
     N=len(atoms)
-    if inloop==0:
-        inloop=N
-
-    rdist=rdfHelper(atoms,rdist,cutoff,inloop)
+    rdist=rdfHelper(atoms,basis,rdist,cutoff)
     rbins=[(i+0.5)*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
     dr=float(cutoff)/nbins
     #Ndensity=N/volume(basis)
     for i,r in enumerate(rbins):
-    #    if i==0:
-    #        vol=4.0*pi*dr*dr*dr/3.0
-    #    else:
-    #        vol=4.0*pi*r*r*dr
-        rdist[i]/=N
-        
+        if i==0:
+            vol=4.0*pi*dr*dr*dr/3.0
+        else:
+            vol=4.0*pi*r*r*dr
+        rdist[i]/=vol
+
     return [rbins,rdist]
 
 #==================================================================
-RDFPerCode="""
+RDFPerCodeOld="""
 double aix,ajx,aiy,ajy,aiz,ajz,c,d;
 double dr=cut/nbins;
 double cmin;
@@ -98,6 +112,37 @@ for(int i=0;i<natoms;i++){
         }}}
         if(cmin<cut)
             bins[(int)(cmin/dr)]+=2;
+    }
+}
+"""
+RDFPerCode="""
+double aix,ajx,aiy,ajy,aiz,ajz,c,d;
+double dr=cut/nbins;
+double cmin;
+for(int i=0;i<natoms;i++){
+    aix=atoms[i*3];
+    aiy=atoms[i*3+1];
+    aiz=atoms[i*3+2];
+    for(int j=i+1;j<natoms;j++){
+        ajx=atoms[j*3];
+        ajy=atoms[j*3+1];
+        ajz=atoms[j*3+2];
+        cmin=100000.;
+        //Minimum image distance
+        for(int t1=-1;t1<2;t1++){
+        for(int t2=-1;t2<2;t2++){
+        for(int t3=-1;t3<2;t3++){
+            d=aix-ajx+t1*b[0]+t2*b[3]+t3*b[6];
+            c=d*d;
+            d=aiy-ajy+t1*b[1]+t2*b[4]+t3*b[7];
+            c+=d*d;
+            d=aiz-ajz+t1*b[2]+t2*b[5]+t3*b[8];
+            c+=d*d;
+            c=sqrt(c);
+
+            if(c<=cut)
+                bins[(int)(c/dr)]+=2;
+        }}}
     }
 }
 """
@@ -152,7 +197,7 @@ def sf(atoms,basis,cutoff=12.0,nbins=1000):
 ADFcode="""
 double aix,ajx,akx,aiy,ajy,aky,aiz,ajz,akz;
 double dij,dik,djk,x,a,d;
-int jn,kn,cn=0;
+int jn,kn,cn=0,cnt=0;
 double dang=180./nbins;
 
 double djx,djy,djz,dkx,dky,dkz,djr,dkr,c;
@@ -164,9 +209,9 @@ for(int i=0; i<natoms; i++){
     aiz=atoms[i*3+2];
     for(int j=0;j<nneighbsf[i];j++){
         jn=neighbsf[cn+j];
-        if(i==jn) 
+        if(i<=jn) 
           continue;
-
+        
         ajx=atoms[jn*3];
         ajy=atoms[jn*3+1];
         ajz=atoms[jn*3+2];
@@ -226,7 +271,7 @@ for(int i=0; i<natoms; i++){
             //  a=180*acos(x)/pi;
             //Bin the bond angle
             //if(a<=180)
-            bins[(int)(a/dang)]++;
+            bins[(int)(a/dang)]+=0.5;
             //else
             //  c=dky;
         }
@@ -256,7 +301,7 @@ def adf(atoms,neighbs,basis,nbins=360,angtype='deg'):
     weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','l'],compiler=('gcc'))
     atoms.shape=[len(atoms)/3,3]    
     abins = [(i+0.5)*180./nbins for i in range(nbins)]
-    #bins /= max(bins)
+    bins /= nbins
 
     return [abins,bins]
     

@@ -15,8 +15,9 @@ def plot3(md,ax,ay,az,afx,afy,afz,v1,v2,v3,types):
         print "\nPlease close all figures before continuing."
     thelock.set()
     mlab.figure()
+    t=0.01
     if md==True:
-        mlab.points3d(ax,ay,az,types,colormap="gist_heat",scale_factor=1.0,vmin=-1.0,vmax=4.0)#colormap="gist_heat"
+        mlab.points3d(ax,ay,az,types,scale_factor=1,scale_mode='none')#colormap="gist_heat"
         mlab.axes()
         mlab.quiver3d(ax,ay,az,afx,afy,afz,line_width=3,scale_factor=1)
     else:
@@ -33,9 +34,10 @@ def plot3(md,ax,ay,az,afx,afy,afz,v1,v2,v3,types):
         ay2[2*N:]=[y-v2[1] for y in ay]
         az2[2*N:]=[z-v3[2] for z in az]
         print len(types)*27,len(az2)*9
-        mlab.points3d(ax2[:N]*9+ax2[N:2*N]*9+ax2[2*N:]*9,(ay2[:N]*3+ay2[N:2*N]*3+ay2[2*N:]*3)*3,az2*9,[d+1.0 for d in types]*27,scale_factor=1.0,vmin=-1.0,vmax=4.0)
+        mlab.points3d(ax2[:N]*9+ax2[N:2*N]*9+ax2[2*N:]*9,(ay2[:N]*3+ay2[N:2*N]*3+ay2[2*N:]*3)*3,az2*9,[d+1.0 for d in types]*27,scale_factor=1.0,vmin=-1.0,vmax=4.0,scale_mode='none')
         #mlab.points3d(ax,ay,az,[d+1.0 for d in types],scale_factor=1.0)
         mlab.axes()
+
     mlab.plot3d([0,v1[0]],[0,v1[1]],[0,v1[2]],color=(0,1,0))
     mlab.plot3d([v1[0],v1[0]+v2[0]],[v1[1],v1[1]+v2[1]],[v1[2],v1[2]+v2[2]],color=(0,1,0))
     mlab.plot3d([v1[0],v1[0]+v3[0]],[v1[1],v1[1]+v3[1]],[v1[2],v1[2]+v3[2]],color=(0,1,0))
@@ -86,10 +88,11 @@ def plot3sphere(md,ax,ay,az,afx,afy,afz,v1,v2,v3,rx,ry,rz,rr):
 #    mlab.show(stop=True)
 #    print "here"
     if md==True:
-        mlab.points3d(ax,ay,az,types,scale_factor=1,vmin=-1.0,vmax=4.0)
+        mlab.points3d(ax,ay,az,types,scale_factor=1,vmin=-1.0,vmax=4.0,scale_mode='none')
         #mlab.quiver3d(ax,ay,az,afx,afy,afz,line_width=3,scale_factor=1)
     else:
-        mlab.points3d(ax,ay,az,types,scale_factor=1,vmin=-1.0,vmax=4.0)#colormap="gist_heat"
+        print "here"
+        mlab.points3d(ax,ay,az,types,scale_factor=1,vmin=-1.0,vmax=4.0,scale_mode='none')#colormap="gist_heat"
         ax2=[0]*N*3
         ay2=[0]*N*3
         az2=[0]*N*3
@@ -102,7 +105,7 @@ def plot3sphere(md,ax,ay,az,afx,afy,afz,v1,v2,v3,rx,ry,rz,rr):
         ax2[2*N:]=[x-v1[0] for x in ax]
         ay2[2*N:]=[y-v2[1] for y in ay]
         az2[2*N:]=[z-v3[2] for z in az]
-        mlab.points3d(ax2[:N]*9+ax2[N:2*N]*9+ax2[2*N:]*9,(ay2[:N]*3+ay2[N:2*N]*3+ay2[2*N:]*3)*3,az2*9,types2*27,scale_factor=1.0,vmin=-1.0,vmax=4.0)
+        mlab.points3d(ax2[:N]*9+ax2[N:2*N]*9+ax2[2*N:]*9,(ay2[:N]*3+ay2[N:2*N]*3+ay2[2*N:]*3)*3,az2*9,types2*27,scale_factor=1.0,vmin=-1.0,vmax=4.0,scale_mode='none')
     mlab.plot3d([0,v1[0]],[0,v1[1]],[0,v1[2]],color=(0,1,0))
     mlab.plot3d([v1[0],v1[0]+v2[0]],[v1[1],v1[1]+v2[1]],[v1[2],v1[2]+v2[2]],color=(0,1,0))
     mlab.plot3d([v1[0],v1[0]+v3[0]],[v1[1],v1[1]+v3[1]],[v1[2],v1[2]+v3[2]],color=(0,1,0))
@@ -156,19 +159,20 @@ def prompt_iface(md,count,stresskb,T,PE,KE,ax,ay,az,afx,afy,afz,v1,v2,v3,types):
             atoms=[[ax[i],ay[i],az[i],types[i]] for i in range(N) if sqrt((ax[i]-rx)**2+(ay[i]-ry)**2+(az[i]-rz)**2)<=rr]
             atoms.sort(key=lambda x:x[3])
             d1,d2,d3,types=zip(*atoms)
-            cs=[types.count(i) for i in range(N)]
-            #sphere = mlab.points3d(rx, ry, rz, scale_mode='none', scale_factor=rr*2, color=(0.67, 0.77, 0.93), resolution=50, opacity=0.6, name='Earth')
-                        #cut off types list after last non-zero number
-            last=0
-            for i,v in enumerate(cs):
-                if v>0:
-                    last=i
-                cs=cs[:last+1]
+            cs=[types.count(i) for i in range(max(types)+1)]
+
+            while True:
+                try:
+                    val=float(raw_input("Scale factor (increases vacuum around cluster): \n"))
+                except ValueError:
+                    print "Scaling factor should be a floating point value between 1.2 and 3.0."
+                else:
+                    break
 
             for atom in atoms:
                 print "% 5.5g  % 5.5g  % 5.5g" % (tuple(atom[:3]))
 
-            poscarIO.write("POSCAR.CLUSTER%d"%len(atoms),array([v1,v2,v3])*1.5,[atom[:3] for atom in atoms],cs,"Cluster genearted by grabcluster.py")
+            poscarIO.write("POSCAR.CLUSTER%d"%len(atoms),array([v1,v2,v3])*val,[atom[:3] for atom in atoms],cs,"Cluster genearted by grabcluster.py")
             print "POSCAR.CLUSTER%d written to."%len(atoms) 
             exit(0)        
 

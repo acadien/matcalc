@@ -6,7 +6,7 @@ import re
 import sys
 import pylab as pl
 #mine
-from datatools import windowAvg
+from datatools import windowAvg,wsmooth
 from colors import vizSpec
 
 #returns a parsed file, keeping only rows that can be converted to floats
@@ -92,7 +92,7 @@ if __name__=="__main__":
 
     #Colors
     colors = None
-    if len(fnames)>4:
+    if len(fnames)>7:
         #colors = [float2rgb_fire(i,0,len(fnames)) for i in range(len(fnames))]
         colors=True
 
