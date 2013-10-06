@@ -120,7 +120,7 @@ def angleDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
         bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
         neighbs = neighbors(atoms,bounds,rcut)
     print "Rcut for ADF: %f"%rcut
-    return adf(atoms,neighbs,basis,nbins=360)
+    return adf(atoms,neighbs,basis,rcut,nbins=360)
 
 def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     if rcut==None:

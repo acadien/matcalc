@@ -5,7 +5,7 @@ from scipy import weave
 from scipy.weave import converters
 import pylab as pl
 #mine
-from struct_tools import volume
+from struct_tools import volume,minImageDist
 from datatools import windowAvg,flatten
 
 #==================================================================
@@ -201,8 +201,8 @@ int jn,kn,cn=0,cnt=0;
 double dang=180./nbins;
 
 double djx,djy,djz,dkx,dky,dkz,djr,dkr,c;
-
-double pi=3.14159265;
+double cut2=cut*cut;
+double pi=3.14159265358979323846;
 for(int i=0; i<natoms; i++){
     aix=atoms[i*3];
     aiy=atoms[i*3+1];
@@ -217,63 +217,45 @@ for(int i=0; i<natoms; i++){
         ajz=atoms[jn*3+2];
 
         //Periodic Bounds
-        d = ajx-aix;
-        if(d>l[0]/2.0) ajx -= l[0];
-        if(d<-l[0]/2.0) ajx += l[0];
-        d = ajy-aiy;
-        if(d>l[1]/2.0) ajy -= l[1];
-        if(d<-l[1]/2.0) ajy += l[1];
-        d = ajz-aiz;
-        if(d>l[2]/2.0) ajz -= l[2];
-        if(d<-l[2]/2.0) ajz += l[2];
+        for(int t1=-1;t1<2;t1++){
+        for(int t2=-1;t2<2;t2++){
+        for(int t3=-1;t3<2;t3++){
+            djx = ajx + t1*b[0]+t2*b[3]+t3*b[6] - aix;
+            djy = ajy + t1*b[1]+t2*b[4]+t3*b[7] - aiy;
+            djz = ajz + t1*b[2]+t2*b[5]+t3*b[8] - aiz;
 
-        djx = ajx-aix;
-        djy = ajy-aiy;
-        djz = ajz-aiz;
-        djr = djx*djx+djy*djy+djz*djz;
+            djr = djx*djx+djy*djy+djz*djz;
 
+            if( djr <= cut2)
+                goto breakout;
+        }}}
+        breakout:;
+   
         for(int k=j+1; k<nneighbsf[i];k++){
             kn=neighbsf[cn+k];
-            //if(i==kn || kn==jn) 
-            //  continue;
 
             akx=atoms[kn*3];
             aky=atoms[kn*3+1];
             akz=atoms[kn*3+2];
 
-            //Periodic Bounds
-            d = akx-ajx;
-            if(d>l[0]/2.0) akx -= l[0];
-            if(d<-l[0]/2.0) akx += l[0];
-            d = aky-ajy;
-            if(d>l[1]/2.0) aky -= l[1];
-            if(d<-l[1]/2.0) aky += l[1];
-            d = akz-ajz;
-            if(d>l[2]/2.0) akz -= l[2];
-            if(d<-l[2]/2.0) akz += l[2];
+            //Minimum image distance
+            for(int t1=-1;t1<2;t1++){
+            for(int t2=-1;t2<2;t2++){
+            for(int t3=-1;t3<2;t3++){
+                dkx = akx + t1*b[0]+t2*b[3]+t3*b[6] - aix;
+                dky = aky + t1*b[1]+t2*b[4]+t3*b[7] - aiy;
+                dkz = akz + t1*b[2]+t2*b[5]+t3*b[8] - aiz;
 
-            dkx = akx-aix;
-            dky = aky-aiy;
-            dkz = akz-aiz;
-            dkr = dkx*dkx+dky*dky+dkz*dkz;
+                dkr = dkx*dkx+dky*dky+dkz*dkz;
 
-            x = (djx*dkx + djy*dky + djz*dkz)/sqrt(djr*dkr);
-            a = acos(x)*180.0/pi;
+                if( dkr > cut2)
+                    continue;
 
-            //Calculate Angle
-            //dij = (aix-ajx)*(aix-ajx) + (aiy-ajy)*(aiy-ajy) + (aiz-ajz)*(aiz-ajz);
-            //dik = (aix-akx)*(aix-akx) + (aiy-aky)*(aiy-aky) + (aiz-akz)*(aiz-akz);
-            //djk = (ajx-akx)*(ajx-akx) + (ajy-aky)*(ajy-aky) + (ajz-akz)*(ajz-akz);  
-            //x=(dij + djk - dik)/(2.0*sqrt(dij)*sqrt(djk));//possibly switch ik - jk
-            //if(fabs(fabs(x)-1.0) <= 1e-9)
-            //  a=0.0;
-            //else
-            //  a=180*acos(x)/pi;
-            //Bin the bond angle
-            //if(a<=180)
-            bins[(int)(a/dang)]+=0.5;
-            //else
-            //  c=dky;
+                //Calculate Angle
+                x = (djx*dkx + djy*dky + djz*dkz)/sqrt(djr*dkr);
+                a = acos(x)*180.0/pi;
+                bins[(int)(a/dang)]+=0.5;
+            }}}
         }
     }
     cn+=nneighbsf[i];
@@ -282,7 +264,7 @@ for(int i=0; i<natoms; i++){
 """
 
 #angular distribution function
-def adf(atoms,neighbs,basis,nbins=360,angtype='deg'):
+def adf(atoms,neighbs,basis,cutoff,nbins=360,angtype='deg'):
     #atoms: list of atoms[N][3]
     #neighbs: the *full* neighbor list for atoms
     #angtype: 'deg' or 'rad'
@@ -290,15 +272,17 @@ def adf(atoms,neighbs,basis,nbins=360,angtype='deg'):
     #The angular range is always 0-180 deg and angles are taken modulo 180
     
     bins = zeros(nbins)
-
+    
+    cut=cutoff
     natoms=len(atoms)
     atoms.shape=natoms*3
-
+    b=basis
+    b.shape=9
     nneighbsf=array([len(i) for i in neighbs])
     neighbsf=array([i for i in flatten(neighbs)])
 
-    l=array([basis[0][0],basis[1][1],basis[2][2]])
-    weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','l'],compiler=('gcc'))
+    weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','b','cut'],compiler=('gcc'))
+    b.shape=[3,3]
     atoms.shape=[len(atoms)/3,3]    
     abins = [(i+0.5)*180./nbins for i in range(nbins)]
     bins /= nbins

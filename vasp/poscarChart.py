@@ -105,6 +105,14 @@ if args.averageFlag:
         t = zip(*[orderVals[i][1] for i in range(len(orderVals))])
         avgy = map(lambda x:sum(x)/len(x),t)
         avgx = orderVals[0][0]
+    elif op=="CN":
+        hd,rcuts=zip(*orderVals)
+        pl.hist(hd,bins=range(0,16),normed=True,histtype='bar',align='left',rwidth=0.8)
+        pl.xticks(range(min(map(min,hd)),max(map(max,hd))+1))
+        pl.show()
+    pl.xlabel(xylabels["CN"][0])
+    pl.ylabel(xylabels["CN"][1])
+        
     if args.saveFlag:
         if op in ["TN","TET"]:
             savetxt("AVERAGE."+op+str(lval),array([avgx,avgy]).T,delimiter=" ")
@@ -153,14 +161,10 @@ if op=="BO":
 
 elif op=="CN":
     hd,rcuts=zip(*orderVals)
-    pl.hist(hd,bins=range(0,16),normed=True,histtype='bar',align='left',rwidth=0.8)
+    pl.hist(numpy.vstack(hd),bins=range(0,16),normed=True,histtype='bar',align='left',rwidth=0.8)
     pl.xticks(range(min(map(min,hd)),max(map(max,hd))+1))
-    for i,ov in enumerate(orderVals):
-        cn=float(sum(ov[0]))/len(ov[0])
-        print "Average CN (%s):"%poscarNames[i],cn
-        labels.append("CN%3.3f rcut%3.3f %s"%(cn,rcuts[i],poscarNames[i]))
-    pl.xlabel(xylabels["CN"][0])
-    pl.ylabel(xylabels["CN"][1])
+
+
 
 elif op=="TET":
     print "Average Tetrahedral Order <Sg> ="

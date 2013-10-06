@@ -55,7 +55,8 @@ fig=mlab.figure(bgcolor=(1.0,1.0,1.0))
 #Get the order parameter and convert to integer format (opsn) for
 #coloring of atoms
 if opFlag:
-    ops = orderParams[op](array(atoms),array(basis),lval)
+    ops,rcut = orderParams[op](array(atoms),array(basis),l=lval)
+    
     mnop = min(ops)
     mxop = max(ops)
 

@@ -25,12 +25,19 @@ def parse(fname,delim=None):
             
         #drop lines that don't contain columns of numbers
         l=line.split(delim)
-        try:
-            l=map(float,l)
-        except ValueError:
+        f=list()
+        count=0
+        for elem in l:
+            try:
+                f.append(float(elem))
+            except ValueError:
+                f.append(elem)
+                count+=1
+
+        if count==len(l):
             continue
 
-        data.append(l)
+        data.append(f)
         dataNum.append(i)
     
     #Keep only data with the most common number of columns
@@ -40,7 +47,7 @@ def parse(fname,delim=None):
     [dataNum,data]=zip(*[[dataNum[i],d] for i,d in enumerate(data) if columns[i]==colN])
 
     parsed_data=zip(*data)
-
+    
     labels=fraw[dataNum[0]-1].split(delim)
 
     return labels,parsed_data
@@ -103,6 +110,7 @@ if __name__=="__main__":
             l,f = parse(fname,",")
         else:
             l,f = parse(fname)
+
         labels.append(l)
         fdatas.append(f)
 
@@ -111,9 +119,9 @@ if __name__=="__main__":
     #Error check on column selection
     for i,fdata in enumerate(fdatas):
         if yCol >= len(fdata):
-            print "Error: Max column number is %d, but %d requested."%(len(data)-1,yCol)
+            print "Error: Max column number is %d, but %d requested."%(len(fdata)-1,yCol)
         if xCol >= len(fdata):
-            print "Error: Max column number is %d, but %d requested."%(len(data)-1,xCol)
+            print "Error: Max column number is %d, but %d requested."%(len(fdata)-1,xCol)
 
         #Column selection
         ydata=fdata[yCol]
