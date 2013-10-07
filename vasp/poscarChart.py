@@ -14,7 +14,7 @@ from math import sqrt
 import argparse
 import re
 #mine
-
+from datatools import flatten
 from orderParam import *
 import poscarIO
 
@@ -51,7 +51,7 @@ parser.add_argument('op',choices=orderParams.keys(),help="Order Parameter select
 parser.add_argument('poscarNames',nargs='*',help="A list of POSCAR files (space delim)")
 parser.add_argument('-rcut',help='Radius Cutoff distance when selecting neighbors, if not provided the first shell minimum is used.',type=float)
 parser.add_argument('-lval',dest='lval',help='l-value, used in BO (Ql) calculation',type=int)
-parser.add_argument('-gval',dest='lval',help='g-value, used in BA (g) calculation',type=int)
+parser.add_argument('-gval',dest='lval',help='g-value, used in BA (g) calculation',type=int)#setting lval here is not a bug.
 parser.add_argument('-S',dest='saveFlag',action='store_true',help='save to file instead of plotting')
 parser.add_argument('-A',dest='averageFlag',action='store_true',help='average POSCAR results if possible')
 parser.add_argument('-D',dest='debug',action='store_true',help='turn on debugging of neighbor selection')
@@ -94,7 +94,7 @@ labels=[]
 if lval==None:
     lval=""
 xylabels={"BO" :[r"BondOrder($Q_%s$)"%str(lval), r"$P(Q_%s)$"%str(lval)],
-          "CN" :[r"Coordination_Number",         r"P(CN)"],
+          "CN" :[r"Coordination Number",         r"P(CN)"],
           "RDF":[r"R$(\AA)$",                    "#_Bonds"],
           "ADF":[r"$\theta(deg)$",               "#_Bond_Angles"],
           "BA" :[r"R$(\AA)$",                    r"$G_{%s}(r)$"%str(lval)],
@@ -107,9 +107,10 @@ if args.averageFlag:
         avgx = orderVals[0][0]
     elif op=="CN":
         hd,rcuts=zip(*orderVals)
-        pl.hist(hd,bins=range(0,16),normed=True,histtype='bar',align='left',rwidth=0.8)
-        pl.xticks(range(min(map(min,hd)),max(map(max,hd))+1))
-        pl.show()
+        hd =  [i for i in flatten(list(hd))] #flatten for averaging
+        avgy,avgx,dummy=pl.hist(hd,bins=range(0,16),visible=False,normed=True)
+        avgx = avgx[:-1]
+
     pl.xlabel(xylabels["CN"][0])
     pl.ylabel(xylabels["CN"][1])
         
@@ -159,13 +160,6 @@ if op=="BO":
     pl.xlabel(xylabels["BO"][0])
     pl.ylabel(xylabels["BO"][1])
 
-elif op=="CN":
-    hd,rcuts=zip(*orderVals)
-    pl.hist(numpy.vstack(hd),bins=range(0,16),normed=True,histtype='bar',align='left',rwidth=0.8)
-    pl.xticks(range(min(map(min,hd)),max(map(max,hd))+1))
-
-
-
 elif op=="TET":
     print "Average Tetrahedral Order <Sg> ="
     for i,ov in enumerate(orderVals):
@@ -175,6 +169,16 @@ elif op=="TN":
     print "Average Translational Order <tao> ="
     for i,ov in enumerate(orderVals):
         print poscarNames[i],"\t\t",sum(ov)
+
+elif op=="CN":
+    hd,rcuts=zip(*orderVals)
+    pl.hist(hd,bins=range(0,16),normed=True,histtype='bar',align='left',rwidth=0.8)
+    for i,ov in enumerate(orderVals):
+        cn=float(sum(ov[0]))/len(ov[0])
+        print "Average CN (%s):"%poscarNames[i],cn
+        labels.append("CN%3.3f rcut%3.3f %s"%(cn,rcuts[i],poscarNames[i]))
+    pl.xlabel(xylabels["CN"][0])
+    pl.ylabel(xylabels["CN"][1])
 
 if args.averageFlag:
     pl.legend(["Average "+" ".join(poscarNames)],loc=0,fontsize=10)
