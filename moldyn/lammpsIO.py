@@ -2,8 +2,9 @@
 
 from numpy import *
 import sys
+import subprocess
 #mine
-from struct_tools import mag,ang,flatten
+from struct_tools import mag,ang
 
 #For reading multiple configurations from a single lammps dump
 #Reads the next configuration (jumping by step)
@@ -62,76 +63,82 @@ def dumpReadNext(dump,step=0):
     return dump[end:],bounds,types,atoms,head
 
 
-#From a lammps dump read a desired configuration (0-indexed) from the dump file
-def dumpReadConfig(dump,configN):
-    #Grab the line numbers where the configurations start
-    starts=[i for i,line in enumerate(dump) if "TIMESTEP" in line]
-    if configN<-1 or configN >= len(starts):
-        print "Error: lammpsIO: requested configuration not available in dump file. %d Configurations available, 0 indexed."%(len(starts))
-        exit(0)
-    if configN==-1:
-        configN=len(starts)-1
+def parseConfigAtStart(dumpF,seekpoint):
+    dumpF.seek(seekpoint)
+    while True:
+        line = dumpF.readline()
+        if "NUMBER OF ATOMS" in line:
+            natom=int(dumpF.readline())
+            break
+    dumpF.seek(seekpoint)
 
-    #Grab the beginning and ending locations of the configuration in the dump
-    start=starts[configN]
-    end = len(dump) if len(starts)-1==configN else starts[configN+1]
-
-    #Grab relevant info
-    natom=0
+    dump=[dumpF.readline() for i in range(natom+100)]
     v1,v2,v3=[[0,0,0] for j in range(3)]
     ax,ay,az=[list() for j in range(3)]
     types=list()
     head=""
-    i=start
     #File must be parsed in a while loop because there is no garauntee on ordering or that file contains required data
-    while i<end:
-        line=dump[i]
-        if "ITEM:" in line:
-            if "TIMESTEP" in line:
-                i+=1
-                head="From LAMMPS dump, Timestep: %s"%dump[i]
-            if "NUMBER OF ATOMS" in line:
-                i+=1
-                natom=int(dump[i])
-                continue
-
-            if "BOX BOUNDS" in line: #assume: ITEM: BOX BOUNDS xy xz yz pp pp p
-                if len(dump[i+1].split())==3:
-                    xlo,xhi,xy=map(float,dump[i+1].split())
-                    ylo,yhi,xz=map(float,dump[i+2].split())
-                    zlo,zhi,yz=map(float,dump[i+3].split())
-                else:
-                    xlo,xhi=map(float,dump[i+1].split())
-                    ylo,yhi=map(float,dump[i+2].split())
-                    zlo,zhi=map(float,dump[i+3].split())
-                    xy=xz=yz = 0.0
-                i+=3
-                v1=[xhi-xlo-xy-xz,0,0]
-                v2=[xy,yhi-ylo-yz,0]
-                v3=[xz,yz,zhi-zlo]
-                continue
-            if "ATOMS" in line: #assume ITEM: ATOMS id type x y z
-                i+=1
-                atominfo=map(lambda x:map(float,x.split()),dump[i:i+natom])
-                atominfo.sort(key=lambda x:x[0])
-                order,types,ax,ay,az=zip(*atominfo)[:5]
-                types=map(int,types)
-                i+=natom
-        else:
-            i+=1
-    bounds=[v1,v2,v3]
-#    if v1[1]!=0 or v1[2]!=0 or v2[0]!=0 or v2[2]!=0 or v3[0]!=0 or v3[1]!=0:
-#        print "Warning lammpsIO.readconfig has not been tested for non-orthogonal basis, please double check POSCAR config matches lammps_dump config."
+    for i,line in enumerate(dump):
+        if "BOX BOUNDS" in line: #assume: ITEM: BOX BOUNDS xy xz yz pp pp p
+            if len(dump[i+1].split())==3:
+                xlo,xhi,xy=map(float,dump[i+1].split())
+                ylo,yhi,xz=map(float,dump[i+2].split())
+                zlo,zhi,yz=map(float,dump[i+3].split())
+            else:
+                xlo,xhi=map(float,dump[i+1].split())
+                ylo,yhi=map(float,dump[i+2].split())
+                zlo,zhi=map(float,dump[i+3].split())
+            xy=xz=yz = 0.0
+            v1=[xhi-xlo-xy-xz,0,0]
+            v2=[xy,yhi-ylo-yz,0]
+            v3=[xz,yz,zhi-zlo]
+            continue
+        if "ITEM: ATOMS" in line: #assume ITEM: ATOMS id type x y z
+            atominfo=map(lambda x:map(float,x.split()),dump[i+1:i+natom+1])
+            atominfo.sort(key=lambda x:x[0])
+            order,types,ax,ay,az=zip(*atominfo)[:5]
+            a,b,c = array(ax),array(ay),array(az)
+            ax=v1[0]*a+v2[0]*b+v3[0]*c
+            ay=v1[1]*a+v2[1]*b+v3[1]*c
+            az=v1[2]*a+v2[2]*b+v3[2]*c
+                
+            types=map(int,types)
+    basis=[v1,v2,v3]
     atoms=zip(ax,ay,az)
-    return bounds,types,atoms,head
 
-def dumpWriteConfig(dump,bounds,types,atoms,head):
+    return basis,types,atoms
+
+#From a lammps dump read a desired configuration (0-indexed) from the dump file
+def readConfig(dumpFile,configN):
+    #Use grep to speed up finding values in a huge file!
+    grepResults = subprocess.check_output("grep -b TIMESTEP %s"%dumpFile,shell=True).split("\n")
+    bytenums=[int(i.split(":")[0]) for i in grepResults if len(i)>2]
+    dumpF=open(dumpFile,"r")
+
+    print "%d configurations in %s"%(len(bytenums),dumpFile)
+
+    if len(configN)==1:
+        configN=configN[0]
+    if type(configN)==int:
+        return parseConfigAtStart(dumpF,bytenums[configN])
+    else:
+        basiss=list()
+        typess=list()
+        atomss=list()
+        for i in configN:
+            b,t,a = parseConfigAtStart(dumpF,bytenums[i])
+            basiss.append(b)
+            typess.append(t)
+            atomss.append(a)
+    return basiss,typess,atomss
+
+def dumpWriteConfig(dump,basis,types,atoms,head):
     data=["#Generated by dumpWriteConfig from dump data\n"]
     data.append( "#"+head.strip("\n").lstrip("#")+"\n\n" )
     data.append( "%d atoms\n"%len(atoms) )
     ntypes=len(set(types))
     data.append( "%d atom types\n\n"%ntypes )
-    xhi,yhi,zhi,xy,xz,yz=bounds2lohi(bounds)
+    xhi,yhi,zhi,xy,xz,yz=basis2lohi(basis)
     data.append( " 0.0000  % 6.6f  xlo xhi\n"%xhi )
     data.append( " 0.0000  % 6.6f  ylo yhi\n"%yhi )
     data.append( " 0.0000  % 6.6f  zlo zhi\n"%zhi )
@@ -142,8 +149,8 @@ def dumpWriteConfig(dump,bounds,types,atoms,head):
     dump.writelines(data)
 
 #Converts VASP style boundaries to LAMMPS boundaries
-def bounds2lohi(bounds):
-    v1,v2,v3=map(array,bounds)
+def basis2lohi(basis):
+    v1,v2,v3=map(array,basis)
     mv1,mv2,mv3=map(mag,[v1,v2,v3])
 
     origin=array([0,0,0])

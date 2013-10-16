@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+#ADD capability to plot multiple potentials on top of eachother!
+
 import plotRemote as pr
 import matplotlib
 from math import *

@@ -35,7 +35,7 @@ def readNextEntry(iFDB):
             energy = float(line.split()[1])
 
         if line[:2] == "#W":
-            weights = map( int , line.split()[1:] )
+            weights = map( float , line.split()[1:] )
 
         if line[:2] == "#S":
             stress = map( float , line.split()[1:] )

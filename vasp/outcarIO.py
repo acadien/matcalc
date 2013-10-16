@@ -1,5 +1,6 @@
 #!/usr/bin/python
 from numpy import *
+import subprocess
 
 #Returns a POSCAR file contents in string format, just use writeline to write to file or read using poscarIO.read
 def outcar2poscar(outcarF,wantconfig=-1):
@@ -84,99 +85,103 @@ def outcar2poscar(outcarF,wantconfig=-1):
     return wdat
 
 #Returns poscar data and forces in (eV/Angstrom) and stresses (in GPa)
+#TE,stress,basis,atoms,forces,types
 def outcarReadConfig(outcarF,wantconfig=-1):
-    nums=""
-    types=list()
-    basis=zeros([3,3])
-    atoms=list()
-    forces=list()
-    TE=0
-    stress=list()
-    Natoms=0
-    outcar = open(outcarF,"r")
 
+    Natoms=0
+    types=list()
+    outcar = open(outcarF,"r")
     #Ion types and number of steps
-    for line in outcar:
+    for i,line in enumerate(outcar):
         if "ions per type" in line:
             nums=map(int,line.split("=")[1].split())
             for i in range(len(nums)):
                 types+=[i]*nums[i]
             Natoms=sum(nums)
-        if "Iteration" in line:
-            nsteps=int(line.split()[2].strip("("))
-    outcar.close()
-    outcar= open(outcarF,"r")
-
-    if wantconfig==-1:
-        wantconfig=nsteps
-    if wantconfig>nsteps:
-        print "Error: outcar2poscar: Requested configuration >%d, the max configurations in OUTCAR."%nsteps
-        exit(0)
-
-    count=0
-    err=False
-    while True:
-        #Start a new configuration
-        line=outcar.readline()
-        if len(line)==0:
             break
-        if "FREE ENERGIE OF THE ION-ELECTRON SYSTEM" in line:
-            count+=1
-            
-            if count<wantconfig:
-                continue
+    outcar.close()    
 
-            #Total Energy
-            while True:
-                line=outcar.readline()
-                if len(line)==0:
-                    err=True
-                    break
-                if "TOTEN" in line:
-                    TE=float(line.split("=")[-1].split()[0])
-                    break
-            #Stresses
-            while True:
-                line=outcar.readline()
-                if len(line)==0:
-                    err=True
-                    break
+    #Use grep to speed up finding values in a huge file!
+    grepResults = subprocess.check_output("grep -b free\ \ energy %s"%outcarF,shell=True).split("\n")
+    bytenums=[int(i.split(":")[0]) for i in grepResults if len(i)>2]
+
+    #Parse the configurations from the specified OUTCAR locations
+    if len(wantconfig)==1:
+        wantconfig=wantconfig[0]
+    if type(wantconfig)==int:
+        outcar= open(outcarF,"r")
+        outcar.seek(bytenums[wantconfig])
+        outcar = [outcar.readline() for i in range(5000)]
+
+        TE=float(outcar[0].split("=")[-1].split()[0])
+
+        basis=zeros([3,3])
+        atoms=list()
+        forces=list()
+        TE=0
+        stress=list()
+        for i,line in enumerate(outcar):
+            if "in kB" in line:
+                stress=map(lambda x:float(x)/10.0,line.split()[2:])
+
+            if "direct lattice vectors" in line:
+                basis[0]=map(float,outcar[i+1].split()[0:3])
+                basis[1]=map(float,outcar[i+2].split()[0:3])
+                basis[2]=map(float,outcar[i+3].split()[0:3])
+
+            if "POSITION" in line:
+                for line in outcar[i+2:i+Natoms+2]:
+                    atom=linalg.solve(basis.T,array(map(float,line.split()[0:3])))
+                    force=array(map(float,line.split()[3:6]))
+                    atoms.append(atom)
+                    forces.append(force)
+                break
+
+        return TE,stress,basis,atoms,forces,types
+
+    elif type(wantconfig)==list:
+        TEs=list()
+        basiss=list()
+        atomss=list()
+        forcess=list()
+        stresss=list()
+        typess=list()
+        for wc in wantconfig:
+            outcar= open(outcarF,"r") 
+            outcar.seek(bytenums[wc])
+            oc = [outcar.readline() for i in range(5000)]
+            outcar.close()
+            outcar=oc
+
+            TE=float(outcar[0].split("=")[-1].split()[0])
+
+            basis=zeros([3,3])
+            atoms=list()
+            forces=list()
+            TE=0
+            stress=list()
+            for i,line in enumerate(outcar):
                 if "in kB" in line:
-                    stress=map(lambda x:float(x)/1602.0,line.split()[2:])
-                    break
-            
-            #Lattice Vectors
-            while True:
-                line=outcar.readline()
-                if len(line)==0:
-                    err=True
-                    break
+                    stress=map(lambda x:float(x)/10.0,line.split()[2:])
+
                 if "direct lattice vectors" in line:
-                    basis[0]=map(float,outcar.readline().split()[0:3])
-                    basis[1]=map(float,outcar.readline().split()[0:3])
-                    basis[2]=map(float,outcar.readline().split()[0:3])
-                    break
-            
-            #Atomic Coordinates & Forces
-            while True:
-                line=outcar.readline()
-                if len(line)==0:
-                    err=True
-                    break
+                    basis[0]=map(float,outcar[i+1].split()[0:3])
+                    basis[1]=map(float,outcar[i+2].split()[0:3])
+                    basis[2]=map(float,outcar[i+3].split()[0:3])
+
                 if "POSITION" in line:
-                    outcar.readline()
-                    while True:
-                        line=outcar.readline()
+                    for line in outcar[i+2:i+Natoms+2]:
                         atom=linalg.solve(basis.T,array(map(float,line.split()[0:3])))
                         force=array(map(float,line.split()[3:6]))
                         atoms.append(atom)
                         forces.append(force)
-                        if len(atoms)==Natoms:
-                            break
                     break
-            #All done
-            break
-    if err:
-        print "Error reading OUTCAR, looking for configurations."
-        return -1
-    return TE,stress,basis,atoms,forces,types
+            TEs.append(TE)
+            stresss.append(stress)
+            basiss.append(basis)
+            atomss.append(atoms)
+            forcess.append(forces)
+            typess.append(types)
+            
+        return TEs,stresss,basiss,atomss,forcess,typess
+
