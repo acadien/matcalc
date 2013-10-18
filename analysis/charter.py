@@ -161,7 +161,7 @@ if args.averageFlag:
             savetxt("AVERAGE."+op+str(args.rcut),array([avgx,avgy]).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
         else:
             savetxt("AVERAGE."+op+str(lval),array([avgx,avgy]).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
-    else:
+    if args.plotFlag:
         pl.plot(avgx,avgy)
 
 elif args.saveFlag:

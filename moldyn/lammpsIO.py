@@ -94,15 +94,16 @@ def parseConfigAtStart(dumpF,seekpoint):
             v3=[xz,yz,zhi-zlo]
             continue
         if "ITEM: ATOMS" in line: #assume ITEM: ATOMS id type x y z
-            atominfo=map(lambda x:map(float,x.split()),dump[i+1:i+natom+1])
+            splitfloat = lambda x:map(float,x.split())
+            atominfo = map(splitfloat , dump[i+1:i+natom+1])
             atominfo.sort(key=lambda x:x[0])
             order,types,ax,ay,az=zip(*atominfo)[:5]
             a,b,c = array(ax),array(ay),array(az)
             ax=v1[0]*a+v2[0]*b+v3[0]*c
             ay=v1[1]*a+v2[1]*b+v3[1]*c
             az=v1[2]*a+v2[2]*b+v3[2]*c
-                
             types=map(int,types)
+            break
     basis=[v1,v2,v3]
     atoms=zip(ax,ay,az)
 
