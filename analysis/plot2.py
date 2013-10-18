@@ -15,7 +15,7 @@ def parse(fname,delim=None):
     fraw = open(fname,"r").readlines()
 
     data=list() 
-    dataNum=list()
+    dataIndex=list()
     for i,line in enumerate(fraw):
         #drop lines with only newline characters
         if len(line) < 2: continue
@@ -31,26 +31,25 @@ def parse(fname,delim=None):
             try:
                 f.append(float(elem))
             except ValueError:
-                f.append(elem)
+                #f.append(elem)
                 count+=1
 
-        if count==len(l):
+        if count!=0:#len(l):
             continue
 
         data.append(f)
-        dataNum.append(i)
+        dataIndex.append(i)
     
     #Keep only data with the most common number of columns
-    columns=map(len,data)
-    colN=[columns.count(i) for i in range(max(columns)+1)]
-    colN=colN.index(max(colN))
-    [dataNum,data]=zip(*[[dataNum[i],d] for i,d in enumerate(data) if columns[i]==colN])
+    columnLengths=map(len,data)
+    colN=[columnLengths.count(i) for i in range(max(columnLengths)+1)]
+    colNi=colN.index(max(colN))
+    [dataNum,parsedData]=zip(*[[dataIndex[i],d] for i,d in enumerate(data) if columnLengths[i]==colNi])
 
-    parsed_data=zip(*data)
-    
-    labels=fraw[dataNum[0]-1].split(delim)
+    parsedData=zip(*parsedData)
 
-    return labels,parsed_data
+    labels=fraw[dataNum[0]].split(delim)
+    return labels,parsedData
 
 def usage():
     print "\nUsage: %s <x-data column><s><window size> <y-data column><s><window size> <filenames>"%sys.argv[0].split("/")[-1]
@@ -69,6 +68,7 @@ if __name__=="__main__":
         exit(0)
 
     #X-Data
+    xWAN=0
     if "s" in sys.argv[1]:
         xSmooth=True
         xCol,xWAN=sys.argv[1].split("s")
@@ -79,6 +79,7 @@ if __name__=="__main__":
         xCol=int(sys.argv[1])
 
     #Y-Data
+    yWAN=0
     if "s" in sys.argv[2]:
         ySmooth=True
         yCol,yWAN=sys.argv[2].split("s")
@@ -122,7 +123,7 @@ if __name__=="__main__":
             print "Error: Max column number is %d, but %d requested."%(len(fdata)-1,yCol)
         if xCol >= len(fdata):
             print "Error: Max column number is %d, but %d requested."%(len(fdata)-1,xCol)
-
+        
         #Column selection
         ydata=fdata[yCol]
         if xCol==-1:
@@ -135,6 +136,12 @@ if __name__=="__main__":
             xdata=windowAvg(xdata,xWAN)
         if ySmooth:
             ydata=windowAvg(ydata,yWAN)
+        if xSmooth or ySmooth:
+            WAN=max(xWAN,yWAN)
+            xdata=xdata[WAN/2+1:WAN/-2]
+            ydata=ydata[WAN/2+1:WAN/-2]
+
+            
 
         #Use column labels if available
         if i==0 and len(labels)==len(fdata):
@@ -146,6 +153,6 @@ if __name__=="__main__":
             pl.plot(xdata,ydata,lw=1.5)
         else:
             pl.plot(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)))
-
+    
     pl.legend(fnames,loc=0)
     pr.prshow("plot2.png")

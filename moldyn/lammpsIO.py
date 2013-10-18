@@ -112,13 +112,17 @@ def parseConfigAtStart(dumpF,seekpoint):
 def readConfig(dumpFile,configN):
     #Use grep to speed up finding values in a huge file!
     grepResults = subprocess.check_output("grep -b TIMESTEP %s"%dumpFile,shell=True).split("\n")
+    #print dumpFile
+    #grepResults = subprocess.check_output("head -n 5 %s"%dumpFile,shell=True).split("\n")
     bytenums=[int(i.split(":")[0]) for i in grepResults if len(i)>2]
     dumpF=open(dumpFile,"r")
 
     print "%d configurations in %s"%(len(bytenums),dumpFile)
-
-    if len(configN)==1:
-        configN=configN[0]
+    try:
+        if len(configN)==1:
+            configN=configN[0]
+    except:
+        pass
     if type(configN)==int:
         return parseConfigAtStart(dumpF,bytenums[configN])
     else:

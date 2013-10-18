@@ -21,7 +21,7 @@ def gaussSmooth(a,n=9,mode='same'):
 def windowAvg(a,n=11):
     #a: the list/array to run the window average over
     #n: the size of the window
-    return convolve(a, ones(n)/n)[n/2:-n/2+1]
+    return convolve(a, ones(n)/n,'same')
 
 #This function nabbed from www.scipy.org/Cookbook/SignalSmooth
 #Applies spectral methods (various convolution functions) to a window smoothing
