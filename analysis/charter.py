@@ -59,14 +59,28 @@ parser.add_argument('-gval',dest='lval',help='g-value, used in BA (g) calculatio
 parser.add_argument('-nosave','-S',dest='saveFlag',action='store_false',help='turn off saving to file',default='true')
 parser.add_argument('-noplot','-P',dest='plotFlag',action='store_false',help='turn off plotting',default='true')
 parser.add_argument('-avg','-A',dest='averageFlag',action='store_true',help='average POSCAR results if possible')
-parser.add_argument('-D',dest='debug',action='store_true',help='turn on debugging of neighbor selection')
+parser.add_argument('-debug','-D',dest='debug',action='store_true',help='turn on debugging of neighbor selection')
 parser.add_argument('-N',dest='cfgNums',help='Configuration number list from dump/outcar, can be comma separated list, or dash separated, #1-#2, to get range (default -1)',type=str,default="-1")
 #Need to implement this
-parser.add_argument('-smooth',dest='windowSize',help='Turns on windowed averaging (smoothing) over all data sets',type=int,default=10)
+parser.add_argument('-smooth','-sm',dest='windowSize',help='Turns on windowed averaging (smoothing) over all data sets',type=int,default=10)
 
 args= parser.parse_args()
 op = args.op
 fileNames = args.fileNames
+
+#grab the directory for each file
+fileDirs = list()
+for fn in fileNames:
+    fns = fn.split("/")
+    if len(fns)==1:
+        fileDirs.append("./")
+    else:
+        fileDirs.append("/".join(fns[:-1])+"/")
+#Are all the file in the same directory?
+sameDir = False
+if fileDirs.count(fileDirs[0]) == len(fileDirs):
+    sameDir = True
+        
 lval = args.lval
 cfgNums = args.cfgNums
 if "-" in cfgNums and len(cfgNums)>2:
@@ -153,14 +167,17 @@ if args.averageFlag:
 
     pl.xlabel(xylabels["CN"][0])
     pl.ylabel(xylabels["CN"][1])
-
     if args.saveFlag:
+        prefix=""
+        if sameDir:
+            prefix=fileDirs[0]
+
         if op in ["TN","TET"]:
-            savetxt("AVERAGE."+op+str(lval),array([avgx,avgy]).T,delimiter=" ")
+            savetxt(prefix+"AVERAGE."+op+str(lval),array([avgx,avgy]).T,delimiter=" ")
         elif op in ["ADF"]:
-            savetxt("AVERAGE."+op+str(args.rcut),array([avgx,avgy]).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
+            savetxt(prefix+"AVERAGE."+op+str(args.rcut),array([avgx,avgy]).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
         else:
-            savetxt("AVERAGE."+op+str(lval),array([avgx,avgy]).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
+            savetxt(prefix+"AVERAGE."+op+str(lval),array([avgx,avgy]).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
     if args.plotFlag:
         pl.plot(avgx,avgy)
 

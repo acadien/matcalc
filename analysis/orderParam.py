@@ -100,7 +100,10 @@ def coordinationNumber(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     if neighbs==None:
         if rcut==None:
             rcut = generateRCut(atoms,basis,debug=debug)
-            print "Automatically generating r-cutoff=",rcut
+            print "Using RDF to generate r-cutoff=",rcut
+        else:
+            "Using r-cutoff=",rcut
+
         bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
         neighbs = neighbors(atoms,bounds,rcut,style="full")
         #neighbs = voronoiNeighbors(atoms,basis,[1]*len(atoms),style="full")
@@ -118,11 +121,15 @@ def radialDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
 def angleDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     if rcut==None:
         rcut = generateRCut(atoms,basis,debug=debug)
-        print "Automatically generating r-cutoff=",rcut
+        print "Using RDF to generate r-cutoff=",rcut
+    else:
+        print "Using r-cutoff=",rcut
+
     if neighbs==None:
         bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
+        #neighbs = voronoiNeighbors(atoms,basis,[1]*len(atoms),style="full")
         neighbs = neighbors(atoms,bounds,rcut)
-    print "Rcut for ADF: %f"%rcut
+
     return adf(atoms,neighbs,basis,rcut,nbins=360)
 
 def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
@@ -137,14 +144,6 @@ def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     Nq=500
     maxq=12.0
     qbins = np.linspace(0,maxq,Nq+1)[1:]
-
-    #qvals = np.zeros([Nq])
-    #for i,ai in enumerate(atoms):
-    #    for j,aj in enumerate(atoms):
-    #        if i!=j:
-    #            v = qbins*np.linalg.norm(minImageAtom(ai,aj,basis)-ai)
-    #            qvals += sin(v)/v
-    #qvals=qvals/len(atoms) + 1
 
     qvals = [1+2*pi*sum([sin(q*r)*(rdist[i]-1)*r/Nr/q for i,r in enumerate(rbins)]) for q in qbins]
     return qbins,qvals

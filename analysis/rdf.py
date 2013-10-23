@@ -196,13 +196,13 @@ def sf(atoms,basis,cutoff=12.0,nbins=1000):
 #==================================================================
 ADFcode="""
 double aix,ajx,akx,aiy,ajy,aky,aiz,ajz,akz;
-double dij,dik,djk,x,a,d;
+double dij,dik,djk,x,d;
+double a;
 int jn,kn,cn=0,cnt=0;
-double dang=180./nbins;
 
-double djx,djy,djz,dkx,dky,dkz,djr,dkr,c;
+double djx,djy,djz,dkx,dky,dkz,djr,dkr,ddd;
 double cut2=cut*cut;
-double pi=3.14159265358979323846;
+double pi=3.14159266; //intentionally overestimate pi by a tiny bit
 for(int i=0; i<natoms; i++){
     aix=atoms[i*3];
     aiy=atoms[i*3+1];
@@ -250,16 +250,20 @@ for(int i=0; i<natoms; i++){
 
                 if( dkr > cut2)
                     continue;
+                if(djr == 0.0 || dkr == 0.0)
+                    continue;
 
                 //Calculate Angle
                 x = (djx*dkx + djy*dky + djz*dkz)/sqrt(djr*dkr);
-                a = acos(x)*180.0/pi;
-                bins[(int)(a/dang)]+=0.5;
+                a = acos(x)/pi;
+                if(a != a) //acos returns with NAN for bizarre reasons, catch these and drop them.
+                    continue;
+                bins[(int)(a*(nbins-1))]+=0.5;
             }}}
         }
     }
     cn+=nneighbsf[i];
-    return_val=c;
+    return_val=ddd;
 }
 """
 
@@ -270,7 +274,7 @@ def adf(atoms,neighbs,basis,cutoff,nbins=360,angtype='deg'):
     #angtype: 'deg' or 'rad'
     #nbins: number of bins to store in radial distro
     #The angular range is always 0-180 deg and angles are taken modulo 180
-    
+
     bins = zeros(nbins)
     
     cut=cutoff
@@ -280,8 +284,8 @@ def adf(atoms,neighbs,basis,cutoff,nbins=360,angtype='deg'):
     b.shape=9
     nneighbsf=array([len(i) for i in neighbs])
     neighbsf=array([i for i in flatten(neighbs)])
-
     weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','b','cut'],compiler=('gcc'))
+    
     b.shape=[3,3]
     atoms.shape=[len(atoms)/3,3]    
     abins = [(i+0.5)*180./nbins for i in range(nbins)]

@@ -5,6 +5,7 @@ from scipy import array,zeros
 import pylab as pl
 #mine
 from meanSquareDist import meanSquareDist
+import outcarIO
 #msdIO
 
 #Calculates mean squared distance
@@ -51,7 +52,6 @@ def outcarMeanSquareDisplace(outcarfile):
             posit=True
             count+=1
     atoms=array(atoms)
-
     Ntime=len(atoms)
     delT,msd=meanSquareDist(atoms,Natom,Ntime,lengths)
 #    for dt in delT:
