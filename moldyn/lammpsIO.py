@@ -6,6 +6,8 @@ import subprocess
 #mine
 from struct_tools import mag,ang
 
+
+
 #For reading multiple configurations from a single lammps dump
 #Reads the next configuration (jumping by step)
 def dumpReadNext(dump,step=0):

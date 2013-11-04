@@ -48,7 +48,7 @@ def parse(fname,delim=None):
 
     parsedData=zip(*parsedData)
 
-    labels=fraw[dataNum[0]].split(delim)
+    labels=fraw[dataNum[0]-1].split(delim)
     return labels,parsedData
 
 def usage():
@@ -140,8 +140,6 @@ if __name__=="__main__":
             WAN=max(xWAN,yWAN)
             xdata=xdata[WAN/2+1:WAN/-2]
             ydata=ydata[WAN/2+1:WAN/-2]
-
-            
 
         #Use column labels if available
         if i==0 and len(labels)==len(fdata):

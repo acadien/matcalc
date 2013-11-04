@@ -61,12 +61,12 @@ parser.add_argument('-noplot','-P',dest='plotFlag',action='store_false',help='tu
 parser.add_argument('-avg','-A',dest='averageFlag',action='store_true',help='average POSCAR results if possible')
 parser.add_argument('-debug','-D',dest='debug',action='store_true',help='turn on debugging of neighbor selection')
 parser.add_argument('-N',dest='cfgNums',help='Configuration number list from dump/outcar, can be comma separated list, or dash separated, #1-#2, to get range (default -1)',type=str,default="-1")
-#Need to implement this
-parser.add_argument('-smooth','-sm',dest='windowSize',help='Turns on windowed averaging (smoothing) over all data sets',type=int,default=10)
+parser.add_argument('-saveas',dest='saveFileName',help='Filename under which to save the data to',type=str,default='None')
 
 args= parser.parse_args()
 op = args.op
 fileNames = args.fileNames
+saveFileName = args.saveFileName
 
 #grab the directory for each file
 fileDirs = list()
@@ -88,7 +88,9 @@ if "-" in cfgNums and len(cfgNums)>2:
     cfgNums=range(a,b)
 else:
     cfgNums = map(int,args.cfgNums.split(","))
-
+#cfgNums[0] -= 50
+#cfgNums[0] /= 10
+#print cfgNums
 
 if op == "BA" and args.lval == None:
     print "Error: g-value (-gval) must be set for BA order parameter"
@@ -154,6 +156,12 @@ xylabels={"BO" :[r"BondOrder($Q_%s$)"%str(lval), r"$P(Q_%s)$"%str(lval)],
           "BA" :[r"R$(\AA)$",                    r"$G_{%s}(r)$"%str(lval)],
           "SF" :[r"Q$(\AA^{-1})$",               r"S(Q)"]}
 
+def savetxtWrapper(defaultFileName,data,delimiter=" ",header=None,comments=""):
+    if saveFileName==None:
+        savetxt(defaultFileName,data,delimiter=delimiter,header=header,comments=comments)
+    else:
+        savetxt(saveFileName,data,delimiter=delimiter,header=header,comments=comments)
+
 if args.averageFlag:
     if op not in ["BO","CN","TN","TET"]:
         t = zip(*[orderVals[i][1] for i in range(len(orderVals))])
@@ -165,39 +173,39 @@ if args.averageFlag:
         avgy,avgx,dummy=pl.hist(hd,bins=range(0,16),visible=False,normed=True)
         avgx = avgx[:-1]
 
-    pl.xlabel(xylabels["CN"][0])
-    pl.ylabel(xylabels["CN"][1])
+    pl.xlabel(xylabels[op][0])
+    pl.ylabel(xylabels[op][1])
     if args.saveFlag:
         prefix=""
         if sameDir:
             prefix=fileDirs[0]
 
         if op in ["TN","TET"]:
-            savetxt(prefix+"AVERAGE."+op+str(lval),array([avgx,avgy]).T,delimiter=" ")
+            savetxtWrapper(prefix+"AVERAGE."+op+str(lval),array([avgx,avgy]).T)
         elif op in ["ADF"]:
-            savetxt(prefix+"AVERAGE."+op+str(args.rcut),array([avgx,avgy]).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
+            savetxtWrapper(prefix+"AVERAGE."+op+str(args.rcut),array([avgx,avgy]).T,header=" ".join(xylabels[op]))
         else:
-            savetxt(prefix+"AVERAGE."+op+str(lval),array([avgx,avgy]).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
+            savetxtWrapper(prefix+"AVERAGE."+op+str(lval),array([avgx,avgy]).T,header=" ".join(xylabels[op]))
     if args.plotFlag:
         pl.plot(avgx,avgy)
 
 elif args.saveFlag:
     for ov,pn in zip(orderVals,fileNames):
         if op in ["TN","TET"]:
-            savetxt(pn+"."+op+str(lval),array(ov).T,delimiter=" ")
+            savetxtWrapper(pn+"."+op+str(lval),array(ov).T)
 
         elif op in ["ADF"]:
             if args.rcut==None:
-                savetxt(pn+"."+op,array(ov).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
+                savetxtWrapper(pn+"."+op,array(ov).T,header=" ".join(xylabels[op]))
             else:
-                savetxt(pn+"."+op+str(args.rcut),array(ov).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
+                savetxtWrapper(pn+"."+op+str(args.rcut),array(ov).T,header=" ".join(xylabels[op]))
 
         elif op in ["BO"]:
             vals,bins,dummy = pl.hist(ov,bins=int(sqrt(len(ov)))*5,normed=True,visible=False)
-            savetxt(pn+"."+op+str(lval),array(zip(bins[:-1],vals)),delimiter=" ",header=" ".join(xylabels[op]),comments="")
+            savetxtWrapper(pn+"."+op+str(lval),array(zip(bins[:-1],vals)),header=" ".join(xylabels[op]))
 
         else:
-            savetxt(pn+"."+op+str(lval),array(ov).T,delimiter=" ",header=" ".join(xylabels[op]),comments="")
+            savetxtWrapper(pn+"."+op+str(lval),array(ov).T,header=" ".join(xylabels[op]))
 
 if not args.plotFlag:
     exit(0)

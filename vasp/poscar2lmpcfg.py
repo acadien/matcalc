@@ -4,7 +4,7 @@ import sys
 from numpy import *
 #mine
 import poscarIO
-from lammpsIO import bounds2lohi
+from lammpsIO import basis2lohi
 from struct_tools import flatten
 
 def poscar2dump(pcarFile,lmpFile,scale=None):
@@ -22,7 +22,7 @@ def poscar2dump(pcarFile,lmpFile,scale=None):
     [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
 
     #Convert from POSCAR style basis vectors to LAMMPS style boundaries.
-    xhi,yhi,zhi,xy,xz,yz=bounds2lohi(basis)
+    xhi,yhi,zhi,xy,xz,yz=basis2lohi(basis)
     basis=matrix([[xhi,0,0],[xy,yhi,0],[xz,yz,zhi]])
 
     N=sum(atypes)
