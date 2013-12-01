@@ -3,7 +3,7 @@
 import sys
 #mine
 import plotRemote as pr
-from datatools import windowAvg
+from datatools import wsmooth
 
 import pylab as pl
 if len(sys.argv)<2:
@@ -32,7 +32,7 @@ for line in outcar:
 strsavg=[(strsx[i]+strsy[i]+strsz[i])/3 for i in range(len(strsx))]
 
 #A windowed average
-winavg=windowavg(strsavg,10)
+winavg=wsmooth(strsavg,10)
 
 print len(winavg),len(strsavg),len(strsz),len(tmpt)
 

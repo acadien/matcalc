@@ -18,11 +18,15 @@ from orderParam import *
 import poscarIO
 import outcarIO
 import lammpsIO
+#3D
+from mpl_toolkits.mplot3d import axes3d
+from matplotlib import cm
 
 orderParams={"CN":  coordinationNumber, 
              "BO":  bondOrientation , 
              "RDF": radialDistribution , 
              "ADF": angleDistribution , 
+             "RAF": radangDistribution ,
              "BA":  bondAngleCorr , 
              "SF":  structureFactor, 
              "TET": tetrahedral, 
@@ -36,6 +40,7 @@ Apply some order parameter calculation to a POSCAR, OUTCAR or LAMMPS Dump, then 
 =   BO  : Bond Orientation (Q_l), requires -lval be set  =
 =   RDF : Radial Distribution Function                   =
 =   ADF : Angular Distribution Function                  =
+=   RAF : Radial distribution by bond angle              =
 =   BA  : Bond Angle Correlation, requires -gval be set  =
 =   SF  : Structure Factor                               =
 =   TET : Tetrahedral                                    =
@@ -154,10 +159,39 @@ xylabels={"BO" :[r"BondOrder($Q_%s$)"%str(lval), r"$P(Q_%s)$"%str(lval)],
           "RDF":[r"R$(\AA)$",                    "#_Bonds"],
           "ADF":[r"$\theta(deg)$",               "#_Bond_Angles"],
           "BA" :[r"R$(\AA)$",                    r"$G_{%s}(r)$"%str(lval)],
-          "SF" :[r"Q$(\AA^{-1})$",               r"S(Q)"]}
+          "SF" :[r"Q$(\AA^{-1})$",               r"S(Q)"],
+          "RAF":[r"temp",r"temp2"],
+          "TET":[r"$q_t$","count"]}
+
+#Special case for handling 3D RAF data.
+if op == "RAF":
+    fig = pl.figure()
+    ax = fig.add_subplot(111, projection='3d')    
+    if args.averageFlag:
+        N=float(len(orderVals))
+        for k,((adfVals,rdfVals),bins) in enumerate(orderVals):
+            X=[[i]*len(rdfVals) for i in adfVals]
+            Y=[rdfVals for i in range(len(adfVals))]
+            if k==0:
+                Z=array([[b/N for b in a]for a in bins])
+            else:
+                Z+=array([[b/N for b in a]for a in bins])
+        Z/=len(orderVals)
+    else:
+        for k,((adfVals,rdfVals),bins) in enumerate(orderVals):
+            X=[[i]*len(rdfVals) for i in adfVals]
+            Y=[rdfVals for i in range(len(adfVals))]
+            Z=bins
+
+    ax.plot_wireframe(X,Y,Z,color='black',lw=0.5)
+    ax.contour(X, Y, Z,10,cmap=cm.coolwarm,linewidths=[5]*10)
+    pl.xlabel("theta")
+    pl.ylabel("r")
+    pl.show()
+    exit(0)
 
 def savetxtWrapper(defaultFileName,data,delimiter=" ",header=None,comments=""):
-    if saveFileName==None:
+    if saveFileName is "None":
         savetxt(defaultFileName,data,delimiter=delimiter,header=header,comments=comments)
     else:
         savetxt(saveFileName,data,delimiter=delimiter,header=header,comments=comments)
@@ -167,10 +201,15 @@ if args.averageFlag:
         t = zip(*[orderVals[i][1] for i in range(len(orderVals))])
         avgy = map(lambda x:sum(x)/len(x),t)
         avgx = orderVals[0][0]
-    elif op=="CN":
+    elif op in ["CN","TET"]:
         hd,rcuts=zip(*orderVals)
         hd =  [i for i in flatten(list(hd))] #flatten for averaging
-        avgy,avgx,dummy=pl.hist(hd,bins=range(0,16),visible=False,normed=True)
+        mn = min(hd)
+        mx = max(hd)
+        d = mx-mn
+        mn -= 0.2*d
+        mx += 0.2*d
+        avgy,avgx,dummy=pl.hist(hd,bins=16,range=(mn,mx),visible=False,normed=True)
         avgx = avgx[:-1]
 
     pl.xlabel(xylabels[op][0])
@@ -180,7 +219,7 @@ if args.averageFlag:
         if sameDir:
             prefix=fileDirs[0]
 
-        if op in ["TN","TET"]:
+        if op in ["TN"]:
             savetxtWrapper(prefix+"AVERAGE."+op+str(lval),array([avgx,avgy]).T)
         elif op in ["ADF"]:
             savetxtWrapper(prefix+"AVERAGE."+op+str(args.rcut),array([avgx,avgy]).T,header=" ".join(xylabels[op]))
@@ -238,7 +277,8 @@ elif op=="CN":
 elif op=="TET":
     print "Average Tetrahedral Order <Sg> ="
     for i,ov in enumerate(orderVals):
-        print fileNames[i],"\t\t",sum(ov)/len(ov)
+        tet=ov[0]
+        print sum(tet)/len(tet)
 
 elif op=="TN":
     print "Average Translational Order <tao> ="

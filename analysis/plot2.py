@@ -34,7 +34,7 @@ def parse(fname,delim=None):
                 #f.append(elem)
                 count+=1
 
-        if count!=0:#len(l):
+        if count==len(l):
             continue
 
         data.append(f)
@@ -42,6 +42,7 @@ def parse(fname,delim=None):
     
     #Keep only data with the most common number of columns
     columnLengths=map(len,data)
+
     colN=[columnLengths.count(i) for i in range(max(columnLengths)+1)]
     colNi=colN.index(max(colN))
     [dataNum,parsedData]=zip(*[[dataIndex[i],d] for i,d in enumerate(data) if columnLengths[i]==colNi])

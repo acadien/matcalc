@@ -10,7 +10,7 @@ import pylab as pl
 #mine
 from neighbors import neighbors,nNearestNeighbors,full2half,voronoiNeighbors
 from struct_tools import *
-from rdf import rdf,adf,generateRCut,rdf_periodic
+from rdf import *
 
 #local bond-orientational: Q_l for each atom.  atomi>-1 selects a specific atom
 #rcut is interms of shells not a distance
@@ -110,12 +110,24 @@ def coordinationNumber(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     cns = map(len,neighbs)
         
     return cns,rcut
+
+def radangDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+    #l: not used
+    if neighbs==None:
+        if rcut==None:
+            rcut = generateRCut(atoms,basis,debug=debug)
+            print "Using RDF to generate r-cutoff=",rcut
+        else:
+            print "Using r-cutoff=",rcut
+
+        bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
+        neighbs = neighbors(atoms,bounds,rcut,style="full")
+    return rdf_by_adf(atoms,neighbs,basis,rcut=rcut)
             
 def radialDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
      if rcut==None:
          rcut = 10.0
  
-    #return rdf_periodic(atoms,basis,cutoff=rcut)#rbins,rdist
      return rdf_periodic(atoms,basis,cutoff=rcut)#rbins,rdist
 
 def angleDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
@@ -195,4 +207,4 @@ def tetrahedral(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
                 Sg+=cos(a+third)**2
         Sg*=3./32.
         tets.append(1-Sg)
-    return tets
+    return tets,rcut

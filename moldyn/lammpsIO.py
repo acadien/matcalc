@@ -43,8 +43,8 @@ def dumpReadNext(dump,step=0):
                 ylo,yhi=map(float,dump[i+2].split())
                 zlo,zhi=map(float,dump[i+3].split())
                 xy=xz=yz = 0.0
-            v1=[xhi-xlo-xy-xz,0,0]
-            v2=[xy,yhi-ylo-yz,0]
+            v1=[xhi-xlo+xy+xz,0,0]
+            v2=[xy,yhi-ylo+yz,0]
             v3=[xz,yz,zhi-zlo]
             continue
         if "ITEM: ATOMS" in line: #assume ITEM: ATOMS id type x y z
@@ -90,9 +90,9 @@ def parseConfigAtStart(dumpF,seekpoint):
                 xlo,xhi=map(float,dump[i+1].split())
                 ylo,yhi=map(float,dump[i+2].split())
                 zlo,zhi=map(float,dump[i+3].split())
-            xy=xz=yz = 0.0
-            v1=[xhi-xlo-xy-xz,0,0]
-            v2=[xy,yhi-ylo-yz,0]
+                xy=xz=yz = 0.0
+            v1=[xhi-xlo+xy+xz,0,0]
+            v2=[xy,yhi-ylo+yz,0]
             v3=[xz,yz,zhi-zlo]
             continue
         if "ITEM: ATOMS" in line: #assume ITEM: ATOMS id type x y z

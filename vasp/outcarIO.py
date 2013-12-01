@@ -106,7 +106,7 @@ def outcarReadConfig(outcarF,wantconfig=-1):
     bytenums=[int(i.split(":")[0]) for i in grepResults if len(i)>2]
 
     #Parse the configurations from the specified OUTCAR locations
-    if len(wantconfig)==1:
+    if type(wantconfig)==type([]) and len(wantconfig)==1:
         wantconfig=wantconfig[0]
     if type(wantconfig)==int:
         outcar= open(outcarF,"r")
@@ -136,8 +136,13 @@ def outcarReadConfig(outcarF,wantconfig=-1):
                     atoms.append(atom)
                     forces.append(force)
                 break
-
-        return TE,stress,basis,atoms,forces,types
+        bt=basis.T
+        atoms=array(atoms)
+        if sum(atoms[:,0])/len(atoms) < 1.0:
+            atomsp=array([bt.dot(atom) for atom in atoms])
+        else:
+            atomsp=array(atoms)
+        return TE,stress,basis,atomsp,forces,types
 
     elif type(wantconfig)==list:
         TEs=list()
@@ -176,10 +181,17 @@ def outcarReadConfig(outcarF,wantconfig=-1):
                         atoms.append(atom)
                         forces.append(force)
                     break
+            atoms=array(atoms)
+            bt=basis.T
+            if sum(atoms[:,0])/len(atoms) < 1.0:
+                atomsp=array([bt.dot(atom) for atom in atoms])
+            else:
+                atomsp=array(atoms)
+
             TEs.append(TE)
             stresss.append(stress)
             basiss.append(basis)
-            atomss.append(atoms)
+            atomss.append(atomsp)
             forcess.append(forces)
             typess.append(types)
             

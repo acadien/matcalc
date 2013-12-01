@@ -118,7 +118,6 @@ for(int i=0;i<natoms;i++){
 RDFPerCode="""
 double aix,ajx,aiy,ajy,aiz,ajz,c,d;
 double dr=cut/nbins;
-double cmin;
 for(int i=0;i<natoms;i++){
     aix=atoms[i*3];
     aiy=atoms[i*3+1];
@@ -127,7 +126,7 @@ for(int i=0;i<natoms;i++){
         ajx=atoms[j*3];
         ajy=atoms[j*3+1];
         ajz=atoms[j*3+2];
-        cmin=100000.;
+
         //Minimum image distance
         for(int t1=-1;t1<2;t1++){
         for(int t2=-1;t2<2;t2++){
@@ -138,8 +137,10 @@ for(int i=0;i<natoms;i++){
             c+=d*d;
             d=aiz-ajz+t1*b[2]+t2*b[5]+t3*b[8];
             c+=d*d;
-            c=sqrt(c);
 
+            //if(c==0.0) continue;
+
+            c=sqrt(c);
             if(c<=cut)
                 bins[(int)(c/dr)]+=2;
         }}}
@@ -166,15 +167,10 @@ def rdf_periodic(atoms,basis,cutoff=10.0,nbins=1000):
 
     bt=basis.T
 
-    if sum(atoms[:,0])/len(atoms) < 1.0:
-        atomsp=array([bt.dot(atom) for atom in atoms])
-    else:
-        atomsp=array(atoms)
-
     rdist=zeros(nbins)
     dr=float(cutoff)/nbins
-    N=len(atomsp)
-    rdist=rdfperHelper(atomsp,rdist,cutoff,basis)
+    N=len(atoms)
+    rdist=rdfperHelper(atoms,rdist,cutoff,basis)
     rbins=[i*dr for i in range(nbins)] #the central point of each bin (x-axis on plot)
 
     Ndensity=N/volume(basis)
@@ -200,9 +196,9 @@ double dij,dik,djk,x,d;
 double a;
 int jn,kn,cn=0,cnt=0;
 
-double djx,djy,djz,dkx,dky,dkz,djr,dkr,ddd;
+double djx,djy,djz,dkx,dky,dkz,djr,dkr;
 double cut2=cut*cut;
-double pi=3.14159266; //intentionally overestimate pi by a tiny bit
+double pi=3.14159266; //intentionally overestimate pi by a tiny bit to correct acos behavior
 for(int i=0; i<natoms; i++){
     aix=atoms[i*3];
     aiy=atoms[i*3+1];
@@ -227,10 +223,11 @@ for(int i=0; i<natoms; i++){
             djr = djx*djx+djy*djy+djz*djz;
 
             if( djr <= cut2)
-                goto breakout;
+               goto breakout;
         }}}
+        continue;
         breakout:;
-   
+
         for(int k=j+1; k<nneighbsf[i];k++){
             kn=neighbsf[cn+k];
 
@@ -256,15 +253,15 @@ for(int i=0; i<natoms; i++){
                 //Calculate Angle
                 x = (djx*dkx + djy*dky + djz*dkz)/sqrt(djr*dkr);
                 a = acos(x)/pi;
-                if(a != a) //acos returns with NAN for bizarre reasons, catch these and drop them.
+                if(a != a) //acos returns with NAN for invalid x values, catch these and drop them.
                     continue;
                 bins[(int)(a*(nbins-1))]+=0.5;
             }}}
         }
     }
     cn+=nneighbsf[i];
-    return_val=ddd;
 }
+return_val=cn;
 """
 
 #angular distribution function
@@ -284,8 +281,9 @@ def adf(atoms,neighbs,basis,cutoff,nbins=360,angtype='deg'):
     b.shape=9
     nneighbsf=array([len(i) for i in neighbs])
     neighbsf=array([i for i in flatten(neighbs)])
-    weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','b','cut'],compiler=('gcc'))
-    
+    print sum(nneighbsf),len(neighbsf)
+    print weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','b','cut'],compiler=('gcc'))
+
     b.shape=[3,3]
     atoms.shape=[len(atoms)/3,3]    
     abins = [(i+0.5)*180./nbins for i in range(nbins)]
@@ -297,87 +295,90 @@ def adf(atoms,neighbs,basis,cutoff,nbins=360,angtype='deg'):
 #==================================================================
 RDFBYADFcode="""
 double aix,ajx,akx,aiy,ajy,aky,aiz,ajz,akz;
-double dij,dik,djk,x,a,d;
-double bondij,bondjk;
-int jn,kn,cn=0;
-double dang=180./nbins;
-int binIndex;
+double dij,dik,djk,x,d;
+double adf,rdf;
+double djx,djy,djz,dkx,dky,dkz,djr,dkr;
 
-double pi2=2.0*3.14159265;
-/*
+int jn,kn,cn=0;
+
+double cut2=cut*cut;
+double pi=3.14159266; //intentionally overestimate pi by a tiny bit to correct acos behavior
+
 for(int i=0; i<natoms; i++){
-    ajx=atoms[i*3];
-    ajy=atoms[i*3+1];
-    ajz=atoms[i*3+2];
+    aix=atoms[i*3];
+    aiy=atoms[i*3+1];
+    aiz=atoms[i*3+2];
+
     for(int j=0;j<nneighbsf[i];j++){
+        
         jn=neighbsf[cn+j];
-        if(i==jn) 
+        if(i<=jn) 
           continue;
 
-        aix=atoms[jn*3];
-        aiy=atoms[jn*3+1];
-        aiz=atoms[jn*3+2];
-
+        ajx=atoms[jn*3];
+        ajy=atoms[jn*3+1];
+        ajz=atoms[jn*3+2];
+        
         //Periodic Bounds
-        d = aix-ajx;
-        if(d>l[0]/2.0) aix -= l[0];
-        if(d<-l[0]/2.0) aix += l[0];
-        d = aiy-ajy;
-        if(d>l[1]/2.0) aiy -= l[1];
-        if(d<-l[1]/2.0) aiy += l[1];
-        d = aiz-ajz;
-        if(d>l[2]/2.0) aiz -= l[2];
-        if(d<-l[2]/2.0) aiz += l[2];
+        for(int t1=-1;t1<2;t1++){
+        for(int t2=-1;t2<2;t2++){
+        for(int t3=-1;t3<2;t3++){
+            djx = ajx + t1*b[0]+t2*b[3]+t3*b[6] - aix;
+            djy = ajy + t1*b[1]+t2*b[4]+t3*b[7] - aiy;
+            djz = ajz + t1*b[2]+t2*b[5]+t3*b[8] - aiz;
 
-        //Bond length i-j
-        bondij=sqrt((aix-ajx)*(aix-ajx)+(aiy-ajy)*(aiy-ajy)+(aiz-ajz)*(aiz-ajz));
+            djr = djx*djx+djy*djy+djz*djz;
 
-        for(int k=0; k<nneighbsf[i];k++){
+            if( djr <= cut2)
+                goto breakout;
+        }}}
+        continue;
+        breakout:;
+
+        for(int k=j+1; k<nneighbsf[i];k++){
             kn=neighbsf[cn+k];
-            if(i==kn || kn==jn) 
-              continue;
 
             akx=atoms[kn*3];
             aky=atoms[kn*3+1];
             akz=atoms[kn*3+2];
 
-            //Periodic Bounds
-            d = akx-ajx;
-            if(d>l[0]/2.0) akx -= l[0];
-            if(d<-l[0]/2.0) akx += l[0];
-            d = aky-ajy;
-            if(d>l[1]/2.0) aky -= l[1];
-            if(d<-l[1]/2.0) aky += l[1];
-            d = akz-ajz;
-            if(d>l[2]/2.0) akz -= l[2];
-            if(d<-l[2]/2.0) akz += l[2];
+            //Minimum image distance
+            for(int t1=-1;t1<2;t1++){
+            for(int t2=-1;t2<2;t2++){
+            for(int t3=-1;t3<2;t3++){
+                dkx = akx + t1*b[0]+t2*b[3]+t3*b[6] - aix;
+                dky = aky + t1*b[1]+t2*b[4]+t3*b[7] - aiy;
+                dkz = akz + t1*b[2]+t2*b[5]+t3*b[8] - aiz;
 
-            //Bond length j-k
-            bondjk=sqrt((ajx-akx)*(ajx-akx)+(ajy-aky)*(ajy-aky)+(ajz-akz)*(ajz-akz));
+                dkr = dkx*dkx+dky*dky+dkz*dkz;
 
-            //Calculate Angle
-            dij = (aix-ajx)*(aix-ajx) + (aiy-ajy)*(aiy-ajy) + (aiz-ajz)*(aiz-ajz);
-            dik = (aix-akx)*(aix-akx) + (aiy-aky)*(aiy-aky) + (aiz-akz)*(aiz-akz);
-            djk = (ajx-akx)*(ajx-akx) + (ajy-aky)*(ajy-aky) + (ajz-akz)*(ajz-akz);  
-            x=(dij + djk - dik)/(2.0*sqrt(dij)*sqrt(djk));
-            if(fabs(fabs(x)-1.0) <= 1e-9)
-              a=0.0;
-            else
-              a=(360*(acos(x)/pi2+1.0));
-            a-= static_cast<double>( static_cast<int>( a / 180.0 ) ) * 180.0;
+                if( dkr > cut2)
+                    continue;
+                if(djr == 0.0 || dkr == 0.0)
+                    continue;
 
-            //Bin the bond length by the angle
-            binIndex=(int)(a/dang);
-            bins[binIndex*MAXNeighbs + bcounts[binIndex]++]=bondij;
-            bins[binIndex*MAXNeighbs + bcounts[binIndex]++]=bondjk;
+                //Calculate Angle
+                x = (djx*dkx + djy*dky + djz*dkz)/sqrt(djr*dkr);
+                adf = acos(x)/pi;
+                if(adf != adf) //acos returns with NAN for bizarre reasons, catch these and drop them.
+                    continue;
+
+                //Bin the bond length by the angle
+                rdf=sqrt(dkr)/cut;
+
+                bins[(int)(adf*(nADFbins-1))*nRDFbins + (int)(rdf*(nRDFbins-1))]+=0.5;
+            }}}
         }
+
     }
+    
     cn+=nneighbsf[i];
-*/
 }
+
+return_val=0;
 """
 
-def rdf_by_adf(atoms,neighbs,basis,nbins=360,angtype='deg'):
+def rdf_by_adf(atoms,neighbs,basis,rcut=10.0,nADFbins=45,nRDFbins=100,angtype='deg'):
     #atoms: list of atoms[N][3]
     #neighbs: the *full* neighbor list for atoms
     #angtype: 'deg' or 'rad'
@@ -386,21 +387,36 @@ def rdf_by_adf(atoms,neighbs,basis,nbins=360,angtype='deg'):
     
     #This function bins bond length by the angles to which they belong.
 
-    MAXNeighbs=100
-    bins = zeros(nbins*MAXNeighbs)
-    bcounts = zeros(nbins) #extra memory needed for C operation
+    bins = zeros(nADFbins*nRDFbins)
 
     natoms=len(atoms)
     atoms.shape=natoms*3
     nneighbsf=array([len(i) for i in neighbs])
     neighbsf=array([i for i in flatten(neighbs)])
-    l=array([basis[0][0],basis[1][1],basis[2][2]])
-    weave.inline(RDFBYADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','MAXNeighbs','bcounts','l'])
+    cut=rcut
+    b=basis
+    b.shape=9
+    weave.inline(RDFBYADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nADFbins','nRDFbins','cut','b'])
     atoms.shape=[len(atoms)/3,3]
     
-    abins = [(i+0.5)*180./nbins for i in range(nbins)]
-    
-    return [abins,bins]
+    adfVals = [(i+0.5)*180./nADFbins for i in range(nADFbins)]
+    rdfVals = [(i+0.5)*rcut/nRDFbins for i in range(nRDFbins)]
+    bins.shape=[nADFbins,nRDFbins]
+  
+    dr=float(rcut)/nRDFbins
+    #Ndensity=N/volume(basis)
+    for i,r in enumerate(rdfVals):
+        m = sum(bins[:,i])
+        if i==0:
+            vol=4.0*pi*dr*dr*dr/3.0
+        else:
+            vol=4.0*pi*r*r*dr
+        for j in range(nADFbins):
+            if m==0:
+                m=1
+            bins[j,i]/=vol
+        
+    return [(adfVals,rdfVals),bins]
 
 #Generates a cutoff based on the RDF of a collection of atoms
 def generateRCut(atoms,basis,debug=False):
