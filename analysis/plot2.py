@@ -58,46 +58,111 @@ def usage():
     print "If x-data column is -1 then range(len(y)) is used"
     print "If the column number is followed by an \"s\" then a window average is applied to that data."
     print "examples:"
+    print "./plot2.py datafile #by default chooses columns 0 and 1"
     print "./plot2.py 0 1 datafile1 datafile2 datafile3..."
     print "./plot2.py 0s 5s50 datafile1 datafile2... # applies a window average of size 10 to column 0 and size 50 to column 5"
+    print "./plot2.py 0 1 datafile1 0 2 datafile2 datafile3 #selects columns 0,1 for df1 and 0,2 for df2 and df3" 
     print ""
 
 if __name__=="__main__":
     pl.figure(figsize=[18,9])
-    if len(sys.argv)<4:
+    if len(sys.argv)<2:
         usage()
+        print "***Error***: Insuffcient Arguements"
         exit(0)
 
-    #X-Data
-    xWAN=0
-    if "s" in sys.argv[1]:
-        xSmooth=True
-        xCol,xWAN=sys.argv[1].split("s")
-        xCol=int(xCol)
-        xWAN=int(xWAN) if len(xWAN)>0 else 10
+    columnIndeces=list()
+    fileIndeces=list()
+    columnFileCounter=list()
+    for i in range(1,len(sys.argv)):
+        reresult=re.search('\d+[s]?[\d]*',sys.argv[i])
+        try:
+            if reresult.group(0) == sys.argv[i]:
+                columnIndeces.append(i)
+                #How many files will have these columns selected
+                if len(columnIndeces)%2==0:
+                    columnFileCounter.append(0)
+        except AttributeError: 
+            fileIndeces.append(i)
+            try:
+                columnFileCounter[-1]+=1
+            except IndexError: pass
+            
+    if len(columnIndeces)!=0:
+        if len(columnIndeces)%2!=0 or columnIndeces[0]!=1:
+            usage()
+            print "***Error***: improperly formed column selection"
+            exit(0)
     else:
-        xSmooth=False
-        xCol=int(sys.argv[1])
+        columnFileCounter=[len(sys.argv[1:])]
 
-    #Y-Data
-    yWAN=0
-    if "s" in sys.argv[2]:
-        ySmooth=True
-        yCol,yWAN=sys.argv[2].split("s")
-        yCol=int(yCol)
-        yWAN=int(yWAN) if len(yWAN)>0 else 10
+    #Go through the complex process of generating the column numbers which will be parsed out of the files selected
+    xSmooths=[]
+    ySmooths=[]
+    xCols=[]
+    yCols=[]
+    xWANs=[]
+    yWANs=[]
+    if len(columnIndeces)==0:
+        for i in fileIndeces:
+            xCols.append(0)
+            yCols.append(1)
+            xSmooths.append(False)
+            ySmooths.append(False)
+            xWANs.append(0)
+            yWANs.append(0)
     else:
-        ySmooth=False
-        yCol=int(sys.argv[2])
+        xcs=[c for i,c in enumerate(columnIndeces) if i%2==0]
+        ycs=[c for i,c in enumerate(columnIndeces) if (i+1)%2==0]
+        for i in range(len(columnFileCounter)):
+            xc=sys.argv[xcs[i]]
+            if "s" in xc:
+                xsm=True
+                r=xc.split("s")
+                xc=int(r[0])
+                if r[1]=="":
+                    xw=10
+                else:
+                    xw=int(r[1])
+            else:
+                xsm=False
+                xc=int(xc)
+                xw=0
 
-    #Files
-    fnames=sys.argv[3:]
-    try:
-        fnamenumbers=map(lambda x:float("".join(re.findall('\d+',x))),fnames)
-        if len(fnames) == len(fnamenumbers):
-            fnames=zip(*sorted(zip(fnames,fnamenumbers),key=lambda x:x[1]))[0]
-    except ValueError:
-        pass
+            yc=sys.argv[ycs[i]]
+            if "s" in yc:
+                ysm=True
+                r=yc.split("s")
+                yc=int(r[0])
+                if r[1]=="":
+                    yw=10
+                else:
+                    yw=int(r[1])
+            else:
+                ysm=False
+                yc=int(yc)
+                yw=0
+
+            for j in range(columnFileCounter[i]):
+                xCols.append(xc)
+                xSmooths.append(xsm)
+                xWANs.append(xw)
+                yCols.append(yc)
+                ySmooths.append(ysm)
+                yWANs.append(yw)
+
+    #Grab the file name
+    fnames=[sys.argv[i] for i in fileIndeces]
+    """
+    #Sorting might introduce undesirable behavior so skip it
+    if len(columnFileCounter)==1: #if you're only selecting 1 column then sort the file names
+        try:
+            fnamenumbers=map(lambda x:float("".join(re.findall('\d+',x))),fnames)
+            if len(fnames) == len(fnamenumbers):
+                fnames=zip(*sorted(zip(fnames,fnamenumbers),key=lambda x:x[1]))[0]
+        except ValueError:
+            pass
+    """
 
     #Colors
     colors = None
@@ -105,6 +170,7 @@ if __name__=="__main__":
         #colors = [float2rgb_fire(i,0,len(fnames)) for i in range(len(fnames))]
         colors=True
 
+    #Load up the data and the label guesses
     labels=list()
     fdatas=list()
     for fname in fnames:
@@ -115,11 +181,19 @@ if __name__=="__main__":
 
         labels.append(l)
         fdatas.append(f)
-
     labels=labels[0]
 
-    #Error check on column selection
-    for i,fdata in enumerate(fdatas):
+    for i in range(sum(columnFileCounter)):
+        label=labels[i]
+        fdata=fdatas[i]
+        xCol=xCols[i]
+        yCol=yCols[i]
+        xSmooth=xSmooths[i]
+        ySmooth=ySmooths[i]
+        xWAN=xWANs[i]
+        yWAN=yWANs[i]
+
+        #Error check on column selection
         if yCol >= len(fdata):
             print "Error: Max column number is %d, but %d requested."%(len(fdata)-1,yCol)
         if xCol >= len(fdata):
