@@ -112,13 +112,11 @@ def outcarReadConfig(outcarF,wantconfig=-1):
         outcar= open(outcarF,"r")
         outcar.seek(bytenums[wantconfig])
         outcar = [outcar.readline() for i in range(5000)]
-
         TE=float(outcar[0].split("=")[-1].split()[0])
 
         basis=zeros([3,3])
         atoms=list()
         forces=list()
-        TE=0
         stress=list()
         for i,line in enumerate(outcar):
             if "in kB" in line:

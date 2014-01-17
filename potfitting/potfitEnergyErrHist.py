@@ -41,8 +41,10 @@ if fdb!=-1:
     print "Feedback: ",len(feedDelE)
     print "Elastic: ",len(strainDelE)
 
+    labels=["EOS","Melt","Feedback","Defects","Elastic"]
     toHist = [i for i in [eosDelE,meltDelE,feedDelE,defectDelE,strainDelE] if len(i)>0]
-    pl.hist(toHist,20,label=["EOS","Melt","Feedback","Defects","Elastic"],histtype='barstacked',fill=True)
+    toLabel = [labels[j] for j,i in enumerate([eosDelE,meltDelE,feedDelE,defectDelE,strainDelE]) if len(i)>0]
+    pl.hist(toHist,20,label=toLabel,histtype='barstacked',fill=True)
 else:
     pl.hist(absdelE,20)
 pl.xlabel("$|\Delta E|$")

@@ -33,6 +33,7 @@ def outcarGrabFinalE(outcar):
         if "external pressure" in line:
             pres=float(line.split()[3])*kB2GPa
             return enrg,natoms,vol,pres
+
     print "Error: simulation didn't finish (not final TOTEN) in file %s"%outcar
     return enrg,natoms,vol,pres
 

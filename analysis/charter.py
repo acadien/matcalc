@@ -2,7 +2,7 @@
 #Calculation tool for POSCARS and LAMMPS dumps.
 
 import sys
-#mine
+#mine - must be imported before scipy/numpy/mpl
 import plotRemote as pr
 
 from colors import float2rgb
@@ -13,14 +13,14 @@ import pylab as pl
 from math import sqrt
 import argparse
 import re
+#3D
+from mpl_toolkits.mplot3d import axes3d
+from matplotlib import cm
 #mine
 from orderParam import *
 import poscarIO
 import outcarIO
 import lammpsIO
-#3D
-from mpl_toolkits.mplot3d import axes3d
-from matplotlib import cm
 
 orderParams={"CN":  coordinationNumber, 
              "BO":  bondOrientation , 
@@ -63,12 +63,16 @@ parser.add_argument('-lval',dest='lval',help='l-value, used in BO (Ql) calculati
 parser.add_argument('-gval',dest='lval',help='g-value, used in BA (g) calculation',type=int)
 parser.add_argument('-nosave','-S',dest='saveFlag',action='store_false',help='turn off saving to file',default='true')
 parser.add_argument('-noplot','-P',dest='plotFlag',action='store_false',help='turn off plotting',default='true')
-parser.add_argument('-avg','-A',dest='averageFlag',action='store_true',help='average POSCAR results if possible')
+parser.add_argument('-avg','-A',dest='averageFlag',action='store_true',help='average results if possible')
 parser.add_argument('-debug','-D',dest='debug',action='store_true',help='turn on debugging of neighbor selection')
 parser.add_argument('-N',dest='cfgNums',help='Configuration number list from dump/outcar, can be comma separated list, or dash separated, #1-#2, to get range (default -1)',type=str,default="-1")
 parser.add_argument('-saveas',dest='saveFileName',help='Filename under which to save the data to',type=str,default='None')
+#parser.add_argument('-evolve',dest='nEvolve',help='Track the time evolution of a parameter',type=int)
 
 args= parser.parse_args()
+#print args.nEvolve
+
+
 op = args.op
 fileNames = args.fileNames
 saveFileName = args.saveFileName
