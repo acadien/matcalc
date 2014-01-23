@@ -75,7 +75,7 @@ if __name__=="__main__":
     fileIndeces=list()
     columnFileCounter=list()
     for i in range(1,len(sys.argv)):
-        reresult=re.search('\d+[s]?[\d]*',sys.argv[i])
+        reresult=re.search('^\d+[s]?[\d]*$',sys.argv[i])
         try:
             if reresult.group(0) == sys.argv[i]:
                 columnIndeces.append(i)
@@ -181,10 +181,9 @@ if __name__=="__main__":
 
         labels.append(l)
         fdatas.append(f)
-    labels=labels[0]
+    label=labels[0]
 
     for i in range(sum(columnFileCounter)):
-        label=labels[i]
         fdata=fdatas[i]
         xCol=xCols[i]
         yCol=yCols[i]
@@ -219,8 +218,8 @@ if __name__=="__main__":
         #Use column labels if available
         if i==0 and len(labels)==len(fdata):
             if xCol!=-1:
-                pl.xlabel( labels[xCol] )
-            pl.ylabel( labels[yCol] )
+                pl.xlabel( label[0] )
+            pl.ylabel( label[1] )
 
         if colors==None:
             pl.plot(xdata,ydata,lw=1.5)
