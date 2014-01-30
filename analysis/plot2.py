@@ -216,10 +216,10 @@ if __name__=="__main__":
             ydata=ydata[WAN/2+1:WAN/-2]
 
         #Use column labels if available
-        if i==0 and len(labels)==len(fdata):
+        if i==0 and len(label)==len(fdata):
             if xCol!=-1:
-                pl.xlabel( label[0] )
-            pl.ylabel( label[1] )
+                pl.xlabel( label[xCol] )
+            pl.ylabel( label[yCol] )
 
         if colors==None:
             pl.plot(xdata,ydata,lw=1.5)

@@ -255,9 +255,6 @@ pl.ylabel("Pressure ($GPa$)",size=17)
 pl.legend(loc=0,fontsize=12)
 #pr.prshow("EOS_PVol.png")
 
-#print Lvolumes['SiO2_anatase_eos']
-#print Lenergies['SiO2_anatase_eos']
-#print Venergies['SiO2_anatase_eos']
 
 plt.tight_layout(pad=0.1,h_pad=0.1,w_pad=0.1)
 pr.prshow("outcarsEOS.png")

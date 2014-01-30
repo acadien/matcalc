@@ -67,6 +67,7 @@ lxdata[3]=map(lambda x:x*dr,range(nr)) #u
 lydata[3]=map(float,lmpdata[nrho+2*nr:nrho+3*nr])
 lxdata[4]=map(lambda x:x*dr,range(nr)) #w
 lydata[4]=map(float,lmpdata[nrho+3*nr:nrho+4*nr])
+print lxdata[2]
 #print "Variable : minval - maxval"
 pl.figure(figsize=(9,6))
 for i,var in enumerate(varnames):
