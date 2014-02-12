@@ -50,7 +50,7 @@ for i in atypes:
     types+=[j+1]*i
     j+=1
 
-fig=mlab.figure(bgcolor=(1.0,1.0,1.0))
+fig=mlab.figure()#bgcolor=(1.0,1.0,1.0))
 
 #Get the order parameter and convert to integer format (opsn) for
 #coloring of atoms
@@ -62,10 +62,10 @@ if opFlag:
 
     #Only plot with coloring if there is some variance in the OP
     if mxop - mnop > 1E-10:
-        mlab.points3d(ax,ay,az,ops,colormap='jet',scale_factor=1.0,scale_mode='none')
+        mlab.points3d(ax,ay,az,ops,colormap='jet',scale_factor=2.0,scale_mode='none')
         n=min(len(set(ops)),10)
     else:
-        mlab.points3d(ax,ay,az,[mnop]*len(az),scale_factor=1.0,scale_mode='none')
+        mlab.points3d(ax,ay,az,[mnop]*len(az),scale_factor=2.0,scale_mode='none')
         n=2
 
     #Color bar formatting
@@ -74,7 +74,7 @@ if opFlag:
     cb.data_range = (min(ops),max(ops))
     
 else:
-    mlab.points3d(ax,ay,az,types,scale_factor=1.0,scale_mode='none')
+    mlab.points3d(ax,ay,az,types,scale_factor=2.0,scale_mode='none')
 
 z=[0,0,0]
 mlab.plot3d([0,v1[0]],[0,v1[1]],[0,v1[2]],color=(0,0,0),line_width=0.5)

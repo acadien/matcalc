@@ -66,7 +66,7 @@ def parse_pfend(pfend):
     pfData = [line for line in pfData if len(line.strip())>0 and line[0]!="#"]
 
     #X-Data
-    genXs=lambda x:arange(x[0],x[1]+0.1,(x[1]-x[0])/(x[2]-1))
+    genXs=lambda x:arange(x[0],x[1]+0.00001,(x[1]-x[0])/(x[2]-1))
     for i in range(nPots[0]):
         l=map(float,pfData.pop(0).split())
         xPhis.append(genXs(l))

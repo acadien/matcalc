@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-#ADD capability to plot multiple potentials on top of eachother!
+#plots ADP/pf_end files, as many as you want on top of eachother! w00t w00t
 
 import plotRemote as pr
 import matplotlib
@@ -48,7 +48,7 @@ def parsePfknots(pfend):
     pfData = [line for line in pfData if len(line.strip())>0 and line[0]!="#"]
 
     #X-Data
-    genXs=lambda x:arange(x[0],x[1]+0.1,(x[1]-x[0])/(x[2]-1))
+    genXs=lambda x:arange(x[0],x[1]+0.0000001,(x[1]-x[0])/(x[2]-1))
     for i in range(nPots[0]):
         l=map(float,pfData.pop(0).split())
         xPhis.append(genXs(l))
@@ -151,45 +151,68 @@ def parseLammpsADP(fname):
     return lxdata,lydata
 
 def usage():
-    print "%s <lammps potential> <optional pf_end>"%sys.argv[0].split("/")[-1]
+    print "%s <lammps potentials or pf_end>"%sys.argv[0].split("/")[-1]
 
 if len(sys.argv)<2:
     usage()
     exit(0)
 
-lammpsx,lammpsy =parseLammpsADP(sys.argv[1])
+argFiles = sys.argv[1:]
+pfxs,pfys,pfnames=list(),list(),list()
+lmpxs,lmpys,lmpnames=list(),list(),list()
 
-pf=False
-if len(sys.argv)==3:
-    pf=True
-    pfknotsx,pfknotsy = parsePfknots(sys.argv[2])
-
+for potfile in argFiles:
+    if "pf_end" in potfile or "pf_start" in potfile:
+        pfx,pfy = parsePfknots(potfile)
+        pfxs.append(pfx)
+        pfys.append(pfy)
+        pfnames.append(potfile)
+    else:
+        lmpx,lmpy =parseLammpsADP(potfile)
+        lmpxs.append(lmpx)
+        lmpys.append(lmpy)
+        lmpnames.append(potfile)
 varnames=["F","rho","phi","u","w"]
 
 #print "Variable : minval - maxval"
 pl.figure(figsize=(9,6))
 for i,var in enumerate(varnames):
-
     pl.subplot(321+i)
+    pf=False
 
-    if pf:
-        pl.scatter(pfknotsx[i],pfknotsy[i])
+    for pfx,pfy in zip(pfxs,pfys):
+        pl.scatter(pfx[i],pfy[i])
         xlims=pl.xlim()
         ylims=pl.ylim()
+        pf=True
 
-    pl.plot(lammpsx[i],lammpsy[i],label=var)
+    mxy=0
+    mny=0
+    for lmpx,lmpy,lmpname in zip(lmpxs,lmpys,lmpnames):
+        pl.plot(lmpx[i],lmpy[i],label=lmpname)
+
+        if i>0:
+            g=[k for k in range(len(lmpx[i])) if lmpx[i][k]<1.5][-1]
+            mxy=max([mxy,max(lmpy[i][g:])])
+            mny=min([mny,min(lmpy[i][g:])])
+            pl.xlim([1.4,6])
+            pl.ylim([mny*1.2,mxy*1.2])
 
     if pf:
         pl.xlim(xlims)
         pl.ylim(ylims)
         if i==2:
             pl.ylim([0,2])
-
-    pl.legend(loc=0)
+    pl.ylabel(var)
+    pl.legend(loc=0,fontsize='small')
     
+
+#pl.subplot(326)
+#pl.plot(lmpx[0],[i-j for i,j in zip(lmpys[0][4],lmpys[1][4])])
 
 #pl.legend()
     #pl.savefig("/home/acadien/Dropbox/stuff%s.png"%var)
-pl.legend(loc=0)
-pr.prshow("SampledPotential.eps")
+
+pl.tight_layout()
+pr.prshow("lammpsPotential.png")
 #pl.show()

@@ -54,13 +54,7 @@ def outcarMeanSquareDisplace(outcarfile):
     atoms=array(atoms)
     Ntime=len(atoms)
     delT,msd=meanSquareDist(atoms,Natom,Ntime,lengths)
-#    for dt in delT:
-#        dti=list()
-#        for i in range(Ntime-dt):
-#            dist_multi_periodic(atoms[i],atoms[i+dt],lengths,ds)
-#            dti.append(sum(map(lambda x:x*x,ds)))
-#        msd.append(sum(dti)/len(dti))
-    print msd[0]
+
     return delT,msd
 
 if __name__=="__main__":
@@ -77,11 +71,11 @@ if __name__=="__main__":
 
     delT,msd=outcarMeanSquareDisplace(outcarfile)
 
-    msdfile="msd.data"
+    msdfile=outcarfile+".msd"
 
     header="Mean Squared Displacement from %s."%(sys.argv[0])
-
+    print delT
     print "Writing %s."%msdfile
     pl.plot(msd)
     pl.show()
-#    writeAngularPairCor(apcfile,header,bmin,bmax,angs,avgvals)
+

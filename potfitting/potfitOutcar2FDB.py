@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import sys,os
+import subprocess
 
 #mine
 from outcarIO import outcarReadConfig
@@ -14,8 +15,8 @@ def usage():
 if not(len(sys.argv) in [5,6,7,8]):
     usage()
 
-ocfile = sys.argv[2] #outcar directory
 
+ocfile = sys.argv[2] #outcar directory
 forcefil= sys.argv[1]
 fordb = open(forcefil,"r")
 grabconfig=int(sys.argv[3])
@@ -30,6 +31,12 @@ if len(sys.argv)==7:
 if len(sys.argv)==8:
     if sys.argv[7]==0:
         scaleEnable=False
+
+#grep to check for PREC = high command, if not present spit out error and quit.
+precResults = subprocess.check_output("grep PREC %s"%ocfile,shell=True).split("=")[1].split()[0]
+if precResults not in ["high","High"]:
+    print "Error: VASP Simulation not performed with \'high\' precision."
+    exit(0)
 
 #get the force configuration number (the total number of configs in the forcefil)
 dbcnfgcnt=0 #Force Data Base Configuration Counter
@@ -49,9 +56,11 @@ natom=len(atoms)
 
 #Number of atoms, use force, header
 if scaleEnable:
-    line="#N\t%d 1 ifconf=%d Taken From:%s  Config:#%d\n"%(natom,dbcnfgcnt,os.getcwd()+"/"+ocfile,grabconfig)
+    line="#N\t%d 1 ifconf=%d Taken From:%s  Config:#%d\n"%\
+        (natom,dbcnfgcnt,os.getcwd()+"/"+ocfile,grabconfig)
 else:
-    line="#N\t%d 1 ifconf=%d Taken From:%s  Config:#%d scaleEnable0\n"%(natom,dbcnfgcnt,os.getcwd()+"/"+ocfile,grabconfig)
+    line="#N\t%d 1 ifconf=%d Taken From:%s  Config:#%d scaleEnable0\n"%\
+        (natom,dbcnfgcnt,os.getcwd()+"/"+ocfile,grabconfig)
 
 #atom types
 line += "#C\t"+elems+"\n"
@@ -71,12 +80,14 @@ elif weight>0 and sweight>0:
     line += "#W\t %d %d\n"%(weight,sweight)
 
 #Stress Tensor
-line += "#S\t %12.8f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f\n"%(stress[0],stress[1],stress[2],stress[3],stress[4],stress[5]) 
+line += "#S\t %12.8f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f\n"%\
+    (stress[0],stress[1],stress[2],stress[3],stress[4],stress[5]) 
             
 #Positions
 line += "#F\t\n"      
 for i in range(natom):
-    line += "  %d\t %12.8f  %12.8f  %12.8f   %12.8f  %12.8f  %12.8f\n"%(types[i],atoms[i][0],atoms[i][1],atoms[i][2],forces[i][0],forces[i][1],forces[i][2])
+    line += "  %d\t %12.8f  %12.8f  %12.8f   %12.8f  %12.8f  %12.8f\n"%\
+        (types[i],atoms[i][0],atoms[i][1],atoms[i][2],forces[i][0],forces[i][1],forces[i][2])
 
 fordb.write(line)
 print "Added "+ocfile+" to force database."

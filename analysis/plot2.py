@@ -75,7 +75,7 @@ if __name__=="__main__":
     fileIndeces=list()
     columnFileCounter=list()
     for i in range(1,len(sys.argv)):
-        reresult=re.search('^\d+[s]?[\d]*$',sys.argv[i])
+        reresult=re.search('^[-]?\d+[s]?[\d]*$',sys.argv[i])
         try:
             if reresult.group(0) == sys.argv[i]:
                 columnIndeces.append(i)

@@ -7,7 +7,7 @@ import plotRemote as pr
 
 from colors import float2rgb
 from scipy import array
-from numpy import linspace,savetxt
+from numpy import linspace,savetxt,histogram
 import matplotlib.cm as cm
 import pylab as pl
 from math import sqrt
@@ -25,6 +25,7 @@ import lammpsIO
 orderParams={"CN":  coordinationNumber, 
              "BO":  bondOrientation , 
              "RDF": radialDistribution , 
+             "FRDF": radialDistribution ,
              "ADF": angleDistribution , 
              "RAF": radangDistribution ,
              "BA":  bondAngleCorr , 
@@ -39,6 +40,7 @@ Apply some order parameter calculation to a POSCAR, OUTCAR or LAMMPS Dump, then 
 =   CN  : Coordination Number                            =
 =   BO  : Bond Orientation (Q_l), requires -lval be set  =
 =   RDF : Radial Distribution Function                   =
+=   FRDF: Fuzzy Radial Distribution Function             =
 =   ADF : Angular Distribution Function                  =
 =   RAF : Radial distribution by bond angle              =
 =   BA  : Bond Angle Correlation, requires -gval be set  =
@@ -161,6 +163,7 @@ if lval==None:
 xylabels={"BO" :[r"BondOrder($Q_%s$)"%str(lval), r"$P(Q_%s)$"%str(lval)],
           "CN" :[r"Coordination_Number",         r"P(CN)"],
           "RDF":[r"R$(\AA)$",                    "#_Bonds"],
+          "FRDF":[r"R$(\AA)$",                    "#_Bonds"],
           "ADF":[r"$\theta(deg)$",               "#_Bond_Angles"],
           "BA" :[r"R$(\AA)$",                    r"$G_{%s}(r)$"%str(lval)],
           "SF" :[r"Q$(\AA^{-1})$",               r"S(Q)"],
@@ -191,6 +194,33 @@ if op == "RAF":
     ax.contour(X, Y, Z,10,cmap=cm.coolwarm,linewidths=[5]*10)
     pl.xlabel("theta")
     pl.ylabel("r")
+    pl.show()
+    exit(0)
+
+#Special Case for FRDF histogrammic RDF
+
+if op == "FRDF":
+    from numpy import bincount,array,zeros
+    import numpy as np
+    from datatools import wsmooth
+
+    t = zip(*[[j*100 for j in orderVals[i][1]] for i in range(len(orderVals))])
+    avgx = orderVals[0][0]
+    a=zeros([len(t),2000])
+    mx=0
+    for i,v in enumerate(t):
+        a[i]=bincount(v,minlength=2000)
+        a[i]=wsmooth(a[i],window_len=75)[0:2000]
+        m=max(a[i])
+        a[i]=np.log([j/m for j in a[i]])
+
+#    for i in a.T:
+#        i=wsmooth(i,window_len=101)[0:a.shape[1]]
+        
+    pl.imshow(a.T,origin='lower',cmap=pl.get_cmap("Blues"))
+    pl.yticks(range(0,1000,100),range(10))
+    pl.xticks(range(0,1001,100),range(11))
+#    pl.ylim([0,600]#
     pl.show()
     exit(0)
 
