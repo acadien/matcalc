@@ -62,10 +62,10 @@ if opFlag:
 
     #Only plot with coloring if there is some variance in the OP
     if mxop - mnop > 1E-10:
-        mlab.points3d(ax,ay,az,ops,colormap='jet',scale_factor=2.0,scale_mode='none')
+        mp3d = mlab.points3d(ax,ay,az,ops,colormap='jet',scale_factor=2.0,scale_mode='none')
         n=min(len(set(ops)),10)
     else:
-        mlab.points3d(ax,ay,az,[mnop]*len(az),scale_factor=2.0,scale_mode='none')
+        mp3d = mlab.points3d(ax,ay,az,[mnop]*len(az),scale_factor=2.0,scale_mode='none')
         n=2
 
     #Color bar formatting
@@ -74,10 +74,16 @@ if opFlag:
     cb.data_range = (min(ops),max(ops))
     
 else:
-    mlab.points3d(ax,ay,az,types,scale_factor=2.0,scale_mode='none')
+    mp3d = mlab.points3d(ax,ay,az,types,scale_factor=2.0,scale_mode='none')
 
 z=[0,0,0]
-mlab.plot3d([0,v1[0]],[0,v1[1]],[0,v1[2]],color=(0,0,0),line_width=0.5)
-mlab.plot3d([0,v2[0]],[0,v2[1]],[0,v2[2]],color=(0,0,0),line_width=0.5)
-mlab.plot3d([0,v3[0]],[0,v3[1]],[0,v3[2]],color=(0,0,0),line_width=0.5)
+#extent = (0,v1[0],0,v2[0],
+#mlab.outline(mp3d, color=(.7, .7, .7), extent=cat1_extent)
+mlab.plot3d([0,v1[0],v1[0]+v2[0],v2[0],0,v3[0]],[0,v1[1],v1[1]+v2[1],v2[1],0,v3[1]],[0,v1[2],v1[2]+v2[2],v2[2],0,v3[2]],color=(0,0,0),line_width=0.5)
+mlab.plot3d([v3[0],v3[0]+v1[0],v3[0]+v2[0]+v1[0],v3[0]+v2[0],v3[0]],[v3[1],v3[1]+v1[1],v3[1]+v2[1]+v1[1],v3[1]+v2[1],v3[1]],[v3[2],v3[2]+v1[2],v3[2]+v2[2]+v1[2],v3[2]+v2[2],v3[2]],color=(0,0,0),line_width=0.5)
+mlab.plot3d([v1[0],v1[0]+v3[0]],[v1[1],v1[1]+v3[1]],[v1[2],v1[2]+v3[2]],color=(0,0,0),line_width=0.5)
+mlab.plot3d([v2[0],v2[0]+v3[0]],[v2[1],v2[1]+v3[1]],[v2[2],v2[2]+v3[2]],color=(0,0,0),line_width=0.5)
+mlab.plot3d([v1[0]+v2[0],v1[0]+v2[0]+v3[0]],[v1[1]+v2[1],v1[1]+v2[1]+v3[1]],[v1[2]+v2[2],v1[2]+v2[2]+v3[2]],color=(0,0,0),line_width=0.5)
+#mlab.plot3d([0,v2[0]],[0,v2[1]],[0,v2[2]],color=(0,0,0),line_width=0.5)
+#mlab.plot3d([0,v3[0]],[0,v3[1]],[0,v3[2]],color=(0,0,0),line_width=0.5)
 prm.prmshow(fname="POSCAR.png")
