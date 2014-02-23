@@ -126,7 +126,7 @@ neighbs=None #maybe do something with neighbors option later
 orderVals=list()
 for pn in fileNames:
 
-    if "POSCAR" in pn or "CONTCAR" in fileNames[0]:
+    if "POSCAR" in pn or "CONTCAR" in pn:#fileNames[0]:
         poscar=open(pn,"r").readlines()
         [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
         orderVals.append(orderParams[op]( \

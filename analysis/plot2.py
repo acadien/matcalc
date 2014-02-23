@@ -9,6 +9,9 @@ import pylab as pl
 from datatools import windowAvg,wsmooth
 from colors import vizSpec
 
+#class blah():
+    
+
 #returns a parsed file, keeping only rows that can be converted to floats
 #keeps rows with the most common number of columns.
 def parse(fname,delim=None):
@@ -54,14 +57,17 @@ def parse(fname,delim=None):
 
 def usage():
     print "\nUsage: %s <x-data column><s><window size> <y-data column><s><window size> <filenames>"%sys.argv[0].split("/")[-1]
+    print "\nUsage: %s <x-data column><x><scale> <y-data column><x><scale> <filenames>"%sys.argv[0].split("/")[-1]
     print "\nA general use plotter of 2D data. \nAttempts to find data in column format and plot the desired columns."
     print "If x-data column is -1 then range(len(y)) is used"
-    print "If the column number is followed by an \"s\" then a window average is applied to that data."
+    print "If the column number is followed by an <s> then a window average is applied to that data."
+    print "If the column number is followed by an <x> then scaling by that value is applied"
     print "examples:"
-    print "./plot2.py datafile #by default chooses columns 0 and 1"
-    print "./plot2.py 0 1 datafile1 datafile2 datafile3..."
-    print "./plot2.py 0s 5s50 datafile1 datafile2... # applies a window average of size 10 to column 0 and size 50 to column 5"
-    print "./plot2.py 0 1 datafile1 0 2 datafile2 datafile3 #selects columns 0,1 for df1 and 0,2 for df2 and df3" 
+    print "./plot2.py datafile "
+    print "./plot2.py 0 1 datafile1 datafile2 datafile3"
+    print "./plot2.py 0 1 datafile1 0 2 datafile2 datafile3"
+    print "./plot2.py 0 1s25 datafile1 #windowed average of width 25 is applied"
+    print "./plot2.py 0x0.5 1x2.0 datafile #scale of 0.5 on x-axis and scale of 2.0 on y-axis"
     print ""
 
 if __name__=="__main__":
@@ -75,7 +81,7 @@ if __name__=="__main__":
     fileIndeces=list()
     columnFileCounter=list()
     for i in range(1,len(sys.argv)):
-        reresult=re.search('^[-]?\d+[s]?[\d]*$',sys.argv[i])
+        reresult=re.search('^[-]?\d+[sx]?[\d]*\.?[\d]*$',sys.argv[i])
         try:
             if reresult.group(0) == sys.argv[i]:
                 columnIndeces.append(i)
@@ -97,8 +103,12 @@ if __name__=="__main__":
         columnFileCounter=[len(sys.argv[1:])]
 
     #Go through the complex process of generating the column numbers which will be parsed out of the files selected
-    xSmooths=[]
-    ySmooths=[]
+    xSmoothEnables=[]
+    ySmoothEnables=[]
+    xScaleEnables=[]
+    yScaleEnables=[]
+    xScales=[]
+    yScales=[]
     xCols=[]
     yCols=[]
     xWANs=[]
@@ -107,15 +117,24 @@ if __name__=="__main__":
         for i in fileIndeces:
             xCols.append(0)
             yCols.append(1)
-            xSmooths.append(False)
-            ySmooths.append(False)
+            xSmoothEnables.append(False)
+            ySmoothEnables.append(False)
+            xScaleEnables.append(False)
+            yScaleEnables.append(False)
             xWANs.append(0)
             yWANs.append(0)
+            xScales.append(1.)
+            yScales.append(1.)
     else:
         xcs=[c for i,c in enumerate(columnIndeces) if i%2==0]
         ycs=[c for i,c in enumerate(columnIndeces) if (i+1)%2==0]
+
         for i in range(len(columnFileCounter)):
             xc=sys.argv[xcs[i]]
+            xsc=False
+            xsm=False
+            xw=0
+            xscale=1.
             if "s" in xc:
                 xsm=True
                 r=xc.split("s")
@@ -124,12 +143,22 @@ if __name__=="__main__":
                     xw=10
                 else:
                     xw=int(r[1])
+            elif "x" in xc:
+                xsc=True
+                r=xc.split("x")
+                xc=int(r[0])
+                if r[1]=="":
+                    xscale=1.
+                else:
+                    xscale=float(r[1])
             else:
-                xsm=False
                 xc=int(xc)
-                xw=0
 
             yc=sys.argv[ycs[i]]
+            ysc=False
+            ysm=False
+            yw=0
+            yscale=1.0
             if "s" in yc:
                 ysm=True
                 r=yc.split("s")
@@ -138,18 +167,28 @@ if __name__=="__main__":
                     yw=10
                 else:
                     yw=int(r[1])
+            elif "x" in yc:
+                ysc=True
+                r=yc.split("x")
+                yc=int(r[0])
+                if r[1]=="":
+                    yscale=1.
+                else:
+                    yscale=float(r[1])
             else:
-                ysm=False
                 yc=int(yc)
-                yw=0
 
             for j in range(columnFileCounter[i]):
                 xCols.append(xc)
-                xSmooths.append(xsm)
+                xSmoothEnables.append(xsm)
                 xWANs.append(xw)
+                xScaleEnables.append(xsc)
+                xScales.append(xscale)
                 yCols.append(yc)
-                ySmooths.append(ysm)
+                ySmoothEnables.append(ysm)
                 yWANs.append(yw)
+                yScaleEnables.append(ysc)
+                yScales.append(yscale)
 
     #Grab the file name
     fnames=[sys.argv[i] for i in fileIndeces]
@@ -187,11 +226,7 @@ if __name__=="__main__":
         fdata=fdatas[i]
         xCol=xCols[i]
         yCol=yCols[i]
-        xSmooth=xSmooths[i]
-        ySmooth=ySmooths[i]
-        xWAN=xWANs[i]
-        yWAN=yWANs[i]
-
+                
         #Error check on column selection
         if yCol >= len(fdata):
             print "Error: Max column number is %d, but %d requested."%(len(fdata)-1,yCol)
@@ -206,14 +241,30 @@ if __name__=="__main__":
             xdata=fdata[xCol]
 
         #Smoothing:
-        if xSmooth:
+        xSmoothEnable=xSmoothEnables[i]
+        ySmoothEnable=ySmoothEnables[i]
+        xWAN=xWANs[i]
+        yWAN=yWANs[i]
+        
+        if xSmoothEnable:
             xdata=windowAvg(xdata,xWAN)
-        if ySmooth:
+        if ySmoothEnable:
             ydata=windowAvg(ydata,yWAN)
-        if xSmooth or ySmooth:
+        if xSmoothEnable or ySmoothEnable: #Correct for window offset, average introduces extra points that need to be chopped off
             WAN=max(xWAN,yWAN)
             xdata=xdata[WAN/2+1:WAN/-2]
             ydata=ydata[WAN/2+1:WAN/-2]
+
+        #Scaling - multiply by constant
+        xScaleEnable=xScaleEnables[i]
+        yScaleEnable=yScaleEnables[i]
+        xScale=xScales[i]
+        yScale=yScales[i]
+        
+        if xScaleEnable:
+            xdata=[x*xScale for x in xdata]
+        if yScaleEnable:
+            ydata=[y*yScale for y in ydata]
 
         #Use column labels if available
         if i==0 and len(label)==len(fdata):

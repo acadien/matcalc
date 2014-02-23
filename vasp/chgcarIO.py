@@ -39,7 +39,7 @@ def read(chgcar,SP=False,frac_coord=True):
             SP=False
 
     #To eliminate points that step outside a reasonable range
-    avg = sum(chgdata)/len(chgdata)
+            #avg = sum(chgdata)/len(chgdata)
 
     #chgdata[where(chgdata > 3*avg)[0]]=avg
 
