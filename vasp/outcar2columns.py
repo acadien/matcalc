@@ -26,15 +26,18 @@ shellExec= lambda x: subprocess.check_output(x,shell=True).split("\n")
 #simple usage:
 #shellExec("grep <word> <file>")
 
+#boltzmann's constant * Kelvin / AA^3 in GPa
+kbKAA3=0.013806488
+
 for ocf,outputFile in zip(outcarFiles,outputFiles):
 
     #natom
     natom = int(shellExec("grep NIONS\ = %s"%ocf)[0].split()[-1])
 
-    #Pressure
+    #External Pressure
     grepResults = shellExec("grep external\ pressure %s"%ocf)
     extPressures = [convPress(i.split()[3]) for i in grepResults if len(i)>0]
-    
+
     #Pressure vectors
     grepResults = shellExec("grep in\ kB %s"%ocf)
     xyz6Pressures = [map(convPress,i.split()[2:]) for i in grepResults if len(i)>0]
@@ -57,11 +60,14 @@ for ocf,outputFile in zip(outcarFiles,outputFiles):
     grepResults = shellExec("grep volume\ of\ cell %s"%ocf)
     volumes = [float(i.split()[4])/natom for i in grepResults if len(i)>0]
 
+    #Total Pressure
+    totPressures = [extP + kbKAA3*t/v for extP,v,t in zip(extPressures,volumes,temperatures)]
+
     #Total Energy
     totEnergies = [ekin+ecoh for ekin,ecoh in zip(kinEnergies,cohEnergies)]
 
     #Enthalpy
-    enthalpies = [float(e)+float(p)*float(v)*0.00624150934 for e,p,v in zip(cohEnergies,extPressures,volumes)]
+    enthalpies = [float(e)+float(p)*float(v)*0.00624150934 for e,p,v in zip(cohEnergies,totPressures,volumes)]
 
     #Steps
     steps = range(len(enthalpies))
@@ -75,10 +81,10 @@ for ocf,outputFile in zip(outcarFiles,outputFiles):
           "\n",
           "Step Temp cohEng kinEng totEng enthalpy Pressure Pxx Pyy Pzz Pxy Pxz Pyz\n"]
     
-    data+=["\t".join(map(str,[s,t,c,k,tot,h,p,xx,yy,zz,xy,xz,yz]))+"\n" \
-               for s,t,c,k,tot,h,p,xx,yy,zz,xy,xz,yz in \
+    data+=["\t".join(map(str,[s,t,c,k,tot,h,tp,p,xx,yy,zz,xy,xz,yz]))+"\n" \
+               for s,t,c,k,tot,h,tp,p,xx,yy,zz,xy,xz,yz in \
                zip(steps,temperatures,cohEnergies,kinEnergies,totEnergies,\
-                       enthalpies,extPressures,xx,yy,zz,xy,xz,yz)]
+                       enthalpies,totPressures,extPressures,xx,yy,zz,xy,xz,yz)]
 
     open(outputFile,"w").writelines(data)
     print outputFile

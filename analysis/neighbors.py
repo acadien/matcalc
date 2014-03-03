@@ -21,8 +21,10 @@ def findatom(aval,alist):
     raise ValueError("%s not found in list"%str(aval))
 
 #Returns the voronoi neighbor list
-def voronoiNeighbors(atoms,basis,atypes,style="half"):
+def voronoiNeighbors(atoms,basis,atypes=None,style="half"):
 
+    if atypes==None:
+        atypes=[0]*len(atoms)
     qvfile,basis,qvatoms,nRealAtoms=poscar2qvoronoi(atoms,basis,atypes)
 
     #Get hyperplanes & neighbor list from Fi setting of qvoronoi

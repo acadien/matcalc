@@ -56,7 +56,7 @@ def volumePoints(box,Ns):
 
 #Loop over neighbors provided (otherwise use vornoiNeighbors)
 #Interpolate the 3D Field between each of these neighbors
-def fieldNeighbors1D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninterp=50):
+def fieldNeighbors1D(atoms,atypes,basis,field,halfNeighbors=None,Ninterp=50):
     [v1,v2,v3]=basis
     latoms=array(atoms)
 
@@ -80,6 +80,7 @@ def fieldNeighbors1D(atoms,atypes,basis,field,fieldSize,halfNeighbors=None,Ninte
     nlines=float(sum(map(len,halfNeighbors)))
 
     #Local Grid size
+    fieldSize=elf.size
     delGrids=simSize/fieldSize
     lGridSize=fieldSize
     nlGridPoints=reduce(operator.mul,lGridSize)

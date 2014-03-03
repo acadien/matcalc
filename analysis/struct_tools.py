@@ -117,7 +117,6 @@ def minImageDist(a,b,basis):
     #Find all basis vector translations
     translations = tensordot(basis.T, translation_unit_vectors,[1,1]).T
     imageDists = (b-a)+translations
-
     #Calculate all distances, return the smallest
     return sqrt(min(diag(tensordot(imageDists,imageDists.T,1))))
 

@@ -14,8 +14,7 @@ def read(chgcar,SP=False,frac_coord=True):
     poscardata=(basis,types,atoms,header)
 
     chgcar.pop(0)
-    gridsz=[int(i) for i in chgcar.pop(0).split()]
-
+    gridsz=map(int,chgcar.pop(0).split())
     Tot_pnts = reduce(operator.mul,gridsz)
 
     npline=len(chgcar[0].split())

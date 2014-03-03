@@ -53,6 +53,7 @@ def outcarMeanSquareDisplace(outcarfile):
             count+=1
     atoms=array(atoms)
     Ntime=len(atoms)
+    print Ntime
     delT,msd=meanSquareDist(atoms,Natom,Ntime,lengths)
 
     return delT,msd
@@ -73,9 +74,11 @@ if __name__=="__main__":
 
     msdfile=outcarfile+".msd"
 
-    header="Mean Squared Displacement from %s."%(sys.argv[0])
-    print delT
+    header=["Mean Squared Displacement from %s.\n"%(sys.argv[0]),"delT msd\n"]
+    msddata=header+[str(x)+" "+str(y)+"\n" for x,y in zip(delT,msd)]
     print "Writing %s."%msdfile
-    pl.plot(msd)
-    pl.show()
+    open(msdfile,"w").writelines(msddata)
+
+#    pl.plot(msd)
+#    pl.show()
 

@@ -5,12 +5,12 @@ import plotRemote as pr#mine
 import re
 import sys
 import pylab as pl
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D as ax3d
+from math import fabs
 #mine
 from datatools import windowAvg,wsmooth
 from colors import vizSpec
-
-#class blah():
-    
 
 #returns a parsed file, keeping only rows that can be converted to floats
 #keeps rows with the most common number of columns.
@@ -34,7 +34,6 @@ def parse(fname,delim=None):
             try:
                 f.append(float(elem))
             except ValueError:
-                #f.append(elem)
                 count+=1
 
         if count==len(l):
@@ -56,7 +55,8 @@ def parse(fname,delim=None):
     return labels,parsedData
 
 def usage():
-    print "\nUsage: %s <x-data column><s><window size> <y-data column><s><window size> <filenames>"%sys.argv[0].split("/")[-1]
+    print "\nUsage: %s <x-data column><s><window size> <y-data column><s><window size> <filenames>"\
+        %sys.argv[0].split("/")[-1]
     print "\nUsage: %s <x-data column><x><scale> <y-data column><x><scale> <filenames>"%sys.argv[0].split("/")[-1]
     print "\nA general use plotter of 2D data. \nAttempts to find data in column format and plot the desired columns."
     print "If x-data column is -1 then range(len(y)) is used"
@@ -71,15 +71,25 @@ def usage():
     print ""
 
 if __name__=="__main__":
-    pl.figure(figsize=[18,9])
+
     if len(sys.argv)<2:
         usage()
-        print "***Error***: Insuffcient Arguements"
         exit(0)
 
     columnIndeces=list()
     fileIndeces=list()
     columnFileCounter=list()
+
+    #Pre-parse for switches
+    switches={"-3d":False,"-stagger":False}
+    for i in range(len(sys.argv)-1,-1,-1):
+        if sys.argv[i] in switches.keys(): #this is a switch
+            switches[sys.argv[i]]=True
+            sys.argv.pop(-1)
+        else:
+            break
+
+    #Parse for column selection and file selection.
     for i in range(1,len(sys.argv)):
         reresult=re.search('^[-]?\d+[sx]?[\d]*\.?[\d]*$',sys.argv[i])
         try:
@@ -102,7 +112,7 @@ if __name__=="__main__":
     else:
         columnFileCounter=[len(sys.argv[1:])]
 
-    #Go through the complex process of generating the column numbers which will be parsed out of the files selected
+
     xSmoothEnables=[]
     ySmoothEnables=[]
     xScaleEnables=[]
@@ -222,6 +232,10 @@ if __name__=="__main__":
         fdatas.append(f)
     label=labels[0]
 
+    fig=pl.figure(figsize=[18,9])
+    if switches['-3d']:
+        ax=fig.gca(projection='3d')
+
     for i in range(sum(columnFileCounter)):
         fdata=fdatas[i]
         xCol=xCols[i]
@@ -266,16 +280,32 @@ if __name__=="__main__":
         if yScaleEnable:
             ydata=[y*yScale for y in ydata]
 
+        #Plotting
         #Use column labels if available
         if i==0 and len(label)==len(fdata):
             if xCol!=-1:
                 pl.xlabel( label[xCol] )
             pl.ylabel( label[yCol] )
 
-        if colors==None:
-            pl.plot(xdata,ydata,lw=1.5)
+        if switches["-3d"]:
+            if colors==None:
+                ax.plot(xdata,ydata,zs=i,lw=1.5)
+            else:
+                ax.plot(xdata,ydata,zs=i,lw=2,c=vizSpec(float(i)/len(fnames)))
+        elif switches["-stagger"]:
+            m=min(ydata)
+            if i==0:
+                dely=(max(ydata)-min(ydata))/2.#sum([fabs(y-m) for y in ydata])/len(ydata)
+            ydata=[y-m+i*dely for y in ydata]
+            if colors==None:
+                pl.plot(xdata,ydata,lw=1.5)
+            else:
+                pl.plot(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)))
         else:
-            pl.plot(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)))
-    
+            if colors==None:
+                pl.plot(xdata,ydata,lw=1.5)
+            else:
+                pl.plot(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)))
+
     pl.legend(fnames,loc=0)
     pr.prshow("plot2.png")

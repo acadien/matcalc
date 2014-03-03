@@ -224,7 +224,7 @@ if op == "FRDF":
     pl.show()
     exit(0)
 
-def savetxtWrapper(defaultFileName,data,delimiter=" ",header=None,comments=""):
+def savetxtWrapper(defaultFileName,data,delimiter=" ",header=" ",comments=""):
     if saveFileName is "None":
         savetxt(defaultFileName,data,delimiter=delimiter,header=header,comments=comments)
     else:
