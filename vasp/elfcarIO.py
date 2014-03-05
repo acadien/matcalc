@@ -7,7 +7,7 @@ import operator
 #mine
 import poscarIO
 
-def read(elfcar):
+def read(elfcar,swapxz=True):
     basis,types,atoms,header,elfcar=poscarIO.read(elfcar)
 
     atoms=asarray(atoms)
@@ -16,12 +16,14 @@ def read(elfcar):
 
     elfcar.pop(0)
     gridsz=[int(i) for i in elfcar.pop(0).split()]
-    gridsz=[gridsz[2],gridsz[1],gridsz[0]]
+    if swapxz:
+        gridsz=[gridsz[2],gridsz[1],gridsz[0]]
     Tot_pnts = reduce(operator.mul,gridsz)
 
     elfdata=asarray(map(float,"".join(elfcar).split()[:Tot_pnts]))
     elfdata.shape=gridsz
-    elfdata=elfdata.swapaxes(0,2)
+    if swapxz:
+        elfdata=elfdata.swapaxes(0,2)
     return poscardata,elfdata
 
 

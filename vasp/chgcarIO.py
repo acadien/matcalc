@@ -9,7 +9,7 @@ import poscarIO
 #poscardata,chgdata = chgcarIO.read(open(chgcarFileName,"r").readlines())
 #if spin polarized, returns poscardata,chgdata_add,chgdata_sub
 #sum(sum(sum(chgdata))) = Total # of electrons (or valence electrons)
-def read(chgcar,SP=False,frac_coord=True):
+def read(chgcar,SP=False,frac_coord=True,swapxz=True):
     basis,types,atoms,header,chgcar=poscarIO.read(chgcar,frac_coord)
     poscardata=(basis,types,atoms,header)
 
@@ -23,6 +23,8 @@ def read(chgcar,SP=False,frac_coord=True):
         cur+=1
     #Divices by Tot_pnts to get absolute Charge (e.g. total # electrons)
     chgdata=array(map(lambda x:float(x)/Tot_pnts,"".join(chgcar[:cur]).split()))
+    if swapxz:
+        gridsz=[gridsz[2],gridsz[1],gridsz[0]]
     chgdata.shape=gridsz
     chgcar=chgcar[cur:]
 
@@ -44,7 +46,8 @@ def read(chgcar,SP=False,frac_coord=True):
 
 
     #Some chgcars seem to need their axes swapped, possible bug in VASP
-#    chgdata=swapaxes(chgdata,0,2)
+    if swapxz:
+        chgdata=swapaxes(chgdata,0,2)
     if SP:
         return poscardata,chgdata_add,chgdata_sub
     return poscardata,chgdata

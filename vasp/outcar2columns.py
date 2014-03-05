@@ -79,7 +79,7 @@ for ocf,outputFile in zip(outcarFiles,outputFiles):
           "Temperature in K | Energy & Enthalpy in eV/atom | Volume in AA^3/atom | Pressure in GPa\n",
           "NION=%d, Init. Volume/atom = %s\n"%(natom,str(volumes[0])),
           "\n",
-          "Step Temp cohEng kinEng totEng enthalpy Pressure Pxx Pyy Pzz Pxy Pxz Pyz\n"]
+          "Step Temp cohEng kinEng totEng enthalpy Pressure ExtPressure Pxx Pyy Pzz Pxy Pxz Pyz\n"]
     
     data+=["\t".join(map(str,[s,t,c,k,tot,h,tp,p,xx,yy,zz,xy,xz,yz]))+"\n" \
                for s,t,c,k,tot,h,tp,p,xx,yy,zz,xy,xz,yz in \

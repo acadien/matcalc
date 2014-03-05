@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys
+import subprocess
 
 #for saving figures remotely
 #import matplotlib
@@ -21,12 +22,11 @@ doscar=open(sys.argv[1]).readlines()
 enableFermi=False
 if len(sys.argv)==3:
     try:
-        efermi=float([line for line in open(sys.argv[2]).readlines() if "E-fermi" in line][-1].split()[2])
+        efermi=float(subprocess.check_output("grep E\-fermi %s"%sys.argv[2],shell=True).split("\n")[-2].split()[2])
     except IndexError:
         print "WARNING: Can't find Fermi energy (E-fermi line in OUTCAR), continuing without it"
     else:
         enableFermi=True
-        print efermi
 
 Natoms=int(doscar.pop(0).split()[0])
 doscar=doscar[4:]
@@ -96,7 +96,12 @@ else:#s
     orbs=[[0,1]]
     labels=['s','total','integ']
 colors=['blue','green','purple','red','black','gray']
-    
+
+#Shift everything over by the fermi Energy
+if enableFermi:
+    poDOSenergy=[i-efermi for i in poDOSenergy]
+    tDOSenergy=[i-efermi for i in tDOSenergy]
+
 pl.figure()
 if spin:
     for i in range(len(orbs)):
@@ -119,20 +124,25 @@ else:
 if spin:
     pl.plot(tDOSenergy,tDOSU,c=colors[-2],label=labels[-2])
     pl.plot(tDOSenergy,[x+y for x,y in zip(tDOSU,tDOSD)],c="orange",label="Sum of U&D",ls='--')
-    pl.plot(tDOSenergy,tDOSintegU,c=colors[-2],label=labels[-1],ls='-.')
+    #pl.plot(tDOSenergy,tDOSintegU,c=colors[-2],label=labels[-1],ls='-.')
     pl.plot(tDOSenergy,array(tDOSD)*-1,c=colors[-2])
-    pl.plot(tDOSenergy,array(tDOSintegD)*-1,c=colors[-2],ls='-.')
+    #pl.plot(tDOSenergy,array(tDOSintegD)*-1,c=colors[-2],ls='-.')
     
 else:
     pl.plot(tDOSenergy,tDOS,c=colors[-2],label=labels[-2])
-    pl.plot(tDOSenergy,tDOSinteg,c=colors[-1],label=labels[-1],ls='-.')
-pl.xlabel("Energy")
+    #pl.plot(tDOSenergy,tDOSinteg,c=colors[-1],label=labels[-1],ls='-.')
+pl.xlabel("Energy (eV)")
 pl.ylabel("DOS")
 pl.legend(loc=0)
 
+mn=min(min(poDOSenergy),min(tDOSenergy))
+mx=max(max(poDOSenergy),max(tDOSenergy))
+pl.xlim([mn,mx])
+
 if enableFermi:
-    pl.plot([efermi,efermi],[0,max(tDOSinteg)],c='black',ls=':')
-pl.xlim([min(min(poDOSenergy),min(tDOSenergy)),max(max(poDOSenergy),max(tDOSenergy))+8])
+    pl.text(mn+(mx-mn)*0.01,max(tDOS)*0.98,"E-Fermi=%4.4feV"%efermi)
+    pl.plot([0,0],[0,max(tDOS)],c='black',ls=':',lw=2)
+
 pl.title(sys.argv[1])
 
 pl.show()

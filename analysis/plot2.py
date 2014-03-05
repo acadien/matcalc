@@ -66,8 +66,9 @@ def usage():
     print "./plot2.py datafile "
     print "./plot2.py 0 1 datafile1 datafile2 datafile3"
     print "./plot2.py 0 1 datafile1 0 2 datafile2 datafile3"
-    print "./plot2.py 0 1s25 datafile1 #windowed average of width 25 is applied"
+    print "./plot2.py 0 1s25 datafile1     #windowed average of width 25 is applied"
     print "./plot2.py 0x0.5 1x2.0 datafile #scale of 0.5 on x-axis and scale of 2.0 on y-axis"
+    print "switches: -3d, -stagger, -sort"
     print ""
 
 if __name__=="__main__":
@@ -81,7 +82,7 @@ if __name__=="__main__":
     columnFileCounter=list()
 
     #Pre-parse for switches
-    switches={"-3d":False,"-stagger":False}
+    switches={"-3d":False,"-stagger":False,"-sort":False}
     for i in range(len(sys.argv)-1,-1,-1):
         if sys.argv[i] in switches.keys(): #this is a switch
             switches[sys.argv[i]]=True
@@ -202,16 +203,15 @@ if __name__=="__main__":
 
     #Grab the file name
     fnames=[sys.argv[i] for i in fileIndeces]
-    """
-    #Sorting might introduce undesirable behavior so skip it
-    if len(columnFileCounter)==1: #if you're only selecting 1 column then sort the file names
-        try:
-            fnamenumbers=map(lambda x:float("".join(re.findall('\d+',x))),fnames)
-            if len(fnames) == len(fnamenumbers):
-                fnames=zip(*sorted(zip(fnames,fnamenumbers),key=lambda x:x[1]))[0]
-        except ValueError:
-            pass
-    """
+    if switches['-sort']:
+        #Sorting might introduce undesirable behavior so skip it
+        if len(columnFileCounter)==1: #if you're only selecting 1 column then sort the file names
+            try:
+                fnamenumbers=map(lambda x:float("".join(re.findall('\d+',x))),fnames)
+                if len(fnames) == len(fnamenumbers):
+                    fnames=zip(*sorted(zip(fnames,fnamenumbers),key=lambda x:x[1]))[0]
+            except ValueError:
+                pass
 
     #Colors
     colors = None
@@ -301,6 +301,7 @@ if __name__=="__main__":
                 pl.plot(xdata,ydata,lw=1.5)
             else:
                 pl.plot(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)))
+            pl.tick_params(labelleft='off')
         else:
             if colors==None:
                 pl.plot(xdata,ydata,lw=1.5)

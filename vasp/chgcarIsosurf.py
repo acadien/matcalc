@@ -22,7 +22,7 @@ if not(len(sys.argv) in [2]):
 fname=sys.argv[1]
 vtkfile=fname+".vtk"
 
-poscarData,chgcarData=chgcarIO.read(open(fname,"r").readlines())
+poscarData,chgcarData=chgcarIO.read(open(fname,"r").readlines(),swapxz=False)
 chgcarIO.writeVTK(vtkfile,poscarData,chgcarData)
 
 #---------------------------------
