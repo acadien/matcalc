@@ -80,7 +80,7 @@ def outcar2poscar(outcarF,wantconfig=-1):
 def outcarReadConfig(outcarF,wantconfig=-1):
 
     #Ion types and number of steps
-    nums = subprocess.check_output("head -n 500 %s | grep ions\ per\ type "%outcarF,shell=True).split("\n")[0].split("=")[1].strip()
+    nums = subprocess.check_output("head -n 500 %s | grep ions\ per\ type "%outcarF,shell=True).split("\n")[0].split("=")[1:]
     nums=map(int,nums)
     types = [[i]*nums[i] for i in range(len(nums))]
     Natoms=sum(nums)
@@ -96,6 +96,7 @@ def outcarReadConfig(outcarF,wantconfig=-1):
         outcar= open(outcarF,"r")
         outcar.seek(bytenums[wantconfig])
         outcar = [outcar.readline() for i in range(5000)]
+
         TE=float(outcar[0].split("=")[-1].split()[0])
 
         basis=zeros([3,3])
