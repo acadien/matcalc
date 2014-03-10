@@ -79,14 +79,14 @@ elif yvals=='kp':
             if orb!=porb:
                 if orb=='t': temp='total'
                 else: temp=orb
-                pl.plot(energy[kp],occupancy[kp][i],label=temp,color=c)
+                pl.plot(energy[kp],occupancy[kp,:,i],label=temp,color=c)
             else:
-                pl.plot(energy[kp],occupancy[kp][i],color=c)
+                pl.plot(energy[kp],occupancy[kp,:,i],color=c)
             porb=orb
         pl.xlabel("Energy (in eV)")
         pl.ylabel("DOS")
         pl.title("KPoint %d at (%5.5g,%5.5g,%5.5g)"%(kp,kpoints[kp][0],kpoints[kp][1],kpoints[kp][2]));
-        pl.legend()
+        pl.legend(loc=0)
             #pl.xlim([min(avgen),max(avgen)+12.0])
         pl.savefig("DOS_kp%d_from%s"%(kp,procarfile))
 

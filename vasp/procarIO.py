@@ -52,7 +52,7 @@ def sumgauss(xcenter,ycenter,xgrid,ygrid,sigma):
     return gaussFunctions.gauss1D(xgrid,ygrid,ycenter,xcenter,sigma)
 
 #read(The unread procar file, the width of gaussians (0=points), ngPnts=number of grid points)
-def read(procarFilename,sigma=0.2,ngPnts=1000):
+def read(procarFilename,sigma=0.1,ngPnts=1000):
     kpoints=list()
     weights=list()
 
@@ -61,7 +61,11 @@ def read(procarFilename,sigma=0.2,ngPnts=1000):
     procar.readline()
 
     [Nkpoints,Nbands,Nions]=map(lambda x:int(x.split(":")[1]),procar.readline().split("#")[1:])
-    Norbs=Nbands
+    skbk=procar.tell()
+    for i in range(5):
+        procar.next()
+    Norbs=len(procar.next().split())-1
+    procar.seek(skbk)
 
     #Parsy Parsy noitch.
     print "Parsing PROCAR, this may take a moment..."
@@ -99,3 +103,6 @@ def read(procarFilename,sigma=0.2,ngPnts=1000):
     #lengths
     #      Norbs    ,Nkpoints,Nkpoints,Nkpoints*NBands,Nkpoints*Norbs*Nbands,ngPnts,Norbs*ngPnts
     return orbLabels,kpoints ,weights ,energies       ,occupancies          ,eGrid ,ocGrids
+
+#Parses the PROCAR averaging over Kpoints and Bands
+def read_per_atom(procarFilename)
