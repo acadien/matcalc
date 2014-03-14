@@ -50,9 +50,9 @@ for ocf,outputFile in zip(outcarFiles,outputFiles):
 
     #Cohesive Energy
     grepResults = shellExec("grep free\ \ energy %s"%ocf)
-    cohEnergies = [float(i.split()[4])/natom for i in grepResults if len(i)>0]
+    energies = [float(i.split()[4])/natom for i in grepResults if len(i)>0]
     
-    #cohEnegery without TS
+    #Enegery without TS
     grepResults = shellExec("grep energy\ \ without\ entropy %s"%ocf)
     noTSEnergies = [float(i.split()[3])/natom for i in grepResults if len(i)>0]
     
@@ -64,10 +64,10 @@ for ocf,outputFile in zip(outcarFiles,outputFiles):
     totPressures = [extP + kbKAA3*t/v for extP,v,t in zip(extPressures,volumes,temperatures)]
 
     #Total Energy
-    totEnergies = [ekin+ecoh for ekin,ecoh in zip(kinEnergies,cohEnergies)]
+    totEnergies = [ekin+e for ekin,e in zip(kinEnergies,energies)]
 
     #Enthalpy
-    enthalpies = [float(e)+float(p)*float(v)*0.00624150934 for e,p,v in zip(cohEnergies,totPressures,volumes)]
+    enthalpies = [float(e)+float(p)*float(v)*0.00624150934 for e,p,v in zip(energies,totPressures,volumes)]
 
     #Steps
     steps = range(len(enthalpies))
@@ -79,11 +79,11 @@ for ocf,outputFile in zip(outcarFiles,outputFiles):
           "Temperature in K | Energy & Enthalpy in eV/atom | Volume in AA^3/atom | Pressure in GPa\n",
           "NION=%d, Init. Volume/atom = %s\n"%(natom,str(volumes[0])),
           "\n",
-          "Step Temp cohEng kinEng totEng enthalpy Pressure ExtPressure Pxx Pyy Pzz Pxy Pxz Pyz\n"]
+          "Step Temp potEng kinEng totEng Enthalpy Pressure ExtPressure Pxx Pyy Pzz Pxy Pxz Pyz\n"]
     
     data+=["\t".join(map(str,[s,t,c,k,tot,h,tp,p,xx,yy,zz,xy,xz,yz]))+"\n" \
                for s,t,c,k,tot,h,tp,p,xx,yy,zz,xy,xz,yz in \
-               zip(steps,temperatures,cohEnergies,kinEnergies,totEnergies,\
+               zip(steps,temperatures,energies,kinEnergies,totEnergies,\
                        enthalpies,totPressures,extPressures,xx,yy,zz,xy,xz,yz)]
 
     open(outputFile,"w").writelines(data)
