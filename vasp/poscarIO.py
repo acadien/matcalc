@@ -5,6 +5,8 @@ from numpy import matrix,linalg,array
 #Given the poscar (opened and read)
 #Returns: basis,atypes,atoms,head,poscar
 def read(poscar,frac_coord=False):
+    if type(poscar)!=type(list()):
+        poscar=open(poscar,"r").readlines()
 
     if len(poscar)<3:
         print "Error\nSomething wrong with poscar or not passed properly to read poscar."

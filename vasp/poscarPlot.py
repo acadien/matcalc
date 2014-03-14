@@ -62,10 +62,10 @@ if opFlag:
 
     #Only plot with coloring if there is some variance in the OP
     if mxop - mnop > 1E-10:
-        mp3d = mlab.points3d(ax,ay,az,ops,colormap='jet',scale_factor=2.0,scale_mode='none')
+        mp3d = mlab.points3d(ax,ay,az,ops,colormap='gist_earth',scale_factor=1.9,scale_mode='none',resolution=14)
         n=min(len(set(ops)),10)
     else:
-        mp3d = mlab.points3d(ax,ay,az,[mnop]*len(az),scale_factor=2.0,scale_mode='none')
+        mp3d = mlab.points3d(ax,ay,az,[mnop]*len(az),colormap='gist_earth',scale_factor=1.9,scale_mode='none',resolution=14)
         n=2
 
     #Color bar formatting
@@ -74,7 +74,7 @@ if opFlag:
     cb.data_range = (min(ops),max(ops))
     
 else:
-    mp3d = mlab.points3d(ax,ay,az,types,scale_factor=2.0,scale_mode='none')
+    mp3d = mlab.points3d(ax,ay,az,types,scale_factor=2.0,scale_mode='none',color=(0.25,0.33,1.00),resolution=14)
 
 z=[0,0,0]
 #extent = (0,v1[0],0,v2[0],

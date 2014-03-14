@@ -1,6 +1,8 @@
 #!/usr/bin/python
 import scipy
-from numpy import *
+import subprocess
+import pylab as pl
+import numpy as np
 #mine
 import gaussFunctions
 
@@ -43,7 +45,7 @@ def grabOatB(procar, Nions):
         procar.readline()
 
     #occ=map(lambda x:sum(x),zip(*[map(float,procar.readline().split()[1:]) for i in range(Nions)]))
-    occ = array(map(float,procar.readline().split()[1:]))
+    occ = np.array(map(float,procar.readline().split()[1:]))
     return occ,header
 
 #Generate a bunch of gaussians, centered at x with height y and sum the up on the grid sg
@@ -69,8 +71,8 @@ def read(procarFilename,sigma=0.1,ngPnts=1000):
 
     #Parsy Parsy noitch.
     print "Parsing PROCAR, this may take a moment..."
-    occupancies=zeros([Nkpoints,Nbands,Norbs])
-    energies = zeros([Nkpoints,Nbands])
+    occupancies=np.zeros([Nkpoints,Nbands,Norbs])
+    energies = np.zeros([Nkpoints,Nbands])
     for i in range(Nkpoints):
         print "On Kpoint %d of %d"%(i+1,Nkpoints)
         k,w=grabKP(procar)
@@ -83,8 +85,8 @@ def read(procarFilename,sigma=0.1,ngPnts=1000):
         weights.append(w)
 
     #Gaussian summations
-    eGrid=linspace(energies.min()-1.0,energies.max()+1,ngPnts)
-    ocGrids=zeros([Norbs,ngPnts]) #occupancy grid to sum the band-gaussians over
+    eGrid=np.linspace(energies.min()-1.0,energies.max()+1,ngPnts)
+    ocGrids=np.zeros([Norbs,ngPnts]) #occupancy grid to sum the band-gaussians over
 
     if sigma>0:
         #Sum up gaussians
@@ -97,12 +99,50 @@ def read(procarFilename,sigma=0.1,ngPnts=1000):
         for kp in range(Nkpoints): 
             for b in range(Nbands):
                 for o in range(Norbs):
-                    a=digitize([energies[kp,b]],eGrid)
+                    a=np.digitize([energies[kp,b]],eGrid)
                     ocGrids[o,a] += occupancies[kp,b,o]*weights[kp]/Nkpoints
 
     #lengths
     #      Norbs    ,Nkpoints,Nkpoints,Nkpoints*NBands,Nkpoints*Norbs*Nbands,ngPnts,Norbs*ngPnts
     return orbLabels,kpoints ,weights ,energies       ,occupancies          ,eGrid ,ocGrids
 
-#Parses the PROCAR averaging over Kpoints and Bands
-def read_per_atom(procarFilename)
+#Parses the PROCAR averaging over Kpoints and Bands, giving the local (or Site-Projected) Density of States. LDOS
+def readLDOS(procarFilename,sigma=0.1,nGridPoints=1000):
+    
+    #Parse the header
+    pcarF = open(procarFilename,"r")
+    pcarF.next()
+    nKpoint,nBand,nIon=map(lambda x:int(x.split(":")[1]),pcarF.next().split("#")[1:])
+    pcarF.close()
+
+    #Find the starting spots for the band listings
+    locBandOccData= subprocess.check_output("grep -b band.*energ.*occ.* %s"%procarFilename,shell=True).split("\n")[:-1]
+    locs,bandOccData=zip(*[i.split(":") for i in locBandOccData])
+    locs=map(int,locs)
+    bandEnergies,occTot=zip(*[map(float,[i.split()[4],i.split()[-1]]) for i in bandOccData])
+    bandEnergies=np.asarray(bandEnergies)
+
+    #Find the occupancies for each Ion
+    pcarF = open(procarFilename,"r")
+    occupancies=np.zeros([nIon,nBand])
+    for i in range(len(locs)):
+        pcarF.seek(locs[i])
+        pcarF.next()
+        pcarF.next()
+        pcarF.next()
+        occupancies[:,i%nBand] += np.asarray([float(pcarF.next().split()[-1]) for j in range(nIon)])
+    occupancies/=nKpoint
+
+    #Setup the band energies grid
+    mx=max(bandEnergies)+1.0
+    mn=min(bandEnergies)-1.0
+    bandGrid=np.asarray([float(i)/nGridPoints*(mx-mn)+mn for i in range(nGridPoints)])
+
+    #Setup the occupancy grid and fill with gaussians
+    occGrid=np.zeros([nIon,nGridPoints])
+    for i in range(nIon):
+        #Sums up gaussians accross occGrid on each ion
+        [sumgauss(bandEnergies[j],occupancies[i,j],bandGrid,occGrid[i,:],sigma) for j in range(nBand)]
+    
+    #      float,float      nGP      nIon*nGP
+    return nIon,nGridPoints,bandGrid,occGrid
