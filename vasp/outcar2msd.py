@@ -4,7 +4,7 @@ from math import *
 from scipy import array,zeros
 import pylab as pl
 #mine
-from meanSquareDist import meanSquareDist
+from meanSquareDist import meanSquareDistRef
 import outcarIO
 #msdIO
 
@@ -13,7 +13,7 @@ import outcarIO
 def usage():
     print "Usage: %s <Outcar> "%sys.argv[0].split("/")[-1]
 
-def outcarMeanSquareDisplace(outcarfile):
+def outcarMeanSquareDisplace(outcarfile,refStructure=None):
     outcar=open(outcarfile,"r")
     atoms=list() #atoms[time][atom]
 
@@ -53,8 +53,13 @@ def outcarMeanSquareDisplace(outcarfile):
             count+=1
     atoms=array(atoms)
     Ntime=len(atoms)
-    print Ntime
-    delT,msd=meanSquareDist(atoms,Natom,Ntime,lengths)
+    print Ntime,refStructure
+    if refStructure==None:
+        delT,msd=meanSquareDistRef(atoms,0,Natom,Ntime,lengths)
+    elif refStructure > Ntime:
+        print "%d requested but %d structures max"%(refStructure,Ntime)
+    else:
+        delT,msd=meanSquareDistRef(atoms,refStructure,Natom,Ntime,lengths)
 
     return delT,msd
 
@@ -64,15 +69,24 @@ if __name__=="__main__":
         exit(0)
     
     outcarfile=sys.argv[1]
-    
     try:
         num=sys.argv[1].split("_")[1]
     except IndexError:
         num=None
 
-    delT,msd=outcarMeanSquareDisplace(outcarfile)
+    refStructure=None
+    if len(sys.argv)==3:
+        try:
+            refStructure=int(sys.argv[2])
+        except ValueError:
+            pass
 
-    msdfile=outcarfile+".msd"
+    delT,msd=outcarMeanSquareDisplace(outcarfile,refStructure)
+
+    if refStructure==None:
+        msdfile=outcarfile+".msd"
+    else:
+        msdfile=outcarfile+".msd%d"%refStructure
 
     header=["Mean Squared Displacement from %s.\n"%(sys.argv[0]),"delT msd\n"]
     msddata=header+[str(x)+" "+str(y)+"\n" for x,y in zip(delT,msd)]
