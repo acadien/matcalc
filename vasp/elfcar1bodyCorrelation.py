@@ -28,9 +28,9 @@ for chgelfcarfile in chgelfcarfiles:
     s=sum(vals)
     vals=[v/s*100 for v in vals]
     m=max(m,max(vals))
-    bins=map(lambda x:(x[0]+x[1])/2.*1000,zip(bins[:-1],bins[1:]))
+    bins=map(lambda x:(x[0]+x[1])/2.,zip(bins[:-1],bins[1:]))
     pl.plot(bins,vals,label="Step: %s"%chgelfcarfile.split("_")[-1].split("/")[0]+"   Vol:%4.4f"%volume)
-pl.xticks([x/20.*2.5 - 0.5 for x in range(20)])
+#pl.xticks([x/20.*2.5 - 0.5 for x in range(20)])
 pl.ylabel("Percent Volume")
 pl.xlabel("Charge (meV)")
 pl.ylim([0,m*1.1])

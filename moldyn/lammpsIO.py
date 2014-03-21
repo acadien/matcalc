@@ -120,6 +120,9 @@ def readConfig(dumpFile,configN):
     bytenums=[int(i.split(":")[0]) for i in grepResults if len(i)>2]
     dumpF=open(dumpFile,"r")
 
+    if configN in ["all","All"]:
+        configN=range(len(bytenums))
+
     print "%d configurations in %s"%(len(bytenums),dumpFile)
     try:
         if len(configN)==1:

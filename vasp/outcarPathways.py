@@ -1,19 +1,22 @@
 #!/usr/bin/python
+import matplotlib as mpl
+from mpl_toolkits.mplot3d import Axes3D
 import sys
 from math import *
 from scipy import array,zeros
 import pylab as pl
+from scipy import weave
+from scipy.weave import converters
 #mine
-from meanSquareDist import meanSquareDistRef
 import outcarIO
-#msdIO
+import meanSquareDist
 
 #Calculates mean squared distance
 
 def usage():
     print "Usage: %s <Outcar> <Config0> "%sys.argv[0].split("/")[-1]
 
-def outcarMeanSquareDisplace(outcarfile,refStructure=None):
+def outcarPaths(outcarfile):
     outcar=open(outcarfile,"r")
     atoms=list() #atoms[time][atom]
 
@@ -53,15 +56,26 @@ def outcarMeanSquareDisplace(outcarfile,refStructure=None):
             count+=1
     atoms=array(atoms)
     Ntime=len(atoms)
-    print Ntime,refStructure
-    if refStructure==None:
-        delT,msd=meanSquareDistRef(atoms,0,Natom,Ntime,lengths)
-    elif refStructure > Ntime:
-        print "%d requested but %d structures max"%(refStructure,Ntime)
-    else:
-        delT,msd=meanSquareDistRef(atoms,refStructure,Natom,Ntime,lengths)
 
-    return delT,msd
+    atoms=array(atoms).ravel()
+    delT=array(range(1,Ntime+1))
+    compiler_args=['-march=native -O3 -fopenmp']
+    headers=r"""#include <omp.h>"""
+    libs=['gomp']
+    weave.inline(meanSquareDist.undoPBCcode,['atoms','Ntime','Natom','lengths'],\
+                     extra_compile_args=compiler_args,\
+                     support_code=headers,\
+                     libraries=libs)
+    atoms.shape=(Ntime,Natom,3)
+
+    fig=pl.figure()
+    ax=fig.add_subplot(111,projection='3d')
+    for i in range(Natom):
+        ax.plot(atoms[:,i,0],atoms[:,i,1],atoms[:,i,2])
+
+    pl.show()
+    print atoms.shape
+    #ax.plot(
 
 if __name__=="__main__":
     if len(sys.argv)<2:
@@ -74,25 +88,6 @@ if __name__=="__main__":
     except IndexError:
         num=None
 
-    refStructure=None
-    if len(sys.argv)==3:
-        try:
-            refStructure=int(sys.argv[2])
-        except ValueError:
-            pass
+    outcarPaths(outcarfile)
 
-    delT,msd=outcarMeanSquareDisplace(outcarfile,refStructure)
-
-    if refStructure==None:
-        msdfile=outcarfile+".msd"
-    else:
-        msdfile=outcarfile+".msd%d"%refStructure
-
-    header=["Mean Squared Displacement from %s.\n"%(sys.argv[0]),"delT msd\n"]
-    msddata=header+[str(x)+" "+str(y)+"\n" for x,y in zip(delT,msd)]
-    print "Writing %s."%msdfile
-    open(msdfile,"w").writelines(msddata)
-
-#    pl.plot(msd)
-#    pl.show()
 

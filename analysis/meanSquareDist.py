@@ -117,7 +117,7 @@ def meanSquareDistRef(atoms,ref,Natom,Ntime,lengths):
     headers=r"""#include <omp.h>"""
     libs=['gomp']
 
-    weave.inline(undoPBCcode,['atoms','Ntime','Natom','lengths','msd'],\
+    weave.inline(undoPBCcode,['atoms','Ntime','Natom','lengths'],\
                      extra_compile_args=compiler_args,\
                      support_code=headers,\
                      libraries=libs)

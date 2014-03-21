@@ -85,6 +85,7 @@ line += "#S\t %12.8f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f\n"%\
             
 #Positions
 line += "#F\t\n"      
+types=types[0]
 for i in range(natom):
     line += "  %d\t %12.8f  %12.8f  %12.8f   %12.8f  %12.8f  %12.8f\n"%\
         (types[i],atoms[i][0],atoms[i][1],atoms[i][2],forces[i][0],forces[i][1],forces[i][2])

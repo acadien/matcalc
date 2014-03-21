@@ -88,6 +88,8 @@ def outcarReadConfig(outcarF,wantconfig=-1):
     #Use grep to speed up finding values in a huge file!
     grepResults = subprocess.check_output("grep -b free\ \ energy %s"%outcarF,shell=True).split("\n")
     bytenums=[int(i.split(":")[0]) for i in grepResults if len(i)>2]
+    if wantconfig in ["all","All"]:
+        wantconfig=range(len(bytenums))
 
     #Parse the configurations from the specified OUTCAR locations
     if type(wantconfig)==type([]) and len(wantconfig)==1:

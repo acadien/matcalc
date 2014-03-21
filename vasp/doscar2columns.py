@@ -7,21 +7,23 @@ from scipy import *
 
 def usage():
     print "%s <list of doscars>"%sys.argv[0].split("/")[-1]
-    print "Writes files OUTCAR.col in respective directories"
+    print "Writes files DOSCAR.col in respective directories"
 
 if len(sys.argv)<2:
     usage()
     exit(0)
 
 doscarFiles = sys.argv[1:]
-outcarFiles = ["/".join(i.split("/")[:-1]+["OUTCAR"]) for i in doscarFiles]
-TOoutputFiles = ["/".join(i.split("/")[:-1]+["TODOS.col"]) for i in doscarFiles]
+outputFiles = ["/".join(i.split("/")[:-1]+["DOSCAR.col"]) for i in doscarFiles]
 
-for dcf,ocf,TOoutput in zip(doscarFiles,outcarFiles,TOoutputFiles):
+for dcf,output in zip(doscarFiles,outputFiles):
     doscar=open(dcf,"r").readlines()
-
+    
     #fermi energy
-    efermi=float(subprocess.check_output("tail -n 2000 %s | grep E\-fermi"%ocf,shell=True).split("\n")[-2].split()[2])
+    try:
+        efermi=float(doscar[5].split()[-2])
+    except IndexError:
+        continue
     enableFermi=True
 
     #nAtoms, nDOS
@@ -72,5 +74,5 @@ for dcf,ocf,TOoutput in zip(doscarFiles,outcarFiles,TOoutputFiles):
         data+=["%lf %lf %lf\n"%(tDOSenergy[i],tDOSU[i],tDOSD[i]) for i in range(len(tDOSenergy))]
     else:
         data+=["%lf %lf\n"%(tDOSenergy[i],tDOS[i]) for i in range(len(tDOSenergy))]
-    open(TOoutput,"w").writelines(data)
+    open(output,"w").writelines(data)
 

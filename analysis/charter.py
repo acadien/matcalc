@@ -5,7 +5,7 @@ import sys
 #mine - must be imported before scipy/numpy/mpl
 import plotRemote as pr
 
-from colors import float2rgb
+from colors import float2rgb,vizSpec
 from scipy import array
 from numpy import linspace,savetxt,histogram
 import matplotlib.cm as cm
@@ -13,9 +13,9 @@ import pylab as pl
 from math import sqrt
 import argparse
 import re
+import matplotlib
 #3D
 from mpl_toolkits.mplot3d import axes3d
-from matplotlib import cm
 #mine
 from orderParam import *
 import poscarIO
@@ -67,17 +67,17 @@ parser.add_argument('-nosave','-S',dest='saveFlag',action='store_false',help='tu
 parser.add_argument('-noplot','-P',dest='plotFlag',action='store_false',help='turn off plotting',default='true')
 parser.add_argument('-avg','-A',dest='averageFlag',action='store_true',help='average results if possible')
 parser.add_argument('-debug','-D',dest='debug',action='store_true',help='turn on debugging of neighbor selection')
-parser.add_argument('-N',dest='cfgNums',help='Configuration number list from dump/outcar, can be comma separated list, or dash separated, #1-#2, to get range (default -1)',type=str,default="-1")
+parser.add_argument('-N',dest='cfgNums',help='Configuration number list from dump/outcar, can be comma separated list, or dash separated, #1-#2, to get range (default -1), can also be \'all\'',type=str,default="-1")
 parser.add_argument('-saveas',dest='saveFileName',help='Filename under which to save the data to',type=str,default='None')
-#parser.add_argument('-evolve',dest='nEvolve',help='Track the time evolution of a parameter',type=int)
-
+parser.add_argument('-evolve',dest='nEvolve',help='Track the time evolution of a parameter, average over nEvolve stages',type=int,default=None)
+parser.add_argument('-stagger',dest='stagger',action='store_true',help='staggers results when plotting, useful with -evolve setting',default=False)
 args= parser.parse_args()
-#print args.nEvolve
-
 
 op = args.op
 fileNames = args.fileNames
 saveFileName = args.saveFileName
+nEvolve = args.nEvolve
+stagger = args.stagger
 
 #grab the directory for each file
 fileDirs = list()
@@ -97,6 +97,8 @@ cfgNums = args.cfgNums
 if "-" in cfgNums and len(cfgNums)>2:
     a,b=map(int,cfgNums.split("-"))
     cfgNums=range(a,b)
+elif "all" in cfgNums or "All" in cfgNums:
+    pass
 else:
     cfgNums = map(int,args.cfgNums.split(","))
 #cfgNums[0] -= 50
@@ -229,6 +231,34 @@ def savetxtWrapper(defaultFileName,data,delimiter=" ",header=" ",comments=""):
         savetxt(defaultFileName,data,delimiter=delimiter,header=header,comments=comments)
     else:
         savetxt(saveFileName,data,delimiter=delimiter,header=header,comments=comments)
+
+if nEvolve != None:
+    [xs,ys]=zip(*orderVals)
+    xs=xs[0]
+    nSamples=len(ys)
+
+    nDel=nSamples/nEvolve
+    yEvs=list()
+    lablel=list()
+    for i in range(nEvolve):
+        start, finish = i*nDel, (i+1)*nDel
+        labels.append(str(start)+" - "+str(finish))
+        yEvs.append(map(lambda x: sum(x)/len(x),zip(*ys[start:finish])))
+        
+    if not(stagger):
+        for i in range(nEvolve):
+            pl.plot(xs,yEvs[i],color=vizSpec(i/float(nEvolve)))
+    else:
+        yDel=( max(map(max,yEvs)) - min(map(min,yEvs)) )/2.
+        for i in range(nEvolve):
+            yvals=[y+yDel*i for y in yEvs[i]]
+            pl.plot(xs,yvals,color=vizSpec(i/float(nEvolve)))
+            pl.text((max(xs)-min(xs))*0.8,yDel*(i+0.2),labels[i])
+        pl.yticks([])
+    pl.xlabel(xylabels[op][0])
+    pl.ylabel(xylabels[op][1])
+    pl.show()
+    exit(0)
 
 if args.averageFlag:
     if op not in ["BO","CN","TN","TET"]:

@@ -11,7 +11,7 @@ import pylab as pl
 from scipy import *
 
 def usage():
-    print "doscarPlot.py <DOSCAR> <opt:OUTCAR (Efermi)>"
+    print "doscarPlot.py <DOSCAR>"
 
 if len(sys.argv)<2:
     usage()
@@ -19,15 +19,7 @@ if len(sys.argv)<2:
 
 doscar=open(sys.argv[1]).readlines()
 
-enableFermi=False
-if len(sys.argv)==3:
-    try:
-        efermi=float(subprocess.check_output("grep E\-fermi %s"%sys.argv[2],shell=True).split("\n")[-2].split()[2])
-    except IndexError:
-        print "WARNING: Can't find Fermi energy (E-fermi line in OUTCAR), continuing without it"
-    else:
-        enableFermi=True
-
+efermi=float(doscar[5].split()[-2])
 Natoms=int(doscar.pop(0).split()[0])
 doscar=doscar[4:]
 NDOS=int(doscar.pop(0).split()[2])
@@ -98,9 +90,8 @@ else:#s
 colors=['blue','green','purple','red','black','gray']
 
 #Shift everything over by the fermi Energy
-if enableFermi:
-    poDOSenergy=[i-efermi for i in poDOSenergy]
-    tDOSenergy=[i-efermi for i in tDOSenergy]
+poDOSenergy=[i-efermi for i in poDOSenergy]
+tDOSenergy=[i-efermi for i in tDOSenergy]
 
 pl.figure()
 if spin:
@@ -139,9 +130,8 @@ mn=min(min(poDOSenergy),min(tDOSenergy))
 mx=max(max(poDOSenergy),max(tDOSenergy))
 pl.xlim([mn,mx])
 
-if enableFermi:
-    pl.text(mn+(mx-mn)*0.01,max(tDOS)*0.98,"E-Fermi=%4.4feV"%efermi)
-    pl.plot([0,0],[0,max(tDOS)],c='black',ls=':',lw=2)
+pl.text(mn+(mx-mn)*0.01,max(tDOS)*0.98,"E-Fermi=%4.4feV"%efermi)
+pl.plot([0,0],[0,max(tDOS)],c='black',ls=':',lw=2)
 
 pl.title(sys.argv[1])
 
