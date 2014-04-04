@@ -55,9 +55,6 @@ charter.py ADF OUTCAR -N 1-200 -rcut 3.5
 charter.py CN dumpfile.dat -N 25,36 -rcut 6.5
 ''')
 
-#Need to implement test of file to determine if it is a lammps dump or poscar chart
-#Also implement for OUTCAR files...
-
 parser.add_argument('op',choices=orderParams.keys(),help="Order Parameter selection.")
 parser.add_argument('fileNames',nargs='*',help="A list of POSCAR files (space delim)")
 parser.add_argument('-rcut',help='Radius Cutoff distance when selecting neighbors, if not provided the first shell minimum is used.',type=float)
@@ -71,6 +68,7 @@ parser.add_argument('-N',dest='cfgNums',help='Configuration number list from dum
 parser.add_argument('-saveas',dest='saveFileName',help='Filename under which to save the data to',type=str,default='None')
 parser.add_argument('-evolve',dest='nEvolve',help='Track the time evolution of a parameter, average over nEvolve stages',type=int,default=None)
 parser.add_argument('-stagger',dest='stagger',action='store_true',help='staggers results when plotting, useful with -evolve setting',default=False)
+parser.add_argument('-neighbors',dest='neighbFile',help='A file containing a nieghbor list',type=str,default=None)
 args= parser.parse_args()
 
 op = args.op
@@ -78,6 +76,9 @@ fileNames = args.fileNames
 saveFileName = args.saveFileName
 nEvolve = args.nEvolve
 stagger = args.stagger
+neighbFile = args.neighbFile
+lval = args.lval
+cfgNums = args.cfgNums
 
 #grab the directory for each file
 fileDirs = list()
@@ -91,9 +92,8 @@ for fn in fileNames:
 sameDir = False
 if fileDirs.count(fileDirs[0]) == len(fileDirs):
     sameDir = True
-        
-lval = args.lval
-cfgNums = args.cfgNums
+
+#Loops in cfgNums
 if "-" in cfgNums and len(cfgNums)>2:
     a,b=map(int,cfgNums.split("-"))
     cfgNums=range(a,b)
@@ -101,9 +101,6 @@ elif "all" in cfgNums or "All" in cfgNums:
     pass
 else:
     cfgNums = map(int,args.cfgNums.split(","))
-#cfgNums[0] -= 50
-#cfgNums[0] /= 10
-#print cfgNums
 
 if op == "BA" and args.lval == None:
     print "Error: g-value (-gval) must be set for BA order parameter"
@@ -121,10 +118,14 @@ try:
 except ValueError:
     pass
 
+#Handle Neighbor Files
+neighbs=None 
+if neighbFile != None:
+    neighbs=neighborIO.read(neighbFile)
+
 #======================================================
 #       Gather the order parameters
 #======================================================
-neighbs=None #maybe do something with neighbors option later
 orderVals=list()
 for pn in fileNames:
 
@@ -257,7 +258,7 @@ if nEvolve != None:
         pl.yticks([])
     pl.xlabel(xylabels[op][0])
     pl.ylabel(xylabels[op][1])
-    pl.show()
+    pr.prshow("%s_chart_evolve.png"%op)
     exit(0)
 
 if args.averageFlag:
@@ -306,7 +307,6 @@ elif args.saveFlag:
         elif op in ["BO"]:
             vals,bins,dummy = pl.hist(ov,bins=int(sqrt(len(ov)))*5,normed=True,visible=False)
             savetxtWrapper(pn+"."+op+str(lval),array(zip(bins[:-1],vals)),header=" ".join(xylabels[op]))
-
         else:
             savetxtWrapper(pn+"."+op+str(lval),array(ov).T,header=" ".join(xylabels[op]))
 

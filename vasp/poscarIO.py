@@ -4,7 +4,7 @@ from numpy import matrix,linalg,array
 
 #Given the poscar (opened and read)
 #Returns: basis,atypes,atoms,head,poscar
-def read(poscar,frac_coord=False):
+def read(poscar,frac_coord=False,selDynFlag=False):
     if type(poscar)!=type(list()):
         poscar=open(poscar,"r").readlines()
 
@@ -30,7 +30,15 @@ def read(poscar,frac_coord=False):
     if "Sel" in line or "sel" in line: #selective dynamics
         poscar.pop(0)
 
-    ax,ay,az=map(list,zip(*[map(float,line.split()[:3]) for line in poscar[:N]]))
+    seldyn=list()
+    if selDynFlag:
+        ax,ay,az,sd1,sd2,sd3=map(list,zip(*[line.split() for line in poscar[:N]]))        
+        ax=map(float,ax)
+        ay=map(float,ay)
+        az=map(float,az)
+        seldyn=zip(sd1,sd2,sd3)
+    else:
+        ax,ay,az=map(list,zip(*[map(float,line.split()[:3]) for line in poscar[:N]]))        
 
     if not frac_coord:
         for i in range(len(ax)):
@@ -46,7 +54,9 @@ def read(poscar,frac_coord=False):
     atoms=zip(ax,ay,az)
     basis=[v1,v2,v3]
     poscar=poscar[N:]    
-        
+    
+    if selDynFlag:
+            return basis,atypes,atoms,head,poscar,seldyn
     return basis,atypes,atoms,head,poscar
 
 #Takes 1 valid poscar from the input and returns it with the input poscar
@@ -63,7 +73,8 @@ def split(poscarin):
     return poscarin,poscarout
 
 
-def write(poscarName,basis,atoms,types,header,ratio=1.0,frac=True,autoFrac=True):
+def write(poscarName,basis,atoms,types,header,seldyn=None,ratio=1.0,frac=True,autoFrac=True):
+
     if len(types)==len(atoms):
         #fix types arrangement, reorder atoms as necessary
         atoms,types = zip(*sorted(zip(atoms,types),key=lambda x:x[1]))
@@ -72,6 +83,13 @@ def write(poscarName,basis,atoms,types,header,ratio=1.0,frac=True,autoFrac=True)
         ntypes=[types.count(i) for i in range(sm,bg+1)]
     else:
         ntypes=types
+
+    if seldyn==None:
+        seldyn=[""]*len(atoms)
+        seldynTag=""
+    else:
+        seldyn=[" ".join(i) for i in seldyn]
+        seldynTag="Selective Dynamics\n"
 
     #If atoms are not in fractional coordinates, convert them
     if autoFrac==True:
@@ -93,9 +111,10 @@ def write(poscarName,basis,atoms,types,header,ratio=1.0,frac=True,autoFrac=True)
     for vec in basis:
         data+=" % 5.12e % 5.12e % 5.12e\n"%(vec[0],vec[1],vec[2])
     data+=" "+" ".join([str(i) for i in ntypes])+"\n"
+    data+=seldynTag
     data+="Direct\n"
-    for atom in atoms:
-        data+=" % 5.12e % 5.12e % 5.12e\n"%(atom[0],atom[1],atom[2])
+    for sd,atom in zip(seldyn,atoms):
+        data+=" % 5.12e % 5.12e % 5.12e %s\n"%(atom[0],atom[1],atom[2],sd)
 
     poscar=open(poscarName,"w")
     poscar.write(data)

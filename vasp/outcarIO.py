@@ -8,7 +8,7 @@ def outcar2poscar(outcarF,wantconfig=-1):
     posi=list()
 
     #Number of atoms from OUTCAR
-    grepR = subprocess.check_output("head -n 500 %s | grep ions\ per\ type "%outcarF,shell=True).split("\n")
+    grepR = subprocess.check_output("head -n 1000 %s | grep ions\ per\ type "%outcarF,shell=True).split("\n")
     nums = grepR[0].split("=")[1].strip()
     Natoms = sum(map(int,nums.split()))
 
@@ -80,7 +80,7 @@ def outcar2poscar(outcarF,wantconfig=-1):
 def outcarReadConfig(outcarF,wantconfig=-1):
 
     #Ion types and number of steps
-    nums = subprocess.check_output("head -n 500 %s | grep ions\ per\ type "%outcarF,shell=True).split("\n")[0].split("=")[1:]
+    nums = subprocess.check_output("head -n 1000 %s | grep ions\ per\ type "%outcarF,shell=True).split("\n")[0].split("=")[1:]
     nums=map(int,nums)
     types = [[i]*nums[i] for i in range(len(nums))]
     Natoms=sum(nums)

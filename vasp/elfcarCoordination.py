@@ -13,7 +13,7 @@ from scipy import ndimage
 from struct_tools import minImageDist,minImageAtom,rotmatx
 import elfcarIO
 from neighbors import voronoiNeighbors
-
+import neighborIO
 
 def elfcarNeighborAnalysis(elfcarfile,verbose=False,minELF=0.5,maxBondLength=4.0):
     #Loads up an ELFCAR, generates a starting neighbor list from voronoi tesselation
@@ -135,9 +135,8 @@ if __name__=="__main__":
         open("%s.CoordHist"%elfcarfile,"w").writelines(data)
 
         #Write the neighbor list
-        data = ["%d\n"%len(neighbors)]
-        data+= [" ".join(map(str,neighb))+"\n" for neighb in neighbors]
-        open("%s.Neighb"%elfcarfile,"w").writelines(data)
-
+        #data = ["%d\n"%len(neighbors)]
+        #data+= [" ".join(map(str,neighb))+"\n" for neighb in neighbors]
+        neighborIO.write("%s.Neighb"%elfcarfile,neighbors)
         #All done.
         print "%s.CoordHist %s.Coord %s.Neighb\n"%(elfcarfile,elfcarfile,elfcarfile)

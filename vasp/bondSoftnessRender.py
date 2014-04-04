@@ -9,6 +9,7 @@ from mayavi import mlab
 #mine
 import procarIO
 import poscarIO
+import neighborIO
 from struct_tools import dist_periodic,minImageAtom
 
 #Evaluates the fukui softness functions using the local density of states
@@ -51,7 +52,7 @@ try:
     rcut=float(neighbsFile)
     neighbs=neighbors(atoms,bounds,rcut,style="full")
 except ValueError:
-    neighbs=[map(int,i.split()) for i in open(neighbsFile,"r").readlines()[1:]]
+    neighbs=neighborIO.read(neighbsFile)#[map(int,i.split()) for i in open(neighbsFile,"r").readlines()[1:]]
 
 #chemical potential integral
 delU = 0.1
@@ -94,6 +95,8 @@ mnSoft,mxSoft=0.15,4.0
 mnLen,mxLen = 2.40,2.9
 
 pairs=list()
+ds=list()
+cs=list()
 for i in range(nIon):
     d=0
     n=0
@@ -108,15 +111,23 @@ for i in range(nIon):
             #Based on bond length
             cLen=(r-mnLen)/(mxLen-mnLen)
 
-            mlab.plot3d([atoms[i,0],b[0]],[atoms[i,1],b[1]],[atoms[i,2],b[2]],color=(1-cSoft,cSoft,cSoft),tube_radius=0.1,tube_sides=10)
+            #mlab.plot3d([atoms[i,0],b[0]],[atoms[i,1],b[1]],[atoms[i,2],b[2]],color=(1-cSoft,cSoft,cSoft),tube_radius=0.1,tube_sides=10)
+            
+
             #mlab.plot3d([atoms[i,0],b[0]],[atoms[i,1],b[1]],[atoms[i,2],b[2]],color=(1-cLen,cLen,cLen),tube_radius=0.1,tube_sides=10)
             #mlab.plot3d([atoms[i,0],b[0]],[atoms[i,1],b[1]],[atoms[i,2],b[2]],color=(0.8,0.8,0.8),tube_radius=0.1,tube_sides=10)
             d+=cSoft
             n+=1
     d/=n
-    mlab.points3d([ax[i]],[ay[i]],[az[i]],[types[i]],color=(1-d,d,d),scale_factor=1.0,scale_mode='none',resolution=20) 
+    print n,d
+    ds.append(d)
+    cs.append([1-d,d,d])
+    
+mlab.points3d(ax,ay,az,ds,scale_factor=1.0,scale_mode='none',resolution=20) 
     #mlab.points3d([ax[i]],[ay[i]],[az[i]],[types[i]],color=(0.3,0.3,0.7),scale_factor=1.0,scale_mode='none',resolution=20) 
+print "Higher Softness corresponds to Blue (more states at the fermi energy)"
 
+mlab.plot3d([0,basis[0][0],basis[0][0],0,0],[0,basis[1][1],0,basis[1][1],0],[float(open(poscarFile).readline().split("=")[1])]*5)
 
 mlab.show()
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-#The ELFCAR's analyzed by this script need to be part of rectangular simulations
+#The ELFCARs analyzed by this script need to be part of rectangular simulations
 #parallepiped simulations can be changed to cubic/rectangular using the script
 #poscarRectify.py
 #This greatly simplifies the application of periodic boundary conditions
@@ -13,7 +13,6 @@ import pylab as pl
 import elfcarIO
 from neighbors import voronoiNeighbors
 from fieldPointAnalysis import fieldNeighbors
-
 
 def usage():
     print "Usage:"

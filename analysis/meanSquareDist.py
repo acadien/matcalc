@@ -101,7 +101,7 @@ for(int i=0;i<Ntime;i++){
     }
   }
 
-  msd[i] = c/(Natom*Ntime);
+  msd[i] = c/(Natom);//*Ntime);
 
 }
 """
