@@ -88,7 +88,7 @@ if __name__=="__main__":
     else:
         msdfile=outcarfile+".msd%d"%refStructure
 
-    header=["Mean Squared Displacement from %s.\n"%(sys.argv[0]),"delT msd\n"]
+    header=["Mean Squared Displacement from %s.\n"%(sys.argv[0]),"delTimeStep msd($\AA^2$)\n"]
     msddata=header+[str(x)+" "+str(y)+"\n" for x,y in zip(delT,msd)]
     print "Writing %s."%msdfile
     open(msdfile,"w").writelines(msddata)

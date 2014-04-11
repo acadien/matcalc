@@ -24,13 +24,14 @@ if len(sys.argv)<2:
 sfile=open(sys.argv[1],"r").readlines()[2:]
 fdb=-1
 if len(sys.argv)>=3:
-    fdb=["/".join(line.split("home")[1].split("OUTCAR")[0].split("/")[6:]) for line in open(sys.argv[2],"r").readlines() if "ifconf" in line]
-
+    fdb=["/".join(line.split("ascwork")[-1].split()[0].split("/")) for line in open(sys.argv[2],"r").readlines() if "ifconf" in line]
+print fdb
 mxerr=0.05
 if len(sys.argv)==4:
     mxerr=float(sys.argv[3])
 sfile = map(lambda x: x.split(),sfile)
 absdelS=map(lambda x: 0.0 if "inf" in x[5] else fabs(float(x[5])*float(x[4])),sfile)
+
 if fdb!=-1:
     #Alter these lines to affect how labeling of configs is done
     eosDelS=[i for i,j in zip(absdelS,fdb) if "eos" in j]
@@ -38,13 +39,17 @@ if fdb!=-1:
     meltDelS=[i for i,j in zip(absdelS,fdb) if "heat" in j or "cool" in j]
     feedDelS=[i for i,j in zip(absdelS,fdb) if "feedback" in j]
     strainDelS=[i for i,j in zip(absdelS,fdb) if "strain" in j]
+    slowDelS=[i for i,j in zip(absdelS,fdb) if "slow" in j]
     print "EOSs: ",len(eosDelS)
-    print "Defects: ",len(defectDelS)
     print "Melt/Quench: ",len(meltDelS)
     print "Feedback: ",len(feedDelS)
+    print "Defects: ",len(defectDelS)
     print "Elastic: ",len(strainDelS)
-    toHist = [i for i in [eosDelS,meltDelS,feedDelS,defectDelS,strainDelS] if len(i)>0]
-    pl.hist(toHist,20,label=["EOS","Melt","Feedback","Defects","Elastic"],histtype='barstacked',fill=True)
+    print "SlowQ: ",len(slowDelS)
+    toHist = [i for i in [eosDelS,meltDelS,feedDelS,defectDelS,strainDelS,slowDelS] if len(i)>0]
+    toHistL = [j for i,j in zip([eosDelS,meltDelS,feedDelS,defectDelS,strainDelS,slowDelS],["EOS","Melt","Feedback","Defects","Elastic","SlowQ"]) if len(i)>0]
+    
+    pl.hist(toHist,20,label=toHistL,histtype='barstacked',fill=True)
 else:
     pl.hist(absdelS,20)
 pl.xlabel("$|\Delta S|$")

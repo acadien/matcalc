@@ -73,9 +73,8 @@ def outcarPaths(outcarfile):
     for i in range(Natom):
         ax.plot(atoms[:,i,0],atoms[:,i,1],atoms[:,i,2])
 
+    pl.suptitle(outcarfile)
     pl.show()
-    print atoms.shape
-    #ax.plot(
 
 if __name__=="__main__":
     if len(sys.argv)<2:

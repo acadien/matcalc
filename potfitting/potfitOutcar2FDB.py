@@ -4,6 +4,7 @@ import subprocess
 
 #mine
 from outcarIO import outcarReadConfig
+import poscarIO
 
 #This script writes an OUTCAR configuration to a force database for operating on by potfit
 
@@ -14,7 +15,6 @@ def usage():
 
 if not(len(sys.argv) in [5,6,7,8]):
     usage()
-
 
 ocfile = sys.argv[2] #outcar directory
 forcefil= sys.argv[1]
@@ -48,10 +48,11 @@ fordb.close()
 fordb = open(forcefil,"a")
 
 TE,stress,basis,atoms,forces,types=outcarReadConfig(ocfile,grabconfig)
+
 stress=[i/160.2 for i in stress]
 #Change atoms to be in cartesian coords instead of fractional
-bT=basis.T
-atoms=[bT.dot(atom) for atom in atoms]
+#bT=basis.T
+#atoms=[bT.dot(atom) for atom in atoms]
 natom=len(atoms)
 
 #Number of atoms, use force, header
