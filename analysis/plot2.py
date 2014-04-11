@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
-import plotRemote as pr#mine
-
+#mine
+import plotRemote as pr
+#notmine
 import re
 import sys
 import pylab as pl
@@ -68,7 +69,7 @@ def usage():
     print "./plot2.py 0 1 datafile1 0 2 datafile2 datafile3"
     print "./plot2.py 0 1s25 datafile1     #windowed average of width 25 is applied"
     print "./plot2.py 0x0.5 1x2.0 datafile #scale of 0.5 on x-axis and scale of 2.0 on y-axis"
-    print "switches: -3d, -stagger, -sort, -avg"
+    print "switches: -3d, -stagger, -sort, -avg, -hist"
     print ""
 
 if __name__=="__main__":
@@ -82,7 +83,7 @@ if __name__=="__main__":
     columnFileCounter=list()
 
     #Pre-parse for switches
-    switches={"-3d":False,"-stagger":False,"-sort":False,"-avg":False}
+    switches={"-3d":False,"-stagger":False,"-sort":False,"-avg":False,"-hist":False}
     for i in range(len(sys.argv)-1,-1,-1):
         if sys.argv[i] in switches.keys(): #this is a switch
             switches[sys.argv[i]]=True
@@ -239,6 +240,9 @@ if __name__=="__main__":
     if switches['-3d']:
         ax=fig.gca(projection='3d')
 
+    if switches['hist']:
+        NBins=100
+
     for i in range(sum(columnFileCounter)):
         fdata=fdatas[i]
         xCol=xCols[i]
@@ -292,6 +296,11 @@ if __name__=="__main__":
             avgx=xdata
             avgy=np.zeros(len(ydata))
 
+        if i==0 and switches["-avg"]:
+            ybins = range(NBins)
+            mn=min(ydata)
+            mx=max(ydata)
+
         if i==0 and len(label)==len(fdata):
             if xCol!=-1:
                 pl.xlabel( label[xCol] )
@@ -314,6 +323,14 @@ if __name__=="__main__":
                 pl.plot(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)))
             pl.tick_params(labelleft='off')
 
+        elif switches["-hist"]:
+            mn=min(ydata)
+            mx=max(ydata)
+            dely=(mx-mn)/dely
+            ybins=[i*dely/NBins+mn for i in range(-1,101)]
+            yvals=[0]+np.bincount([(y-mn)/(mx-mn)*NBins for y in avgy]).tolist()+[0]
+            pl.plot(ybins,yvals)
+
         elif switches["-avg"]:
             if len(avgy)!=len(ydata):
                 print "Not all data is the same length, unable to average lists of different lengths."
@@ -328,8 +345,16 @@ if __name__=="__main__":
                 pl.plot(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)))
 
     if switches["-avg"]:
-        avgy=[i/count for i in avgy]
-        pl.plot(avgx,avgy)
+        if switches["-hist"]:
+            mn=min(ydata)
+            mx=max(ydata)
+            dely=(mx-mn)/dely
+            ybins=[i*dely/NBins+mn for i in range(-1,101)]
+            yvals=[0]+np.bincount([(y-mn)/(mx-mn)*NBins for y in avgy]).tolist()+[0]
+            pl.plot(ybins,yvals)
+        else:
+            avgy=[i/count for i in avgy]
+            pl.plot(avgx,avgy)
 
     pl.legend(fnames,loc=0)
     pr.prshow("plot2.png")
