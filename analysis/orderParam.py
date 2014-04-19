@@ -30,9 +30,9 @@ def bondOrientation(atoms,basis,l,neighbs=None,rcut=1,debug=True):
         else:
             neighbs = neighbors(atoms,bounds,rcut)
 
+    print atoms,neighbs
     #sum the spherical harmonic over ever neighbor pair
-    Qlms = [sum( [ pairSphereHarms(atoms[i],minImageAtom(atoms[i],atoms[j],basis),l) for j in ineighbs ] ) / len(ineighbs) \
-                for i,ineighbs in enumerate(neighbs) ] 
+    Qlms = [sum( [ pairSphereHarms(atoms[i],minImageAtom(atoms[i],atoms[j],basis),l) for j in ineighbs ] ) / len(ineighbs) for i,ineighbs in enumerate(neighbs) ] 
     Ql = [ (((Qlm.conjugate()*Qlm *4*np.pi / (2*l+1.))).real)**0.5 for Qlm in Qlms] 
 
     return Ql
@@ -86,7 +86,6 @@ def bondAngleCorr(atoms,basis,l,neighbs=None,rcut=None,debug=False):
     norm  = 2*(l+1)*Q0*Q0
     for i,n in enumerate(bcnts):
         if n>0:
-            print "here"
             w = Ql0/n/norm
             gvals[i] = (gvals[i]*w).real
 

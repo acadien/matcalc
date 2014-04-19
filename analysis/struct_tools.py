@@ -120,6 +120,7 @@ def minImageDist(a,b,basis):
     #Calculate all distances, return the smallest
     return sqrt(min(diag(tensordot(imageDists,imageDists.T,1))))
 
+#minimum image of atom b.
 def minImageAtom(a,b,basis):
     translations = tensordot(basis.T, translation_unit_vectors,[1,1]).T
     imageDists = (b-a)+translations
@@ -193,6 +194,7 @@ def sphang(a,b):
 #the spherical harmonic corresponding to two atoms a and b
 def pairSphereHarms(a,b,l):
     theta,phi=sphang(a,b)
+    print theta,phi
     return special.sph_harm(np.array(range(-l,l+1)),l,theta,phi)
 
 bounds_code="""

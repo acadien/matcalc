@@ -207,7 +207,8 @@ if __name__=="__main__":
         #Sorting might introduce undesirable behavior so skip it
         if len(columnFileCounter)==1: #if you're only selecting 1 column then sort the file names
             try:
-                fnamenumbers=map(lambda x:float("".join(re.findall('\d+',x))),fnames)
+                fnamenumbers=map(lambda x:float(".".join(re.findall('\d+',x))),fnames)
+                print fnamenumbers
                 if len(fnames) == len(fnamenumbers):
                     fnames=zip(*sorted(zip(fnames,fnamenumbers),key=lambda x:x[1]))[0]
             except ValueError:
@@ -240,14 +241,14 @@ if __name__=="__main__":
     if switches['-3d']:
         ax=fig.gca(projection='3d')
 
-    if switches['hist']:
+    if switches['-hist']:
         NBins=100
 
     for i in range(sum(columnFileCounter)):
         fdata=fdatas[i]
         xCol=xCols[i]
         yCol=yCols[i]
-                
+
         #Error check on column selection
         if yCol >= len(fdata):
             print "Error: Max column number is %d, but %d requested."%(len(fdata)-1,yCol)

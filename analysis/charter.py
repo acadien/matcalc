@@ -102,6 +102,10 @@ elif "all" in cfgNums or "All" in cfgNums:
 else:
     cfgNums = map(int,args.cfgNums.split(","))
 
+if nEvolve!=None and args.cfgNums=="-1":
+    print "Must specify configurations using -N in order to use Evolve command"
+    exit(0)
+
 if op == "BA" and args.lval == None:
     print "Error: g-value (-gval) must be set for BA order parameter"
     exit(0)
