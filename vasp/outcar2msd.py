@@ -53,7 +53,7 @@ def outcarMeanSquareDisplace(outcarfile,refStructure=None):
             count+=1
     atoms=array(atoms)
     Ntime=len(atoms)
-    print Ntime,refStructure
+
     if refStructure==None:
         delT,msd=meanSquareDistRef(atoms,0,Natom,Ntime,lengths)
     elif refStructure > Ntime:
@@ -76,10 +76,7 @@ if __name__=="__main__":
 
     refStructure=None
     if len(sys.argv)==3:
-        try:
-            refStructure=int(sys.argv[2])
-        except ValueError:
-            pass
+        refStructure=int(sys.argv[2])
 
     delT,msd=outcarMeanSquareDisplace(outcarfile,refStructure)
 

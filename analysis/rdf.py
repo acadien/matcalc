@@ -281,8 +281,7 @@ def adf(atoms,neighbs,basis,cutoff,nbins=360,angtype='deg'):
     b.shape=9
     nneighbsf=array([len(i) for i in neighbs])
     neighbsf=array([i for i in flatten(neighbs)])
-    print sum(nneighbsf),len(neighbsf)
-    print weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','b','cut'],compiler=('gcc'))
+    weave.inline(ADFcode,['atoms','natoms','neighbsf','nneighbsf','bins','nbins','b','cut'],compiler=('gcc'))
 
     b.shape=[3,3]
     atoms.shape=[len(atoms)/3,3]    

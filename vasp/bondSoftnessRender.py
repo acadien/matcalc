@@ -65,7 +65,6 @@ ay=atoms[:,1]
 az=atoms[:,2]
 types=[0]*atypes[0]
 fig=mlab.figure(bgcolor=(1.0,1.0,1.0))
-#
 
 rlen=list()
 soft=list()
@@ -104,20 +103,20 @@ for i in range(nIon):
         r=dist_periodic(atoms[i],atoms[j],lengths)
         b=minImageAtom(atoms[i],atoms[j],basis)
 
-        if r<5.0:#3.2:
-            #Based on softness (blue is soft, red is not-soft)
-            cSoft=(s2[i][v]-mnSoft)/(mxSoft-mnSoft)
+        #if r<3.2:
+        #Based on softness (blue is soft, red is not-soft)
+        cSoft=(s2[i][v]-mnSoft)/(mxSoft-mnSoft)
 
-            #Based on bond length
-            cLen=(r-mnLen)/(mxLen-mnLen)
+        #Based on bond length
+        cLen=(r-mnLen)/(mxLen-mnLen)
 
             #mlab.plot3d([atoms[i,0],b[0]],[atoms[i,1],b[1]],[atoms[i,2],b[2]],color=(1-cSoft,cSoft,cSoft),tube_radius=0.1,tube_sides=10)
             
 
             #mlab.plot3d([atoms[i,0],b[0]],[atoms[i,1],b[1]],[atoms[i,2],b[2]],color=(1-cLen,cLen,cLen),tube_radius=0.1,tube_sides=10)
             #mlab.plot3d([atoms[i,0],b[0]],[atoms[i,1],b[1]],[atoms[i,2],b[2]],color=(0.8,0.8,0.8),tube_radius=0.1,tube_sides=10)
-            d+=cSoft
-            n+=1
+        d+=cSoft
+        n+=1
     if n==0:
         n=1
     d/=n
@@ -129,7 +128,12 @@ mlab.points3d(ax,ay,az,ds,scale_factor=1.0,scale_mode='none',resolution=20)
     #mlab.points3d([ax[i]],[ay[i]],[az[i]],[types[i]],color=(0.3,0.3,0.7),scale_factor=1.0,scale_mode='none',resolution=20) 
 print "Higher Softness corresponds to Blue (more states at the fermi energy)"
 open("SOFTNESS.col","w")
-mlab.plot3d([0,basis[0][0],basis[0][0],0,0],[0,0,basis[1][1],basis[1][1],0],[float(open(poscarFile).readline().split("=")[1])]*5)
+try:
+    z2=float(open(poscarFile).readline().split("=")[1])
+    mlab.plot3d([0,basis[0][0],basis[0][0],0,0],[0,0,basis[1][1],basis[1][1],0],[z2]*5)
+except IndexError:
+    pass
+
 
 mlab.show()
 

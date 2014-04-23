@@ -181,19 +181,18 @@ def tetrahedral(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     if neighbs==None:
         if rcut==None:
             rcut = generateRCut(atoms,basis,debug=debug)
-            rcut += 0.5
-            print "Automatically generating r-cutoff=",rcut
+            rcut += 2.5
         bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
         #ensure only the 4 shortest bonds are used
         neighbs = nNearestNeighbors(4,atoms,bounds,rcut)
-
-
+            
     third=1./3.
     tets=list()
     for i,ineighbs in enumerate(neighbs):
         iatom=atoms[i]
 
         if len(ineighbs)<3:
+            tets.append(0)
             continue
 
         Sg=0
@@ -203,7 +202,7 @@ def tetrahedral(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
             for k in ineighbs[v+1:]:
                 katom=minImageAtom(iatom,atoms[k],basis)
                 a = ang(iatom,jatom,katom)
-                Sg+=cos(a+third)**2
-        Sg*=3./32.
-        tets.append(1-Sg)
+                Sg+=(cos(a)+third)**2
+        Sg = 1 - 3./8.*Sg
+        tets.append(Sg)
     return tets,rcut
