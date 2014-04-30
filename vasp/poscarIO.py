@@ -73,7 +73,7 @@ def split(poscarin):
     return poscarin,poscarout
 
 
-def write(poscarName,basis,atoms,types,header,seldyn=None,ratio=1.0,frac=True,autoFrac=True):
+def write(poscarName,basis,atoms,types,header,seldyn=None,ratio=1.0,frac=True,autoFrac=True,velocities=None):
 
     if len(types)==len(atoms):
         #fix types arrangement, reorder atoms as necessary
@@ -115,6 +115,13 @@ def write(poscarName,basis,atoms,types,header,seldyn=None,ratio=1.0,frac=True,au
     data+="Direct\n"
     for sd,atom in zip(seldyn,atoms):
         data+=" % 5.12e % 5.12e % 5.12e %s\n"%(atom[0],atom[1],atom[2],sd)
+
+    #Velcity
+    if velocities!=None:
+        print "here",velocities,velocities==None
+        data+="\n"
+        for v in velocities:
+            data+=" % 5.12e % 5.12e % 5.12e\n"%(v[0],v[1],v[2])
 
     poscar=open(poscarName,"w")
     poscar.write(data)

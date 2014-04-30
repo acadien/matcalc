@@ -2,10 +2,11 @@
 import sys
 #mine
 import outcarIO
+import poscarIO
 
 def outcar2poscar(outcar,outposcar,wantconfig):
-    pcar=outcarIO.outcar2poscar(outcar,wantconfig)
-    open(outposcar,"w").writelines(pcar)
+    basis,atypes,atoms,head,poscar = outcarIO.outcar2poscar(outcar,wantconfig)
+    poscarIO.write(outposcar,basis,atoms,atypes,head)
 
 if __name__ == "__main__":
     if len(sys.argv)<3:

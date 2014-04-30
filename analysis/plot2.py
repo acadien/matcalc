@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D as ax3d
 #mine
-from datatools import windowAvg,wsmooth
+from datatools import windowAvg
 from colors import vizSpec
 
 #returns a parsed file, keeping only rows that can be converted to floats

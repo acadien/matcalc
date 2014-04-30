@@ -300,7 +300,8 @@ if args.averageFlag:
 elif args.saveFlag:
     for ov,pn in zip(orderVals,fileNames):
         if op in ["TN","TET"]:
-            savetxtWrapper(pn+"."+op+str(lval),array(ov).T)
+            vals,bins,dummy = pl.hist(ov[0],bins=int(sqrt(len(ov[0])))*2,normed=True,visible=False)
+            savetxtWrapper(pn+"."+op+str(lval),array(zip(bins[:-1],vals)))
 
         elif op in ["ADF"]:
             if args.rcut==None:

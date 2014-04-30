@@ -13,8 +13,8 @@ import outcarIO
 def usage():
     print "Usage: %s <Outcar> <Config0> "%sys.argv[0].split("/")[-1]
 
-def outcarMeanSquareDisplace(outcarfile,refStructure=None):
-    outcar=open(outcarfile,"r")
+def outcarMeanSquareDisplace(outcarFile,refStructure=None):
+    outcar=open(outcarFile,"r")
     atoms=list() #atoms[time][atom]
 
     #Grab ion types
@@ -68,7 +68,7 @@ if __name__=="__main__":
         usage()
         exit(0)
     
-    outcarfile=sys.argv[1]
+    outcarFile=sys.argv[1]
     try:
         num=sys.argv[1].split("_")[1]
     except IndexError:
@@ -78,12 +78,12 @@ if __name__=="__main__":
     if len(sys.argv)==3:
         refStructure=int(sys.argv[2])
 
-    delT,msd=outcarMeanSquareDisplace(outcarfile,refStructure)
+    delT,msd=outcarMeanSquareDisplace(outcarFile,refStructure)
 
     if refStructure==None:
-        msdfile=outcarfile+".msd"
+        msdfile=outcarFile+".msd"
     else:
-        msdfile=outcarfile+".msd%d"%refStructure
+        msdfile=outcarFile+".msd%d"%refStructure
 
     header=["Mean Squared Displacement from %s.\n"%(sys.argv[0]),"delTimeStep msd($\AA^2$)\n"]
     msddata=header+[str(x)+" "+str(y)+"\n" for x,y in zip(delT,msd)]
