@@ -14,7 +14,7 @@ from rdf import *
 
 #local bond-orientational: Q_l for each atom.  atomi>-1 selects a specific atom
 #rcut is interms of shells not a distance
-def bondOrientation(atoms,basis,l,neighbs=None,rcut=1,debug=True):
+def bondOrientation(atoms,basis,l,neighbs=None,rcut=1,debug=False):
 
     if neighbs==None:
         bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
@@ -30,12 +30,11 @@ def bondOrientation(atoms,basis,l,neighbs=None,rcut=1,debug=True):
         else:
             neighbs = neighbors(atoms,bounds,rcut)
 
-    print atoms,neighbs
     #sum the spherical harmonic over ever neighbor pair
     Qlms = [sum( [ pairSphereHarms(atoms[i],minImageAtom(atoms[i],atoms[j],basis),l) for j in ineighbs ] ) / len(ineighbs) for i,ineighbs in enumerate(neighbs) ] 
     Ql = [ (((Qlm.conjugate()*Qlm *4*np.pi / (2*l+1.))).real)**0.5 for Qlm in Qlms] 
 
-    return Ql
+    return Ql,rcut
 
 #Helper function, returns Qlm values m=(-l .. 0 .. +l) for a specific atom pair: atomi,atomj
 def bondOrientR(atoms,basis,l,atomi,atomj):
@@ -170,7 +169,7 @@ def translational(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     h=map(math.fabs,g-1)
 
     tao = [i/len(r) for i in h]
-    return tao
+    return tao,rcut
         
 #Sg and Sk as defined by:
 #P.L. Chau and A.J. Hardwick, J. Mol. Phys, V93, pp511-518, No3, (1998)
