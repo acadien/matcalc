@@ -65,7 +65,7 @@ for i,val in enumerate(reversed(sorted(absdelS))):
         ix=absdelS.index(val)
         print "%4d, %-40.40s %-3.3s | %f"%(ix,fdb[int(ix/6)],stressDirn[ix%6],absdelS[ix])
     else:
-        print i," ",absdelS.index(val)," \t",val
+        print i," ",absdelS.index(val)/6," \t",val
     cnt=i
 print "\n%d configurations with error above %f"%(cnt,mxerr)
 

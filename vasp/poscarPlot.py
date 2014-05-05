@@ -181,6 +181,7 @@ if sliceFlag:
     pl.xlabel("Z")
     pl.ylabel(op)
     pl.xlim(zmin,zmax)
+    pl.ylim(0.2,0.8)
     pl.show()
 
 prm.prmshow(fname="POSCAR.png")
