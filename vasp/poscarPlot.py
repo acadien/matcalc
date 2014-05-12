@@ -17,6 +17,7 @@ orderParams={"CN":coordinationNumber, \
              "BO":bondOrientation, \
              "TET":tetrahedral,}
 #MSD is not an order parameter but useful for labeling atoms at high temperatures.
+#FILE is not an order parameter but applies colors based data from a file
 
 def usage():
     print "----------------------------------------------------------------------------"
@@ -27,6 +28,7 @@ def usage():
     print "    BO# : Bond Orientation (Q) with l=#"
     print "    TET : Tetrahedral order parameter (Sg)"
     print "    MSD : Mean Square Displacement, requires OUTCAR (annealed MD simulation)"
+    print "   FILE : Parses a file (column, row, or CSV data) and applies coloring from that data"
     print "----------------------------------------------------------------------------"
     print "Flags can be used anywhere in args:"
     print "-rectify: applies PBC to atoms on a cubic cell"
@@ -44,6 +46,7 @@ sliceFlag = False
 op = None
 rcut = None
 lval = 0
+ops=[0]*len(ax)
 for i,v in enumerate(sys.argv):
 
     if v in ["-rectify","-Rectify"]:
@@ -64,13 +67,34 @@ if sys.argv[1]=="MSD":
     op = "MSD"
     if len(sys.argv)!=5:
         print "Error usage:"
-        print "%s MSD POSCAR OUTCAR 25"%sys.argv[0]
+        print "%s MSD POSCAR OUTCAR 25"%sys.argv[0].split("/")[-1]
         exit(0)
 
     poscar = open(sys.argv[2],"r").readlines()
     outcarFile = sys.argv[3]
     ref = int(sys.argv[4])
     dummy,msd = outcarMeanSquareDisplaceAtom(outcarFile,refStructure=ref)
+
+elif sys.argv[1]=="FILE":
+    op = "FILE"
+    if len(sys.argv)!=4:
+        print "Error usage:"
+        print "%s FILE POSCAR OrderParamFile"%sys.argv[0].split("/")[-1]
+        exit(0)
+    
+    poscar = open(sys.argv[2],"r").readlines()
+    opfile = sys.argv[3]
+
+    #read in the Order Parameter here, don't parse it later... set flag to false
+    opFlag = False
+    ops=list()
+    for line in open(opfile,"r"):
+        if line[0]=="#": continue
+        for i in line.split():
+            try:
+                ops.append(float(i))
+            except ValueError:
+                pass
 
 elif len(sys.argv)==2:
     poscar=open(sys.argv[1],"r").readlines()
@@ -90,7 +114,6 @@ if rectifyFlag:
     atoms=[[i[0]%basis[0][0],i[1]%basis[1][1],i[2]%basis[2][2]]for i in atoms]
 
 ax,ay,az=zip(*atoms)
-ops=[0]*len(ax)
 v1,v2,v3=basis
 j=0
 types=list()
@@ -106,7 +129,6 @@ if opFlag:
     ops,rcut = orderParams[op](np.array(atoms),np.array(basis),l=lval,rcut=rcut)
 if op=="MSD":
     ops=np.sqrt(msd.T[-1])
-    print ops.shape
 
 n=None
 mnop = min(ops)
@@ -171,8 +193,6 @@ if sliceFlag:
         zBins=[0]+zBins
         zVals=[zVals[-1]]+zVals
     zValsAvg=windowAvg(zVals[-3:]+zVals+zVals[:3],5)[3:-3]
-
-    
 
     #plot
     pl.figure()

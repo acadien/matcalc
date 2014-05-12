@@ -6,8 +6,6 @@ import subprocess
 #mine
 from struct_tools import mag,ang
 
-
-
 #For reading multiple configurations from a single lammps dump
 #Reads the next configuration (jumping by step)
 def dumpReadNext(dump,step=0):
@@ -63,7 +61,6 @@ def dumpReadNext(dump,step=0):
     bounds=[v1,v2,v3]
     atoms=zip(ax,ay,az)
     return dump[end:],bounds,types,atoms,head
-
 
 def parseConfigAtStart(dumpF,seekpoint):
     dumpF.seek(seekpoint)
@@ -162,7 +159,7 @@ def dumpWriteConfig(dump,basis,types,atoms,head):
 def basis2lohi(basis):
     v1,v2,v3=map(array,basis)
     mv1,mv2,mv3=map(mag,[v1,v2,v3])
-
+    
     origin=array([0,0,0])
     A=ang(origin,v2,v3) #v2,origin,v3
     B=ang(origin,v1,v3)
