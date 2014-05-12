@@ -162,7 +162,8 @@ if op=="BO":
 
 elif op=="TET":
     print "Average Tetrahedral Order <Sg> ="
-    for i,ov in enumerate(orderVals):
+    print orderVals
+    for i,(ov,r) in enumerate(orderVals):
         print poscarNames[i],"\t\t",sum(ov)/len(ov)
 
 elif op=="TN":

@@ -68,7 +68,7 @@ def lammpsGenerateE(vaspPOSCAR,preCmd,postCmd,vRatio):
     lammpsConfig="lmp.config"
     lammpsPOSCAR="POSCAR_eos"
     shutil.copyfile(vaspPOSCAR,lammpsPOSCAR)
-    poscarGrow.poscarGrow(lammpsPOSCAR,lammpsPOSCAR,2,1,1)
+    poscarGrow.poscarGrow(lammpsPOSCAR,lammpsPOSCAR,2,2,2)
     poscarVolume.ratio(lammpsPOSCAR,vRatio)
     poscar2lmpcfg.poscar2dump(lammpsPOSCAR,lammpsConfig)
     
@@ -86,7 +86,7 @@ def lammpsGenerateE(vaspPOSCAR,preCmd,postCmd,vRatio):
 
     os.remove(lammpsConfig)
     os.remove(lammpsPOSCAR)
-    
+
     return pe,prs,vol
 
 #Processing input
