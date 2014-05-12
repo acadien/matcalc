@@ -86,7 +86,6 @@ def lammpsGenerateE(vaspPOSCAR,preCmd,postCmd,vRatio):
 
     os.remove(lammpsConfig)
     os.remove(lammpsPOSCAR)
-    
     return pe,prs,vol
 
 #Processing input

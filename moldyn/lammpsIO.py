@@ -164,9 +164,9 @@ def basis2lohi(basis):
     mv1,mv2,mv3=map(mag,[v1,v2,v3])
 
     origin=array([0,0,0])
-    A=ang(v2,origin,v3)
-    B=ang(v1,origin,v3)
-    C=ang(v1,origin,v2)
+    A=ang(origin,v2,v3) #v2,origin,v3
+    B=ang(origin,v1,v3)
+    C=ang(origin,v1,v2)
 
     #14 digits of accuracy.
     xhi=  mv1
@@ -175,4 +175,5 @@ def basis2lohi(basis):
     yhi= (mv2**2-xy**2)**0.5
     yz = (mv2*mv3*cos(A)-xy*xz)/yhi
     zhi= (mv3**2-xz**2-yz**2)**0.5
+
     return xhi,yhi,zhi,xy,xz,yz
