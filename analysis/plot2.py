@@ -327,9 +327,10 @@ if __name__=="__main__":
         elif switches["-hist"]:
             mn=min(ydata)
             mx=max(ydata)
-            dely=(mx-mn)/dely
-            ybins=[i*dely/NBins+mn for i in range(-1,101)]
-            yvals=[0]+np.bincount([(y-mn)/(mx-mn)*NBins for y in avgy]).tolist()+[0]
+            dely=(mx-mn)/NBins
+            ybins=[i*dely+mn for i in range(-1,NBins+1)]
+            yvals=np.bincount([(y-mn)/(mx-mn)*NBins for y in ydata]).tolist()+[0]
+            print ybins
             pl.plot(ybins,yvals)
 
         elif switches["-avg"]:
