@@ -7,6 +7,7 @@ import plotRemoteMaya as prm
 from mayavi import mlab
 import numpy as np
 import pylab as pl
+from math import *
 #mine
 from orderParam import coordinationNumber,bondOrientation,tetrahedral
 from outcarPlotMSDAtom import outcarMeanSquareDisplaceAtom
@@ -46,7 +47,6 @@ sliceFlag = False
 op = None
 rcut = None
 lval = 0
-ops=[0]*len(ax)
 for i,v in enumerate(sys.argv):
 
     if v in ["-rectify","-Rectify"]:
@@ -92,7 +92,7 @@ elif sys.argv[1]=="FILE":
         if line[0]=="#": continue
         for i in line.split():
             try:
-                ops.append(float(i))
+                ops.append(sqrt(float(i)))
             except ValueError:
                 pass
 
@@ -114,6 +114,7 @@ if rectifyFlag:
     atoms=[[i[0]%basis[0][0],i[1]%basis[1][1],i[2]%basis[2][2]]for i in atoms]
 
 ax,ay,az=zip(*atoms)
+if opFlag: ops=[0]*len(ax)
 v1,v2,v3=basis
 j=0
 types=list()
@@ -155,7 +156,7 @@ if op != None:
     cb = mlab.colorbar(title=op, orientation='vertical', nb_labels=n,nb_colors=n)
     cb.use_default_range = False
     cb.data_range = (mnop,mxop)
-    
+
 #Stupid surrounding box code, sooooo ugly...
 z=[0,0,0]
 mlab.plot3d([0,v1[0],v1[0]+v2[0],v2[0],0,v3[0]],[0,v1[1],v1[1]+v2[1],v2[1],0,v3[1]],[0,v1[2],v1[2]+v2[2],v2[2],0,v3[2]],color=(0,0,0),line_width=0.5)

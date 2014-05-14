@@ -345,9 +345,11 @@ elif op=="CN":
 
 elif op=="TET":
     print "Average Tetrahedral Order <Sg> ="
-    for i,ov in enumerate(orderVals):
+    for i,(f,ov) in enumerate(zip(fileNames,orderVals)):
         tet=ov[0]
-        print sum(tet)/len(tet)
+        print f,sum(tet)/len(tet)
+    pl.hist([ov[0] for ov in orderVals])
+    pl.show()
 
 elif op=="TN":
     print "Average Translational Order <tao> ="
