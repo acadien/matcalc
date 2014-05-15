@@ -242,7 +242,7 @@ if __name__=="__main__":
         ax=fig.gca(projection='3d')
 
     if switches['-hist']:
-        NBins=100
+        NBins=25
 
     for i in range(sum(columnFileCounter)):
         fdata=fdatas[i]
@@ -306,6 +306,9 @@ if __name__=="__main__":
             if xCol!=-1:
                 pl.xlabel( label[xCol] )
             pl.ylabel( label[yCol] )
+            if switches["-hist"]:
+                pl.xlabel( label[yCol] )
+                pl.ylabel("count")
 
         if switches["-3d"]:
             if colors==None:
@@ -328,9 +331,8 @@ if __name__=="__main__":
             mn=min(ydata)
             mx=max(ydata)
             dely=(mx-mn)/NBins
-            ybins=[i*dely+mn for i in range(-1,NBins+1)]
-            yvals=np.bincount([(y-mn)/(mx-mn)*NBins for y in ydata]).tolist()+[0]
-            print ybins
+            ybins=[i*dely+mn for i in range(0,NBins+1)]
+            yvals=np.bincount([(y-mn)/(mx-mn)*NBins for y in ydata]).tolist()
             pl.plot(ybins,yvals)
 
         elif switches["-avg"]:
