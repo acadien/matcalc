@@ -69,7 +69,7 @@ def usage():
     print "./plot2.py 0 1 datafile1 0 2 datafile2 datafile3"
     print "./plot2.py 0 1s25 datafile1     #windowed average of width 25 is applied"
     print "./plot2.py 0x0.5 1x2.0 datafile #scale of 0.5 on x-axis and scale of 2.0 on y-axis"
-    print "switches: -3d, -stagger, -sort, -avg, -hist"
+    print "switches: -3d, -stagger, -sort, -avg, -hist, -scatter"
     print ""
 
 if __name__=="__main__":
@@ -83,7 +83,7 @@ if __name__=="__main__":
     columnFileCounter=list()
 
     #Pre-parse for switches
-    switches={"-3d":False,"-stagger":False,"-sort":False,"-avg":False,"-hist":False}
+    switches={"-3d":False,"-stagger":False,"-sort":False,"-avg":False,"-hist":False,"-scatter":False}
     for i in range(len(sys.argv)-1,-1,-1):
         if sys.argv[i] in switches.keys(): #this is a switch
             switches[sys.argv[i]]=True
@@ -312,7 +312,7 @@ if __name__=="__main__":
                 ax.plot(xdata,ydata,zs=i,lw=1.5)
             else:
                 ax.plot(xdata,ydata,zs=i,lw=2,c=vizSpec(float(i)/len(fnames)))
-
+        
         elif switches["-stagger"]:
             m=min(ydata)
             if i==0:
@@ -340,6 +340,11 @@ if __name__=="__main__":
             avgy+=np.array(ydata)
             count+=1
 
+        elif switches["-scatter"]:
+            if colors==None:
+                pl.scatter(xdata,ydata,lw=1.5)
+            else:
+                pl.scatter(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)))
         else:
             if colors==None:
                 pl.plot(xdata,ydata,lw=1.5)
