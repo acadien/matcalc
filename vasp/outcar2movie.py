@@ -11,6 +11,8 @@ from mayavi import mlab
 import outcarIO
 import orderParam
 
+mlab.options.offscreen = True
+
 #make a directory for the movie
 #for configs in outcar
 #  read in a config from outcar
