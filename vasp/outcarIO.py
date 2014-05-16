@@ -193,3 +193,23 @@ def timestep(outcarFile):
     grepR = subprocess.check_output("grep POTIM %s"%outcarFile,shell=True).split("\n")
     ts = float(grepR[0].split()[2])
     return ts
+
+#Returns the number of atoms in the simulation
+def nIons(outcarFile):
+    nums = subprocess.check_output("head -n 1000 %s | grep ions\ per\ type "%outcarFile,shell=True).split("\n")[0].split("=")[1:]
+    nums=map(int,nums)
+    types = [[i]*nums[i] for i in range(len(nums))]
+    Natoms=sum(nums)
+    return Natoms
+
+#Returns the initial basis of the simulation
+def basis(outcarFile):
+    spot = int(subprocess.check_output("head -n 5000 %s | grep -b direct\ lattice\ vector"%outcarFile,shell=True).split("\n")[0].split(":")[0])
+    
+    outcar= open(outcarFile,"r") 
+    outcar.seek(spot)
+    outcar.readline()
+    
+    b = [map(float,outcar.readline().split()[0:3]) for i in range(3)]
+    
+    return b
