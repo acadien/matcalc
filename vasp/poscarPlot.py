@@ -122,7 +122,7 @@ for i in atypes:
     types+=[j+1]*i
     j+=1
 
-fig=mlab.figure()#bgcolor=(1.0,1.0,1.0))
+fig=mlab.figure(bgcolor=(0.8,0.8,0.8))
 
 #Get the order parameter and convert to integer format (opsn) for
 #coloring of atoms
