@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from numpy import matrix,linalg,array
+import numpy as np
 
 #Given the poscar (opened and read)
 #Returns: basis,atypes,atoms,head,poscar
@@ -101,9 +102,8 @@ def write(poscarName,basis,atoms,types,header,seldyn=None,ratio=1.0,frac=True,au
 
     #Convert if necessary (re-using the frac flag)
     if not(frac):
-        A = matrix(basis)
+        A = matrix(basis) 
         atoms=[linalg.solve(A.T,array(atom))[:] for atom in atoms]
-
     #Make the POSCAR
     data=""
     data+=" ".join(header.split("\n"))+"\n"

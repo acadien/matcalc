@@ -97,10 +97,10 @@ def parseConfigAtStart(dumpF,seekpoint):
             atominfo = map(splitfloat , dump[i+1:i+natom+1])
             atominfo.sort(key=lambda x:x[0])
             order,types,ax,ay,az=zip(*atominfo)[:5]
-            a,b,c = array(ax),array(ay),array(az)
-            ax=v1[0]*a+v2[0]*b+v3[0]*c
-            ay=v1[1]*a+v2[1]*b+v3[1]*c
-            az=v1[2]*a+v2[2]*b+v3[2]*c
+            #a,b,c = array(ax),array(ay),array(az)
+            #ax=v1[0]*a+v2[0]*b+v3[0]*c
+            #ay=v1[1]*a+v2[1]*b+v3[1]*c
+            #az=v1[2]*a+v2[2]*b+v3[2]*c
             types=map(int,types)
             break
     basis=[v1,v2,v3]

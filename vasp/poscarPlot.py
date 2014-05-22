@@ -128,6 +128,8 @@ fig=mlab.figure(bgcolor=(0.8,0.8,0.8))
 #coloring of atoms
 if opFlag:
     ops,rcut = orderParams[op](np.array(atoms),np.array(basis),l=lval,rcut=rcut)
+else:
+    ops = types
 if op=="MSD":
     ops=np.sqrt(msd.T[-1])
 
@@ -148,6 +150,8 @@ if mxop - mnop > 1E-10:
 else:
     mp3d = mlab.points3d(ax,ay,az,[mnop]*len(az),colormap='jet',scale_factor=1.9,scale_mode='none',resolution=14)
     n=2
+#else:
+#    mp3d = mlab.points3d(ax,ay,az,colormap='jet',scale_factor=1.9,scale_mode='none',resolution=14)
 
 #Color bar formatting
 if op != None:
