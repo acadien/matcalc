@@ -29,8 +29,6 @@ outcar= open(outcarFile,"r")
 tetraOut =open(outcarFile+".tetra","w")
 tetraOut.write("#AverageTetra PerAtomTetra\n")
 for i,b in enumerate(bytenums):
-    if i%2==0:
-        continue
     outcar.seek(b)
     outcar.readline()
     outcar.readline()
