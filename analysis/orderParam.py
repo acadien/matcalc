@@ -3,8 +3,8 @@
 
 import numpy as np
 from scipy.special import sph_harm as sph_harm
-from scipy import conj
-import math,cmath
+from scipy import conj,array,integrate
+import math
 from operator import mul
 import pylab as pl
 #mine
@@ -92,7 +92,6 @@ def bondAngleCorr(atoms,basis,l,neighbs=None,rcut=None,debug=False):
 
     return rbins,gvals
 
-
 def coordinationNumber(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     #l: not used
     if neighbs==None:
@@ -158,6 +157,34 @@ def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     qvals = [1+2*pi*sum([sin(q*r)*(rdist[i]-1)*r/Nr/q for i,r in enumerate(rbins)]) for q in qbins]
     return qbins,qvals
             
+def structureFactor0(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+#    rcut=25.0
+    debug=True
+    rcut=11.0
+    xs,ys= radialDistribution(atoms,basis,l,neighbs,rcut,debug)
+    
+    xs=array(xs)
+    ys=array(ys)
+    y_int = integrate.cumtrapz((ys-1.0)*xs*xs,xs)
+
+    v=volume(basis)
+    density=len(atoms)/v
+    
+    print density
+    exit(0)
+
+    if debug:
+        import pylab as pl
+        pl.plot(xs,ys,label="func")
+        pl.plot(xs,(ys-1.0)*xs*xs,label="integrable func")
+        pl.plot(xs[1:],y_int*density*4*math.pi+1.0,label="integrated final")
+        pl.legend(loc=0)
+        pl.show()
+
+    #print density,y_int[-1]
+    #print y_int[-1]*density*4*3.14159+1
+    return y_int[-1]*density*4*pi+1
+
 #translational order parameter, l=neighbor shell
 def translational(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     #l: not used

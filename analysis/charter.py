@@ -30,6 +30,7 @@ orderParams={"CN":  coordinationNumber,
              "RAF": radangDistribution ,
              "BA":  bondAngleCorr , 
              "SF":  structureFactor, 
+             "SF0": structureFactor0,
              "TET": tetrahedral, 
              "TN":  translational}
 
@@ -45,6 +46,7 @@ Apply some order parameter calculation to a POSCAR, OUTCAR or LAMMPS Dump, then 
 =   RAF : Radial distribution by bond angle              =
 =   BA  : Bond Angle Correlation, requires -gval be set  =
 =   SF  : Structure Factor                               =
+=   SF0 : Structure Factor (k=0)                         =
 =   TET : Tetrahedral                                    =
 =   TN  : Translational (tao)                            = 
 ==========================================================
@@ -312,13 +314,15 @@ elif args.saveFlag:
         elif op in ["BO"]:
             vals,bins,dummy = pl.hist(ov,bins=int(sqrt(len(ov)))*5,normed=True,visible=False)
             savetxtWrapper(pn+"."+op+str(lval),array(zip(bins[:-1],vals)),header=" ".join(xylabels[op]))
+        elif op in "SF0":
+            print "here1"
         else:
             savetxtWrapper(pn+"."+op+str(lval),array(ov).T,header=" ".join(xylabels[op]))
 
 if not args.plotFlag:
     exit(0)
 
-if op not in ["BO","CN","TN","TET"] and not args.averageFlag:
+if op not in ["BO","CN","TN","TET","SF0"] and not args.averageFlag:
     for ov in orderVals:
         pl.plot(ov[0],ov[1])
     pl.xlabel(xylabels[op][0])
@@ -349,12 +353,15 @@ elif op=="TET":
         tet=ov[0]
         print f,sum(tet)/len(tet)
     pl.hist([ov[0] for ov in orderVals])
-    pl.show()
 
 elif op=="TN":
     print "Average Translational Order <tao> ="
     for i,ov in enumerate(orderVals):
         print fileNames[i],"\t\t",sum(ov)
+
+elif op=="SF0":
+    print ov
+    exit(0)
 
 if args.averageFlag:
     pl.legend(["Average "+" ".join(fileNames)],loc=0,fontsize=10)

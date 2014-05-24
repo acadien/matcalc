@@ -34,6 +34,7 @@ def usage():
     print "Flags can be used anywhere in args:"
     print "-rectify: applies PBC to atoms on a cubic cell"
     print "   -rcut: cutoff distance when building neighbor list, follow by float value"
+    print "   -hist: generates a histogram of the order parameter"
     print ""
 
 if len(sys.argv) < 2:
@@ -44,23 +45,36 @@ if len(sys.argv) < 2:
 rectifyFlag=False
 opFlag = False
 sliceFlag = False
+histFlag = False
 op = None
 rcut = None
 lval = 0
+toPop=list()
 for i,v in enumerate(sys.argv):
 
     if v in ["-rectify","-Rectify"]:
         rectifyFlag = True
-        sys.argv.pop(i)
+        toPop.append(i)
+        #sys.argv.pop(i)
 
     if v == "-rcut":
         rcut = float(sys.argv[i+1])
-        sys.argv.pop(i) #pop the flag
-        sys.argv.pop(i) #pop the float
+        toPop.append(i)
+        toPop.append(i+1)
+        #sys.argv.pop(i) #pop the flag
+        #sys.argv.pop(i) #pop the float
 
     if v in ["-slice","-Slice"]:
         sliceFlag = True
-        sys.argv.pop(i)
+        toPop.append(i)
+        #sys.argv.pop(i)
+
+    if v in ["-hist","-Hist","-HIST"]:
+        histFlag = True
+        toPop.append(i)
+        #sys.argv.pop(i)
+
+sys.argv = [sys.argv[i] for i in range(len(sys.argv)) if i not in toPop]
 
 #Process args, look for special cases etc.
 if sys.argv[1]=="MSD":
@@ -165,11 +179,25 @@ mlab.plot3d([v1[0],v1[0]+v3[0]],[v1[1],v1[1]+v3[1]],[v1[2],v1[2]+v3[2]],color=(0
 mlab.plot3d([v2[0],v2[0]+v3[0]],[v2[1],v2[1]+v3[1]],[v2[2],v2[2]+v3[2]],color=(0,0,0),line_width=0.5)
 mlab.plot3d([v1[0]+v2[0],v1[0]+v2[0]+v3[0]],[v1[1]+v2[1],v1[1]+v2[1]+v3[1]],[v1[2]+v2[2],v1[2]+v2[2]+v3[2]],color=(0,0,0),line_width=0.5)
 
+pl.ion() #turn on interactive plotting
+if histFlag:
+    if op==None:
+        print "Need an order parameter in order to generate histogram"
+        exit(0)
+
+    pl.figure()
+    pl.hist(ops)
+    pl.xlabel(op)
+    pl.ylabel("Count")
+    pl.draw() #needed when using interactive plotting
+    pl.show()
+
 #average orderParameter based on z-coordinate of atom
 if sliceFlag:
     if op==None:
-        print "Need an order paramter to plot slice"
-        
+        print "Need an order parameter to plot slice"
+        exit(0)
+
     #Prepare slices and bins
     zmin = 0
     zmax = basis[2][2]
@@ -202,7 +230,7 @@ if sliceFlag:
     pl.xlabel("Z")
     pl.ylabel(op)
     pl.xlim(zmin,zmax)
-    pl.ylim(0.2,0.8)
+    pl.draw()
     pl.show()
 
 prm.prmshow(fname="POSCAR.png")
