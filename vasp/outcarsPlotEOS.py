@@ -86,10 +86,7 @@ def lammpsGenerateE(vaspPOSCAR,preCmd,postCmd,vRatio):
 
     os.remove(lammpsConfig)
     os.remove(lammpsPOSCAR)
-<<<<<<< HEAD
-=======
 
->>>>>>> c72851ca81564e3b86b477810eb2b16e54cb8604
     return pe,prs,vol
 
 #Processing input
@@ -161,7 +158,7 @@ Lenthalpies={}
 if lmppot!=-1:
     preCmd,postCmd=initLammpsCmds(lmppot)
     for phase in phases:
-
+        print phase
         #Volume ratios for lammps configurations
         minr=float(min(ratios[phase]))
         maxr=float(max(ratios[phase]))

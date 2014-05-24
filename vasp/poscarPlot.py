@@ -12,7 +12,7 @@ from math import *
 from orderParam import coordinationNumber,bondOrientation,tetrahedral
 from outcarPlotMSDAtom import outcarMeanSquareDisplaceAtom
 from datatools import windowAvg
-import poscarIO
+import poscarIO,lammpsIO
 
 orderParams={"CN":coordinationNumber, \
              "BO":bondOrientation, \
@@ -22,7 +22,7 @@ orderParams={"CN":coordinationNumber, \
 
 def usage():
     print "----------------------------------------------------------------------------"
-    print "%s <order parameter> <POSCAR file> <OPT: OUTCAR, REF>"%sys.argv[0]
+    print "%s <order parameter> <POSCAR/dump file> <OPT: OUTCAR, REF>"%sys.argv[0]
     print "----------------------------------------------------------------------------"
     print "Order Parameter can be one of:"
     print "     CN : Coordination Number"
@@ -96,7 +96,7 @@ elif sys.argv[1]=="FILE":
         print "%s FILE POSCAR OrderParamFile"%sys.argv[0].split("/")[-1]
         exit(0)
     
-    poscar = open(sys.argv[2],"r").readlines()
+    configFile = sys.argv[2]
     opfile = sys.argv[3]
 
     #read in the Order Parameter here, don't parse it later... set flag to false
@@ -111,7 +111,7 @@ elif sys.argv[1]=="FILE":
                 pass
 
 elif len(sys.argv)==2:
-    poscar=open(sys.argv[1],"r").readlines()
+    configFile=sys.argv[1]
     
 elif len(sys.argv)==3:
     op = sys.argv[1]
@@ -119,29 +119,36 @@ elif len(sys.argv)==3:
         lval=int(op[-1])
         op="BO"
     opFlag = True
-    poscar=open(sys.argv[2],"r").readlines()
+    configFile=sys.argv[2]
 
 #Parse POSCAR
-[basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
+j=0
+if "POSCAR" in configFile or "CONTCAR" in configFile:
+    poscar=open(configFile,"r").readlines()
+    [basis,atypes,atoms,head,poscar] = poscarIO.read(poscar)
+    types=list()
+    for i in atypes:
+        types+=[j+1]*i
+        j+=1
+
+#Parse LAMMPS DUMP
+else: 
+    basis,types,atoms = lammpsIO.readConfig(configFile,0)
 
 if rectifyFlag:
     atoms=[[i[0]%basis[0][0],i[1]%basis[1][1],i[2]%basis[2][2]]for i in atoms]
 
 ax,ay,az=zip(*atoms)
-if opFlag: ops=[0]*len(ax)
 v1,v2,v3=basis
-j=0
-types=list()
-for i in atypes:
-    types+=[j+1]*i
-    j+=1
 
-fig=mlab.figure()#bgcolor=(1.0,1.0,1.0))
+fig=mlab.figure(bgcolor=(0.8,0.8,0.8))
 
 #Get the order parameter and convert to integer format (opsn) for
 #coloring of atoms
 if opFlag:
     ops,rcut = orderParams[op](np.array(atoms),np.array(basis),l=lval,rcut=rcut)
+else:
+    ops = types
 if op=="MSD":
     ops=np.sqrt(msd.T[-1])
 
@@ -162,6 +169,8 @@ if mxop - mnop > 1E-10:
 else:
     mp3d = mlab.points3d(ax,ay,az,[mnop]*len(az),colormap='jet',scale_factor=1.9,scale_mode='none',resolution=14)
     n=2
+#else:
+#    mp3d = mlab.points3d(ax,ay,az,colormap='jet',scale_factor=1.9,scale_mode='none',resolution=14)
 
 #Color bar formatting
 if op != None:
