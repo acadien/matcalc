@@ -143,6 +143,10 @@ v1,v2,v3=basis
 
 fig=mlab.figure(bgcolor=(0.8,0.8,0.8))
 
+#Set default rcut value for tetrahedral ordering
+if op=="TET" and rcut==None:
+    rcut=3.2
+
 #Get the order parameter and convert to integer format (opsn) for
 #coloring of atoms
 if opFlag:
