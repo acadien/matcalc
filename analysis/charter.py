@@ -230,10 +230,14 @@ if op == "FRDF":
     exit(0)
 
 def savetxtWrapper(defaultFileName,data,delimiter=" ",header=" ",comments=""):
-    if saveFileName is "None":
-        savetxt(defaultFileName,data,delimiter=delimiter,header=header,comments=comments)
-    else:
-        savetxt(saveFileName,data,delimiter=delimiter,header=header,comments=comments)
+    try:
+        if saveFileName is "None":
+            savetxt(defaultFileName,data,delimiter=delimiter,header=header,comments=comments)
+        else:
+            savetxt(saveFileName,data,delimiter=delimiter,header=header,comments=comments)
+    except TypeError:
+        print "unable to save... moving along"
+
 
 if nEvolve != None:
     [xs,ys]=zip(*orderVals)
@@ -348,10 +352,16 @@ elif op=="TET":
     avgTets=list()
     for i,ov in enumerate(orderVals):
         tet=ov[0]
-        avgTets.append(sum(tet)/len(tet))
+        if len(orderVals)>1:
+            avgTets.append(sum(tet)/len(tet))
+        else:
+            avgTets.append(tet)
         print sum(tet)/len(tet)
     print "min, max, avg"
-    print min(avgTets),max(avgTets),sum(avgTets)/len(avgTets)
+    if len(orderVals)>1:
+        print min(avgTets),max(avgTets),sum(avgTets)/len(avgTets)
+    else:
+        print min(avgTets[0]),max(avgTets[0]),sum(avgTets[0])/len(avgTets[0])
     pl.hist([ov[0] for ov in orderVals])
 
 elif op=="TN":
