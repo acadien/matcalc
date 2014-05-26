@@ -207,7 +207,6 @@ if op == "RAF":
     exit(0)
 
 #Special Case for FRDF histogrammic RDF
-
 if op == "FRDF":
     from numpy import bincount,array,zeros
     import numpy as np
@@ -223,13 +222,10 @@ if op == "FRDF":
         m=max(a[i])
         a[i]=np.log([j/m for j in a[i]])
 
-#    for i in a.T:
-#        i=wsmooth(i,window_len=101)[0:a.shape[1]]
-        
     pl.imshow(a.T,origin='lower',cmap=pl.get_cmap("Blues"))
     pl.yticks(range(0,1000,100),range(10))
     pl.xticks(range(0,1001,100),range(11))
-#    pl.ylim([0,600]#
+
     pl.show()
     exit(0)
 
@@ -315,7 +311,7 @@ elif args.saveFlag:
             vals,bins,dummy = pl.hist(ov,bins=int(sqrt(len(ov)))*5,normed=True,visible=False)
             savetxtWrapper(pn+"."+op+str(lval),array(zip(bins[:-1],vals)),header=" ".join(xylabels[op]))
         elif op in "SF0":
-            print "here1"
+            print "still figuring out how to do this calculation :("
         else:
             savetxtWrapper(pn+"."+op+str(lval),array(ov).T,header=" ".join(xylabels[op]))
 
@@ -349,9 +345,13 @@ elif op=="CN":
 
 elif op=="TET":
     print "Average Tetrahedral Order <Sg> ="
-    for i,(f,ov) in enumerate(zip(fileNames,orderVals)):
+    avgTets=list()
+    for i,ov in enumerate(orderVals):
         tet=ov[0]
-        print f,sum(tet)/len(tet)
+        avgTets.append(sum(tet)/len(tet))
+        print sum(tet)/len(tet)
+    print "min, max, avg"
+    print min(avgTets),max(avgTets),sum(avgTets)/len(avgTets)
     pl.hist([ov[0] for ov in orderVals])
 
 elif op=="TN":
@@ -360,7 +360,7 @@ elif op=="TN":
         print fileNames[i],"\t\t",sum(ov)
 
 elif op=="SF0":
-    print ov
+    print "shit still figuring this out"
     exit(0)
 
 if args.averageFlag:
