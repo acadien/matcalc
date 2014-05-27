@@ -7,6 +7,7 @@ from scipy import conj,array,integrate
 import math
 from operator import mul
 import pylab as pl
+import plotRemote as pr
 #mine
 from neighbors import neighbors,nNearestNeighbors,full2half,voronoiNeighbors
 from struct_tools import *
@@ -158,31 +159,34 @@ def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     return qbins,qvals
             
 def structureFactor0(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
-#    rcut=25.0
-    debug=True
-    rcut=11.0
-    xs,ys= radialDistribution(atoms,basis,l,neighbs,rcut,debug)
-    
-    xs=array(xs)
-    ys=array(ys)
-    y_int = integrate.cumtrapz((ys-1.0)*xs*xs,xs)
+    print basis
+    SF0=[]
+    rcuts = [float(i)/1000*10.0+9 for i in range(1100)]
+    for rcut in rcuts:
+        xs,ys= radialDistribution(atoms,basis,l,neighbs,rcut,debug)
 
-    v=volume(basis)
-    density=len(atoms)/v
-    
-    print density
-    exit(0)
+        xs=array(xs)
+        ys=array(ys)
+        #y_int = integrate.cumtrapz((ys-1.0),xs)
+        y_int = integrate.simps((ys-1.0),xs)
 
-    if debug:
-        import pylab as pl
-        pl.plot(xs,ys,label="func")
-        pl.plot(xs,(ys-1.0)*xs*xs,label="integrable func")
-        pl.plot(xs[1:],y_int*density*4*math.pi+1.0,label="integrated final")
-        pl.legend(loc=0)
-        pl.show()
+        v=volume(basis)
+        density=len(atoms)/v
 
-    #print density,y_int[-1]
-    #print y_int[-1]*density*4*3.14159+1
+        if debug:
+            import pylab as pl
+            pl.plot(xs,ys,label="func")
+            pl.plot(xs,(ys-1.0),label="integrable func")
+            pl.plot(xs[1:],y_int*density*4*math.pi+1.0,label="integrated final")
+            pl.legend(loc=0)
+            pr.prshow("debug.png")
+
+        #print density,y_int[-1]
+        SF0.append( y_int*density*4*pi+1 )
+        print rcut,y_int*density*4*pi+1 
+    import pylab as pl
+    pl.plot(rcuts,SF0)
+    pr.prshow("debug.png")
     return y_int[-1]*density*4*pi+1
 
 #translational order parameter, l=neighbor shell
