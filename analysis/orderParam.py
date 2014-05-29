@@ -12,6 +12,7 @@ import plotRemote as pr
 from neighbors import neighbors,nNearestNeighbors,full2half,voronoiNeighbors
 from struct_tools import *
 from rdf import *
+from sf import sfq
 
 #local bond-orientational: Q_l for each atom.  atomi>-1 selects a specific atom
 #rcut is interms of shells not a distance
@@ -159,6 +160,8 @@ def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     return qbins,qvals
             
 def structureFactor0(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+    print sfq(atoms,basis)
+    """
     print basis
     SF0=[]
     rcuts = [float(i)/1000*10.0+9 for i in range(1100)]
@@ -188,7 +191,7 @@ def structureFactor0(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     pl.plot(rcuts,SF0)
     pr.prshow("debug.png")
     return y_int[-1]*density*4*pi+1
-
+    """
 #translational order parameter, l=neighbor shell
 def translational(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     #l: not used
