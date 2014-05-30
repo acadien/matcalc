@@ -4,6 +4,7 @@
 import numpy as np
 from scipy.special import sph_harm as sph_harm
 from scipy import conj,array,integrate
+import scipy
 import math
 from operator import mul
 import pylab as pl
@@ -123,11 +124,15 @@ def radangDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
         neighbs = neighbors(atoms,bounds,rcut,style="full")
     return rdf_by_adf(atoms,neighbs,basis,rcut=rcut)
             
-def radialDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+def radialDistribution(atoms,basis,l=1000,neighbs=None,rcut=None,debug=False):
      if rcut==None:
          rcut = 10.0
  
-     return rdf_periodic(atoms,basis,cutoff=rcut)#rbins,rdist
+     nbins=l
+     if nbins==None:
+         nbins=1000
+
+     return rdf_periodic(atoms,basis,cutoff=rcut,nbins=nbins)#,rdist
 
 def angleDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     if rcut==None:
@@ -156,42 +161,29 @@ def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     maxq=12.0
     qbins = np.linspace(0,maxq,Nq+1)[1:]
 
-    qvals = [1+2*pi*sum([sin(q*r)*(rdist[i]-1)*r/Nr/q for i,r in enumerate(rbins)]) for q in qbins]
+    qvals = [1+4*pi*sum([sin(q*r)*(rdist[i]-1)*r/Nr/q for i,r in enumerate(rbins)]) for q in qbins]
     return qbins,qvals
+
+#def structureFactor0(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+#   sfq(atoms,basis)
+#   return 0
             
-def structureFactor0(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
-    print sfq(atoms,basis)
-    """
-    print basis
-    SF0=[]
-    rcuts = [float(i)/1000*10.0+9 for i in range(1100)]
-    for rcut in rcuts:
-        xs,ys= radialDistribution(atoms,basis,l,neighbs,rcut,debug)
+def structureFactor0(rdfX,rdfY,nDensity,l=None,neighbs=None,rcut=None,debug=False):
+    rdfX=array(rdfX)
+    rdfY=array(rdfY)
+    hr = rdfY-1.0
+    from scipy import fftpack
+    sp = fftpack.rfft(hr*rdfX*rdfX)
+    print sp
+    freq = fftpack.fftfreq(len(hr),d=(rdfX[1]-rdfX[0]))
 
-        xs=array(xs)
-        ys=array(ys)
-        #y_int = integrate.cumtrapz((ys-1.0),xs)
-        y_int = integrate.simps((ys-1.0),xs)
-
-        v=volume(basis)
-        density=len(atoms)/v
-
-        if debug:
-            import pylab as pl
-            pl.plot(xs,ys,label="func")
-            pl.plot(xs,(ys-1.0),label="integrable func")
-            pl.plot(xs[1:],y_int*density*4*math.pi+1.0,label="integrated final")
-            pl.legend(loc=0)
-            pr.prshow("debug.png")
-
-        #print density,y_int[-1]
-        SF0.append( y_int*density*4*pi+1 )
-        print rcut,y_int*density*4*pi+1 
     import pylab as pl
-    pl.plot(rcuts,SF0)
-    pr.prshow("debug.png")
-    return y_int[-1]*density*4*pi+1
-    """
+    pl.plot(freq,((sp.real/288.)**2+(sp.imag/288)**2)**0.5+1.0)
+    pl.plot(freq,sp.real/288.+1.0,freq,sp.imag/288+1.0)
+    pl.show()
+    exit(0)
+    return [integrate.simps((rdfY-1.0),rdfX)*nDensity+1]
+    
 #translational order parameter, l=neighbor shell
 def translational(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     #l: not used

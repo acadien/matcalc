@@ -242,7 +242,7 @@ if __name__=="__main__":
         ax=fig.gca(projection='3d')
 
     if switches['-hist']:
-        NBins=25
+        NBins=80
 
     for i in range(sum(columnFileCounter)):
         fdata=fdatas[i]

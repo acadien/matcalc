@@ -68,6 +68,7 @@ parser.add_argument('-avg','-A',dest='averageFlag',action='store_true',help='ave
 parser.add_argument('-debug','-D',dest='debug',action='store_true',help='turn on debugging of neighbor selection')
 parser.add_argument('-N',dest='cfgNums',help='Configuration number list from dump/outcar, can be comma separated list, or dash separated, #1-#2, to get range (default -1), can also be \'all\'',type=str,default="-1")
 parser.add_argument('-saveas',dest='saveFileName',help='Filename under which to save the data to',type=str,default='None')
+parser.add_argument('-nbins',dest="nbins",help="Number of bins to use in the operation",type=int,default=None)
 parser.add_argument('-evolve',dest='nEvolve',help='Track the time evolution of a parameter, average over nEvolve stages',type=int,default=None)
 parser.add_argument('-stagger',dest='stagger',action='store_true',help='staggers results when plotting, useful with -evolve setting',default=False)
 parser.add_argument('-neighbors',dest='neighbFile',help='A file containing a nieghbor list',type=str,default=None)
@@ -81,6 +82,10 @@ stagger = args.stagger
 neighbFile = args.neighbFile
 lval = args.lval
 cfgNums = args.cfgNums
+nbins = args.nbins
+
+if op=="RDF":
+    lval=nbins
 
 #grab the directory for each file
 fileDirs = list()
@@ -115,7 +120,7 @@ if op == "BA" and args.lval == None:
 if op == "BO" and args.lval == None:
     print "Error: l-value (-lval) must be set for BO order parameter"
     exit(0)
-
+    
 #Sort POSCAR names only based on the numbers in them
 try:
     fileNumbers=map(lambda x:float("".join(re.findall('\d+',x))),fileNames)
