@@ -2,17 +2,28 @@
 
 from scipy import weave
 from scipy.weave import converters
+import scipy
 import numpy as np
 from math import *
 import cmath
 
 #Calculate the Structure factor from the rdf
-def sf(rdfX,rdfY,Lmax=20.0,qbins=1024,ndens=0.05):
-    minq,maxq,dq=0.2,Lmax,(Lmax-0.2)/qbins
+def sf(rdfX,rdfY,ndens,Lmax=20.0,qbins=1024,damped=True):
+
+    minq,maxq,dq=0,Lmax,Lmax/qbins
     qs=[i*dq+minq for i in range(qbins)]
-    #sf=[1+ndens*sum([rdfY[ir]*cmath.exp(complex(0.,q*r)) for ir,r in enumerate(rdfX)]) for i,q in enumerate(qs)]#/2pi?
-    ndens = 1./288.
-    sf=[1+4*pi*ndens*sum([(rdfY[ir]-1)*sin(q*r)*r/q for ir,r in enumerate(rdfX[1:])]) for i,q in enumerate(qs)]#/2pi?        
+    qs[0]=1E-10
+
+    maxR = max(rdfX)
+    rdfY=np.array(rdfY)
+    rdfX=np.array(rdfX)
+    dx=rdfX[1]-rdfX[0]
+
+    if damped:
+        sf=[1 + 4*pi*ndens * scipy.integrate.simps((rdfY-1.0)*np.sin(q*rdfX)*np.sin(pi*rdfX/maxR)*maxR/(q*pi) ,dx=dx) for i,q in enumerate(qs)]
+    else:
+        sf=[1 + 4*pi*ndens * scipy.integrate.simps((rdfY-1.0)*np.sin(q*rdfX)*rdfX/q ,dx=dx) for i,q in enumerate(qs)]
+
     return qs,sf
 
 #weave.inline(SFbyQCode,['atoms','natoms','qvals','qbins','nqbins','qcut','rcut','b','qxs','qys','qzs','nqVecs'])

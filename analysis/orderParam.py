@@ -13,7 +13,7 @@ import plotRemote as pr
 from neighbors import neighbors,nNearestNeighbors,full2half,voronoiNeighbors
 from struct_tools import *
 from rdf import *
-from sf import sfq
+from sf import sf
 
 #local bond-orientational: Q_l for each atom.  atomi>-1 selects a specific atom
 #rcut is interms of shells not a distance
@@ -153,15 +153,14 @@ def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
         rcut = min(sum([basis[0][0],basis[1][1],basis[2][2]])/6, 10.0)
         print "Automatically generating r-cutoff=",rcut
 
+    if l==None:
+        l=12.0
+
     rbins,rdist = rdf_periodic(atoms,basis,cutoff=rcut)
     Nr=len(rbins)
     density = atoms.shape[0] / volume(basis)
 
-    Nq=500
-    maxq=12.0
-    qbins = np.linspace(0,maxq,Nq+1)[1:]
-
-    qvals = [1+4*pi*sum([sin(q*r)*(rdist[i]-1)*r/Nr/q for i,r in enumerate(rbins)]) for q in qbins]
+    qbins,qvals = sf(rbins,rdist,density,Lmax=l,qbins=2048,damped=True)
     return qbins,qvals
 
 #def structureFactor0(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):

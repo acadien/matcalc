@@ -2,13 +2,14 @@
 
 import sys
 from math import *
-from scipy import array,zeros
-import pylab as pl
 import subprocess
 import os
 #mine
 import outcarIO
 import orderParam
+
+from scipy import array,zeros
+import pylab as pl
 
 def usage():
     print "Usage: %s <Outcar> "%sys.argv[0].split("/")[-1]

@@ -319,7 +319,7 @@ elif args.saveFlag:
         elif op in ["BO"]:
             vals,bins,dummy = pl.hist(ov,bins=int(sqrt(len(ov)))*5,normed=True,visible=False)
             savetxtWrapper(pn+"."+op+str(lval),array(zip(bins[:-1],vals)),header=" ".join(xylabels[op]))
-        elif op in "SF0":
+        elif op == "SF0":
             print "still figuring out how to do this calculation :("
         else:
             savetxtWrapper(pn+"."+op+str(lval),array(ov).T,header=" ".join(xylabels[op]))
