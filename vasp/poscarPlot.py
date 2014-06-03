@@ -84,7 +84,8 @@ if sys.argv[1]=="MSD":
         print "%s MSD POSCAR OUTCAR 25"%sys.argv[0].split("/")[-1]
         exit(0)
 
-    poscar = open(sys.argv[2],"r").readlines()
+    configFile = sys.argv[2]
+    poscar = open(configFile,"r").readlines()
     outcarFile = sys.argv[3]
     ref = int(sys.argv[4])
     dummy,msd = outcarMeanSquareDisplaceAtom(outcarFile,refStructure=ref)
@@ -110,7 +111,7 @@ elif sys.argv[1]=="FILE":
             except ValueError:
                 pass
 
-elif len(sys.argv)==2:
+elif len(sys.argv) in [2,4]:
     configFile=sys.argv[1]
     
 elif len(sys.argv)==3:
