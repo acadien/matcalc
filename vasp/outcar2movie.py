@@ -10,6 +10,7 @@ from mayavi import mlab
 #mine
 import outcarIO
 import orderParam
+import msd
 
 mlab.options.offscreen = True
 

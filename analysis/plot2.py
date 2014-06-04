@@ -13,6 +13,12 @@ from mpl_toolkits.mplot3d import Axes3D as ax3d
 from datatools import windowAvg
 from colors import vizSpec
 
+#Special case for an idiot.
+if sys.argv[3] == "OUTCAR":
+    print "***"
+    print "You're an idiot Adam. Stop running this program on OUTCAR."
+    print "***"
+    exit(0)
 #returns a parsed file, keeping only rows that can be converted to floats
 #keeps rows with the most common number of columns.
 def parse(fname,delim=None):
