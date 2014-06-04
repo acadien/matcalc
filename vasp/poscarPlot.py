@@ -136,11 +136,11 @@ if "POSCAR" in configFile or "CONTCAR" in configFile:
 else: 
     basis,types,atoms = lammpsIO.readConfig(configFile,0)
 
-if rectifyFlag:
-    atoms=[[i[0]%basis[0][0],i[1]%basis[1][1],i[2]%basis[2][2]]for i in atoms]
-
-ax,ay,az=zip(*atoms)
+ax,ay,az=map(np.array,zip(*atoms))
 v1,v2,v3=basis
+
+if rectifyFlag:
+    ax,ay,az = ax%v1[0], ay%v2[1], az%v3[2]
 
 fig=mlab.figure(bgcolor=(0.8,0.8,0.8))
 
