@@ -14,7 +14,7 @@ from datatools import windowAvg
 from colors import vizSpec
 
 #Special case for an idiot.
-if sys.argv[3] == "OUTCAR":
+if "OUTCAR" in sys.argv:
     print "***"
     print "You're an idiot Adam. Stop running this program on OUTCAR."
     print "***"
