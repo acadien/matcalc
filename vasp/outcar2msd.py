@@ -55,13 +55,13 @@ def outcarMeanSquareDisplace(outcarFile,refStructure=None):
     Ntime=len(atoms)
 
     if refStructure==None:
-        delT,msd=meanSquareDistRef(atoms,0,Natom,Ntime,lengths)
+        delT,msd,msdByAtom=meanSquareDistRef(atoms,0,Natom,Ntime,lengths,byAtom=True)
     elif refStructure > Ntime:
         print "%d requested but %d structures max"%(refStructure,Ntime)
     else:
-        delT,msd=meanSquareDistRef(atoms,refStructure,Natom,Ntime,lengths)
+        delT,msd,msdByAtom=meanSquareDistRef(atoms,refStructure,Natom,Ntime,lengths,byAtom=True)
 
-    return delT,msd
+    return delT,msd,msdByAtom
 
 if __name__=="__main__":
     if len(sys.argv)<2:
@@ -78,7 +78,8 @@ if __name__=="__main__":
     if len(sys.argv)==3:
         refStructure=int(sys.argv[2])
 
-    delT,msd=outcarMeanSquareDisplace(outcarFile,refStructure)
+    delT,msd,msdByAtom=outcarMeanSquareDisplace(outcarFile,refStructure)
+
 
     if refStructure==None:
         msdfile=outcarFile+".msd"
@@ -86,7 +87,8 @@ if __name__=="__main__":
         msdfile=outcarFile+".msd%d"%refStructure
 
     header=["Mean Squared Displacement from %s.\n"%(sys.argv[0]),"delTimeStep msd($\AA^2$)\n"]
-    msddata=header+[str(x)+" "+str(y)+"\n" for x,y in zip(delT,msd)]
+    msdByAtom = msdByAtom.tolist()
+    msddata=header+[str(x)+" "+str(y)+" "+" ".join(map(str,z))+"\n" for x,y,z in zip(delT,msd,msdByAtom)]
     print "Writing %s."%msdfile
     open(msdfile,"w").writelines(msddata)
 

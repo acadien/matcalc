@@ -5,7 +5,7 @@ from scipy.weave import converters
 from numpy import *
 
 msdCode = """
-double c,d;
+double c,d,atomd;
 double *seta,*setb;
 int dt;
 
@@ -20,6 +20,7 @@ for(dt=1;dt<Ntime;dt++){
     setb=&(atoms[(i+dt)*Natom*3]);
 
     for(int j=0;j<Natom;j++){
+      atomd=0
       for(int dof=0;dof<3;dof++){       //loop over each Degree of Freedom
 
         d = seta[j*3+dof]-setb[j*3+dof];
@@ -27,8 +28,9 @@ for(dt=1;dt<Ntime;dt++){
         if( d <-lengths[dof]/2.0 ) d += lengths[dof];  //Upper PBC
 
         c += d*d;
-
+        atomd += d*d;
       }
+      msdByAtom[(dt-1)*Natom + j] = atomd
     }
   }
 
@@ -38,19 +40,25 @@ for(dt=1;dt<Ntime;dt++){
 """
 
 #Calculates the MSD, doesn't take into big atomic jumps due to PBC
-def meanSquareDist(atoms,Natom,Ntime,lengths):
+def meanSquareDist(atoms,Natom,Ntime,lengths,byAtom=False):
     atoms=array(atoms).ravel() #atoms is an Ntime x Natom x 3 array... now flattened
     delT=array(range(1,Ntime+1))
     msd=zeros(len(delT))
+    msdByAtom=zeros(len(delT)*Natom)
 
     compiler_args=['-march=native -O3 -fopenmp']
     headers=r"""#include <omp.h>"""
     libs=['gomp']
 
-    weave.inline(msdCode,['atoms','Ntime','Natom','lengths','msd'],\
+    weave.inline(msdCode,['atoms','Ntime','Natom','lengths','msd','msdByAtom'],\
                      extra_compile_args=compiler_args,\
                      support_code=headers,\
                      libraries=libs)
+
+    msdByAtom.shape=[len(delT),Natom]
+
+    if byAtom:
+        return delt,msd,msdByAtom
     return delT,msd
 
 undoPBCcode = """
@@ -78,27 +86,29 @@ for(int i=0;i<Ntime-1;i++){
 """
 
 msdRefCode = """
-double c,d;
+double c,d,atomd;
 double *seta,*setb;
 
 seta=&(refAtoms[0]);
 
-#pragma omp parallel for default(shared) private(c,d)
+//#pragma omp parallel for default(shared) private(c,d,atomd)
 for(int i=0;i<Ntime;i++){
 
   setb=&(atoms[(i)*Natom*3]);
 
   c=0.0;
   for(int j=0;j<Natom;j++){
+    atomd = 0;
     for(int dof=0;dof<3;dof++){       //loop over each Degree of Freedom
 
       d = seta[j*3+dof]-setb[j*3+dof];
       //if( d > lengths[dof]/2.0 ) d -= lengths[dof];  //Lower PBC
       //if( d <-lengths[dof]/2.0 ) d += lengths[dof];  //Upper PBC
 
-      c += d*d;
-
+      atomd += d*d;
     }
+    c += atomd;
+    msdByAtom[i*Natom + j] = atomd;
   }
 
   msd[i] = c/(Natom);//*Ntime);
@@ -108,11 +118,12 @@ for(int i=0;i<Ntime;i++){
 
 #Calculates the MSD enforcing periodic boundary conditions
 #ref is an index into the atoms array
-def meanSquareDistRef(atoms,ref,Natom,Ntime,lengths):
+def meanSquareDistRef(atoms,ref,Natom,Ntime,lengths,byAtom=False):
 
     atoms=array(atoms).ravel()       #atoms is an Ntime x Natom x 3 array... now flattened
     delT=array(range(1,Ntime+1))
     msd=zeros(len(delT))
+    msdByAtom=zeros(Ntime*Natom)
 
     compiler_args=['-march=native -O3 -fopenmp']
     headers=r"""#include <omp.h>"""
@@ -128,10 +139,14 @@ def meanSquareDistRef(atoms,ref,Natom,Ntime,lengths):
     refAtoms=atoms[ref] #refAtoms is an Natom x 3 array... now flattened
     atom=atoms.ravel()
     refAtoms=refAtoms.ravel()
-    weave.inline(msdRefCode,['atoms','refAtoms','Ntime','Natom','lengths','msd'],\
+    weave.inline(msdRefCode,['atoms','refAtoms','Ntime','Natom','lengths','msd','msdByAtom'],\
                      extra_compile_args=compiler_args,\
                      support_code=headers,\
                      libraries=libs)
+    msdByAtom.shape=[Ntime,Natom]
+
+    if byAtom:
+        return delT,msd,msdByAtom
     return delT,msd
 
 

@@ -13,7 +13,7 @@ import plotRemote as pr
 from neighbors import neighbors,nNearestNeighbors,full2half,voronoiNeighbors
 from struct_tools import *
 from rdf import *
-from sf import sf
+from sf import sf,sfq
 
 #local bond-orientational: Q_l for each atom.  atomi>-1 selects a specific atom
 #rcut is interms of shells not a distance
@@ -160,13 +160,14 @@ def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     Nr=len(rbins)
     density = atoms.shape[0] / volume(basis)
 
-    qbins,qvals = sf(rbins,rdist,density,Lmax=l,qbins=2048,damped=True)
+    qbins,qvals = sf(rbins,rdist,density,Lmax=l,qbins=2048,damped=False)
     return qbins,qvals
 
-#def structureFactor0(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
-#   sfq(atoms,basis)
-#   return 0
-            
+def structureFactor0(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+   sfq(atoms,basis)
+   return 0
+
+"""
 def structureFactor0(rdfX,rdfY,nDensity,l=None,neighbs=None,rcut=None,debug=False):
     rdfX=array(rdfX)
     rdfY=array(rdfY)
@@ -182,6 +183,7 @@ def structureFactor0(rdfX,rdfY,nDensity,l=None,neighbs=None,rcut=None,debug=Fals
     pl.show()
     exit(0)
     return [integrate.simps((rdfY-1.0),rdfX)*nDensity+1]
+"""
     
 #translational order parameter, l=neighbor shell
 def translational(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):

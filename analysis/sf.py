@@ -3,9 +3,13 @@
 from scipy import weave
 from scipy.weave import converters
 import scipy
+from scipy import linalg
 import numpy as np
 from math import *
 import cmath
+import random
+#mine
+from rdf import rdf_periodic
 
 #Calculate the Structure factor from the rdf
 def sf(rdfX,rdfY,ndens,Lmax=20.0,qbins=1024,damped=True):
@@ -26,113 +30,229 @@ def sf(rdfX,rdfY,ndens,Lmax=20.0,qbins=1024,damped=True):
 
     return qs,sf
 
-#weave.inline(SFbyQCode,['atoms','natoms','qvals','qbins','nqbins','qcut','rcut','b','qxs','qys','qzs','nqVecs'])
-SFbyQCode="""
-double aix,ajx,aiy,ajy,aiz,ajz,amx,amy,amz,c,d,di,dj,dx,dy,dz,dij;
-double rcut2 = rcut * rcut;
-double qC,qS,qRadius;
-int nds=0;
+#stepsize => nqvectors
+#0.1 => 425172
+#0.2 => 53162
+#0.3 => 16138
+#0.4 => 7333
+#0.5 => 3829
+SFbyQCodeGrid="""
+double QMAX = qRads[(int)nqbins-1];
+double qmag;
+double delq = qRads[1]-qRads[0];
 
-for(int ql=0;ql<(int)nqbins;ql++){
-    qRadius = (double)ql / nqbins * qcut;
-    qvals[ql] = qRadius;
+double *nqvecs,qdotr,aix,aiy,aiz,qc,qs,dx,dy,dz;
+nqvecs = (double*)calloc(nqbins,sizeof(double));
+int index;
+
+for(double qx=-QMAX/1.; qx<=QMAX/1.; qx+=qstep){
+for(double qy=-QMAX/1.; qy<=QMAX/1.; qy+=qstep){
+for(double qz=-QMAX/1.; qz<=QMAX/1.; qz+=qstep){
+
+    qmag=sqrt(qx*qx+qy*qy+qz*qz);
+    if(qmag>QMAX) continue;
+    if(qmag<0.25) continue;
+    index = (int)(qmag/delq);
+
+    qc=0;
+    qs=0;
+    for(int i=0;i<natoms;i++){
+        aix=atoms[i*3+0];
+        aiy=atoms[i*3+1];
+        aiz=atoms[i*3+2];
+        qdotr = qx*aix + qy*aiy + qz*aiz;
+
+        qc += cos(qdotr);
+        qs += sin(qdotr);
+    }
+    sf[index]+= (qc*qc+qs*qs)/natoms;
+    nqvecs[index]++;    
+}}}
+
+for(int i=0;i<nqbins;i++){
+    if(nqvecs[i]<=0.001) continue;
+    sf[i]/=nqvecs[i];
 }
 
-for(int i=0;i<natoms*3;i++){
-    aix=atoms[i*3];
-    aiy=atoms[i*3+1];
-    aiz=atoms[i*3+2];
+for(int i=0;i<nqbins;i++)
+    if (i > 2 && i < nqbins -3)
+        sfsg[i] = (-2*sf[i-3] + 3*sf[i-2] + 6*sf[i-1] + 7*sf[i] + 6*sf[i+1] + 3*sf[i+2] - 2*sf[i+3])/21;
+    else
+        sfsg[i] = sf[i];
+"""
 
-    for(int j=0;j<natoms*3;j++){
-        if(i==j) continue;
+SFbyQCodeSphere="""
+double *qxs,*qys,*qzs,a,b,a2,b2;
+int nqs = (int)nqVecs;
+qxs = (double*)malloc(sizeof(double)*(int)nqs);
+qys = (double*)malloc(sizeof(double)*(int)nqs);
+qzs = (double*)malloc(sizeof(double)*(int)nqs);
+int qlen=0;
+while( qlen < nqs ){
+    a = rand()*2/(double)RAND_MAX-1.0;
+    b = rand()*2/(double)RAND_MAX-1.0;
+    a2 = a*a;
+    b2 = b*b;
 
-        ajx=atoms[j*3];
-        ajy=atoms[j*3+1];
-        ajz=atoms[j*3+2];
+    if(a2 + b2 > 1.0) 
+        continue;
 
-        dx=ajx-aix;
-        dy=ajy-aiy;
-        dz=ajz-aiz;
-        c=sqrt(dx*dx+dy*dy+dz*dz);
+    qxs[qlen] = (2*a*sqrt(1-a2-b2));
+    qys[qlen] = (2*b*sqrt(1-a2-b2));
+    qzs[qlen] = (1-2*(a2+b2));
 
-        if(c<=rcut){
-            nds++;
-/*
-            for(int ql=0;ql<(int)nqbins;ql++){
-                qRadius = qvals[ql];
-                if(qRadius==0.0) qRadius=1E-10;
-                if(c==0) err=1;
-                qbinsCOS[ql]+=sin(qRadius*c)/qRadius/c;
-            }
-*/
-            for(int ql=0;ql<(int)nqbins;ql++){
-                qRadius = qvals[ql];
+    qlen++;
+}
 
-                if(qRadius == 0.0)
-                   qRadius+=1E-5;
+double aix,aiy,aiz,qdr;
 
-                //Loop over q vectors at this radius
-                for(int qv=0; qv<nqVecs; qv++){
-                    //di = (qxs[qv]*aix + qys[qv]*aiy + qzs[qv]*aiz)*qRadius;
-                    //dj = (qxs[qv]*ajx + qys[qv]*ajy + qzs[qv]*ajz)*qRadius;
-                    dij = (qxs[qv]*dx + qys[qv]*dy + qzs[qv]*dz)*qRadius;
-                    qbinsCOS[ql] += cos(dij);
-                    //qbinsSIN[ql] += (cos( di ) * cos( dj ) + sin( di ) * sin( dj ));
-                }
-            }
+double r2,*rs;
+rs = (double*)malloc(sizeof(double)*natoms);
+for(int i=0;i<natoms;i++){
+    aix = atoms[i*3];
+    aiy = atoms[i*3+1];
+    aiz = atoms[i*3+2];
+    r2 = aix*aix+aiy*aiy+aiz*aiz;
+    rs[i] = sqrt(r2);
+}
+
+double qC,qS,qRadius,qx,qy,qz;
+double qNorm = 1. / (nqs*natoms);
+double cosi,sini;
+for(int ql=0;ql<(int)nqbins;ql++){
+    qRadius = qRads[ql];
+
+    for(int qv=0;qv<(int)nqs;qv++){
+        qx = qxs[qv];
+        qy = qys[qv];
+        qz = qzs[qv];
+
+        qC=0;
+        qS=0;
+        for(int i=0;i<natoms;i++){
+            aix=atoms[i*3]-basis[0]/2.;
+            aiy=atoms[i*3+1]-basis[4]/2.;
+            aiz=atoms[i*3+2]-basis[8]/2.;
+
+            qdr = (qx*aix + qy*aiy + qz*aiz)*qRadius;
+
+            qC+=cos(qdr)*(qx*qx+qy*qy+qz*qz);
+            qS+=sin(qdr)*(qx*qx+qy*qy+qz*qz);
         }
+        sf[ql] +=(qC*qC+qS*qS);
     }
 }
 
-//double qNorm = 1. / (nqVecs*natoms);
-//for(int ql=0; ql<nqbins;ql++){
-//    qbinsCOS[ql]*=qNorm;
-//    qbinsSIN[ql]*=qNorm;
-//}
+for(int ql=0;ql<(int)nqbins;ql++){
+    sf[ql]/=(double)nqs*natoms;
+}
+
+
 """
 
-def sfq(atoms,basis,nr=100,rcut=10.0,nqbins=200,qcut=10.0):
+def sfq(atoms,basis,nqbins=290,qcut=7.5):
 
-    atoms = np.array(atoms)
+    atoms = np.array([[a[0]%basis[0][0],a[1]%basis[1][1],a[2]%basis[2][2]] for a in atoms])
     natoms = atoms.shape[0]
     basis = np.array(basis)
 
     #Reshape
     atoms.shape=natoms*3
     basis.shape=9
-    b=basis.T
 
     #prepare q stuff 
-    qvals = np.zeros([nqbins])
-    qbins = np.zeros([nqbins])
-    qbinsCOS = np.zeros([nqbins])
-    qbinsSIN = np.zeros([nqbins])
-    qxs,qys,qzs = map( np.array , spherePoints(5) ) #change the 5 to improve accuracy
-    nqVecs = qxs.shape[0]
-
-    err = 0
+    qRads = np.linspace(0,qcut,nqbins+1)[1:]
+    qbinsS = np.zeros([nqbins])
+    qbinsC = np.zeros([nqbins])
+    sf = np.zeros([nqbins])
+    sfsg = np.zeros([nqbins])
     #Call the code
-    weave.inline(SFbyQCode,['atoms','b','natoms','qbinsCOS','qbinsSIN','qvals','nqbins','qcut','rcut','qxs','qys','qzs','nqVecs','err'])
+    nqVecs = 2000
+    qstep = 0.4
+
+    headers=r"""#include <math.h> 
+                #include <stdio.h>"""
+    weave.inline(SFbyQCodeGrid,['atoms','natoms','qbinsS','qbinsC','qRads','nqbins','nqVecs','sf','basis','sfsg','qstep'],support_code=headers)
     atoms.shape=[natoms,3]
     basis.shape=[3,3]
 
-    print max(qbinsCOS),max(qbinsSIN)
-    print err
-    qbinsCOS/=max(qbinsCOS)
-    #qbinsSIN/=max(qbinsSIN)
     import pylab as pl
-    pl.plot(qvals,qbinsCOS)
-    #pl.plot(qvals,qbinsSIN)
-
-
-
-    #import rdf
-    #rdfx,rdfy = rdf.rdf_periodic(atoms,basis)
-    #sfx,sfy = sf(rdfx,rdfy,Lmax=6.0)
-    #pl.plot(sfx,sfy)
+    pl.plot(qRads,sf,label='tsf')
+    pl.plot(qRads,sfsg,label='sfsg')
+    pl.legend(loc=0)
+    open("blah.SF","w").writelines(["% lf % lf % lf\n"%(q,qc,qs) for q,qc,qs in zip(qRads,sf,qbinsS)])
     pl.show()
 
-    return qvals,qbins
+    return qRads,qbinsC
+
+#number of points = Nz*(Nz-1)+2
+def spherePoints(Nz=12):
+    #Generate a single circle in the x-y plane
+    circleXs = [sin(float(i)/Nz*2*pi) for i in range(Nz)]
+    circleYs = [cos(float(i)/Nz*2*pi) for i in range(Nz)]
+
+    #Stagger the circles by some z value
+    circleZs = [float(i-Nz/2)/Nz*2.0 for i in range(1,Nz)]
+
+    #Stick them in one list
+    xs,ys,zs=[],[],[]
+    for z in circleZs:
+        r=sqrt(1-z*z)
+        xs += [x*r for x in circleXs]
+        ys += [y*r for y in circleYs]
+        zs += [z for i in range(len(circleXs))]
+
+    #Add top and bottom points to the sphere
+    xs = [0] + xs + [0]
+    ys = [0] + ys + [0]
+    zs = [-1]+ zs + [1]
+
+    return xs,ys,zs
+
+def sphereRandom(Npoints):
+    xs,ys,zs=[],[],[]
+    while len(xs)<Npoints:
+        a,b=random.random()*2-1,random.random()*2-1
+        a2=a*a
+        b2=b*b
+        if a2+b2 >= 1: continue
+        
+        g=sqrt(1-a2-b2)
+
+        xs.append(2*a*g)
+        ys.append(2*b*g)
+        zs.append(1-2*(a2+b2))
+    """
+        xs.append(-2*a*g)
+        ys.append(2*b*g)
+        zs.append(1-2*(a2+b2))
+
+        xs.append(2*a*g)
+        ys.append(-2*b*g)
+        zs.append(1-2*(a2+b2))
+
+        xs.append(2*a*g)
+        ys.append(2*b*g)
+        zs.append(-1+2*(a2+b2))
+
+        xs.append(-2*a*g)
+        ys.append(-2*b*g)
+        zs.append(1-2*(a2+b2))
+
+        xs.append(-2*a*g)
+        ys.append(2*b*g)
+        zs.append(-1+2*(a2+b2))
+
+        xs.append(2*a*g)
+        ys.append(-2*b*g)
+        zs.append(-1+2*(a2+b2))
+
+        xs.append(-2*a*g)
+        ys.append(-2*b*g)
+        zs.append(-1+2*(a2+b2))
+    """     
+
+    return xs,ys,zs
 
 #############################################################################################
 
@@ -250,39 +370,48 @@ def sfq2(atoms,basis,nr=100,rcut=12.0,nqbins=100,qcut=4.0):
 
 #############################################################################################
 
-def gridPoints(Nz=4):
-    gp=list()
-    Nz1=Nz+1
-    Nz=float(Nz)
-    for i in range(Nz1):
-        for j in range(Nz1):
-            for k in range(Nz1):
-                gp.append([i/Nz,j/Nz,k/Nz])
-    return zip(*gp)
+#weave.inline(SFbyQCode,['atoms','natoms','qvals','qbins','nqbins','qcut','rcut','b','qxs','qys','qzs','nqVecs'])
+SFbyQGridCode="""
+double aix,ajx,aiy,ajy,aiz,ajz,amx,amy,amz,c,d,di,dj,dx,dy,dz,dij;
+double rcut2 = rcut * rcut;
+double qC,qS,qRadius;
+int nds=0;
 
-#number of points = Nz*(Nz-1)+2
-def spherePoints(Nz=12):
-    #Generate a single circle in the x-y plane
-    circleXs = [sin(float(i)/Nz*2*pi) for i in range(Nz)]
-    circleYs = [cos(float(i)/Nz*2*pi) for i in range(Nz)]
-    
-    #Stagger the circles by some z value
-    circleZs=[float(i-Nz/2)/Nz*2.0 for i in range(1,Nz)]
+for(int i=0;i<natoms;i++){
+    aix=atoms[i*3];
+    aiy=atoms[i*3+1];
+    aiz=atoms[i*3+2];
 
-    #Stick them in one list
-    xs,ys,zs=[],[],[]
-    for z in circleZs:
-        r=sqrt(1-z*z)
-        xs += [x*r for x in circleXs]
-        ys += [y*r for y in circleYs]
-        zs += [z for i in range(len(circleXs))]
+    for(int j=0;j<natoms;j++){
+        if(i==j) continue;
 
-    #Add top and bottom points to the sphere
-    xs = [0] + xs + [0]
-    ys = [0] + ys + [0]
-    zs = [-1]+ zs + [1]
+        ajx=atoms[j*3];
+        ajy=atoms[j*3+1];
+        ajz=atoms[j*3+2];
 
-    xs,ys,zs = zip(*[[x,y,z] for x,y,z in zip(xs,ys,zs) if x>=0 and y>=0 and z>=0])
+        dx=ajx-aix;
+        dy=ajy-aiy;
+        dz=ajz-aiz;
+        c=sqrt(dx*dx+dy*dy+dz*dz);
 
-    return xs,ys,zs
+        if(c<=rcut){
+            nds++;
 
+            //Loop over q vectors at this radius
+            for(int qv=0; qv<nqVecs; qv++){
+               di = (qxs[qv]*aix + qys[qv]*aiy + qzs[qv]*aiz);
+               //dj = (qxs[qv]*ajx + qys[qv]*ajy + qzs[qv]*ajz);
+               //dij = (qxs[qv]*dx + qys[qv]*dy + qzs[qv]*dz);
+               qbinsCOS[qrs[qv]] += cos(di);
+               qbinsSIN[qrs[qv]] +=1;    
+            }
+        }
+    }
+}
+
+//double qNorm = 1. / (nqVecs*natoms);
+for(int ql=0; ql<nqbins;ql++){
+    qbinsCOS[ql]/=qbinsSIN[ql];
+//    qbinsSIN[ql]*=qNorm;
+}
+"""

@@ -19,6 +19,7 @@ if "OUTCAR" in sys.argv:
     print "You're an idiot Adam. Stop running this program on OUTCAR."
     print "***"
     exit(0)
+
 #returns a parsed file, keeping only rows that can be converted to floats
 #keeps rows with the most common number of columns.
 def parse(fname,delim=None):
@@ -75,7 +76,7 @@ def usage():
     print "./plot2.py 0 1 datafile1 0 2 datafile2 datafile3"
     print "./plot2.py 0 1s25 datafile1     #windowed average of width 25 is applied"
     print "./plot2.py 0x0.5 1x2.0 datafile #scale of 0.5 on x-axis and scale of 2.0 on y-axis"
-    print "switches: -3d, -stagger, -sort, -avg, -hist,-hist#bins, -scatter"
+    print "switches: -3d, -stagger, -sort, -avg, -hist,-hist#bins, -scatter, -noleg"
     print ""
 
 if __name__=="__main__":
@@ -90,7 +91,7 @@ if __name__=="__main__":
 
     #Pre-parse for switches
     nbins=80
-    switches={"-3d":False,"-stagger":False,"-sort":False,"-avg":False,"-hist":False,"-scatter":False}
+    switches={"-3d":False,"-stagger":False,"-sort":False,"-avg":False,"-hist":False,"-scatter":False, "-noleg":False}
     for i in range(len(sys.argv)-1,-1,-1):
         if sys.argv[i] in switches.keys(): 
             switches[sys.argv[i]]=True
@@ -384,5 +385,6 @@ if __name__=="__main__":
         avgy=[i/count for i in avgy]
         pl.plot(avgx,avgy)
 
-    pl.legend(fnames,loc=0)
+    if not switches["-noleg"]:
+        pl.legend(fnames,loc=0)
     pr.prshow("plot2.png")
