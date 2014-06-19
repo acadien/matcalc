@@ -73,12 +73,6 @@ for(int i=0;i<nqbins;i++){
     if(nqvecs[i]<=0.001) continue;
     sf[i]/=nqvecs[i];
 }
-
-for(int i=0;i<nqbins;i++)
-    if (i > 2 && i < nqbins -3)
-        sfsg[i] = (-2*sf[i-3] + 3*sf[i-2] + 6*sf[i-1] + 7*sf[i] + 6*sf[i+1] + 3*sf[i+2] - 2*sf[i+3])/21;
-    else
-        sfsg[i] = sf[i];
 """
 
 SFbyQCodeSphere="""
@@ -136,10 +130,10 @@ for(int ql=0;ql<(int)nqbins;ql++){
 
             qdr = (qx*aix + qy*aiy + qz*aiz)*qRadius;
 
-            qC+=cos(qdr)*(qx*qx+qy*qy+qz*qz);
-            qS+=sin(qdr)*(qx*qx+qy*qy+qz*qz);
+            qC+=cos(qdr);
+            qS+=sin(qdr);
         }
-        sf[ql] +=(qC*qC+qS*qS);
+        sf[ql] += (qC*qC+qS*qS);
     }
 }
 
@@ -156,23 +150,24 @@ def sfq(atoms,basis,nqbins=290,qcut=7.5):
     natoms = atoms.shape[0]
     basis = np.array(basis)
 
+    #prepare q stuff 
+    recip = np.linalg.inv(basis)
+    rmodul = map(lambda x: sqrt(sum(x*x)),recip)
+    qmin = min(rmodul)
+    qRads = np.linspace(qmin,qcut,nqbins)
+    sf = np.zeros([nqbins])
+    sfsg = np.zeros([nqbins])
+    nqVecs = 200
+    qstep = 0.8
+
     #Reshape
     atoms.shape=natoms*3
     basis.shape=9
 
-    #prepare q stuff 
-    qRads = np.linspace(0,qcut,nqbins+1)[1:]
-    qbinsS = np.zeros([nqbins])
-    qbinsC = np.zeros([nqbins])
-    sf = np.zeros([nqbins])
-    sfsg = np.zeros([nqbins])
     #Call the code
-    nqVecs = 2000
-    qstep = 0.4
-
     headers=r"""#include <math.h> 
                 #include <stdio.h>"""
-    weave.inline(SFbyQCodeGrid,['atoms','natoms','qbinsS','qbinsC','qRads','nqbins','nqVecs','sf','basis','sfsg','qstep'],support_code=headers)
+    weave.inline(SFbyQCodeGrid,['atoms','natoms','qRads','nqbins','nqVecs','sf','basis','sfsg','qstep'],support_code=headers)
     atoms.shape=[natoms,3]
     basis.shape=[3,3]
 
@@ -180,10 +175,10 @@ def sfq(atoms,basis,nqbins=290,qcut=7.5):
     pl.plot(qRads,sf,label='tsf')
     pl.plot(qRads,sfsg,label='sfsg')
     pl.legend(loc=0)
-    open("blah.SF","w").writelines(["% lf % lf % lf\n"%(q,qc,qs) for q,qc,qs in zip(qRads,sf,qbinsS)])
+    open("blah.SF","w").writelines(["% lf % lf % lf\n"%(q,qc,qs) for q,qc,qs in zip(qRads,sf,sfsg)])
     pl.show()
 
-    return qRads,qbinsC
+    return qRads,sf
 
 #number of points = Nz*(Nz-1)+2
 def spherePoints(Nz=12):

@@ -126,7 +126,7 @@ def neighbors(atoms,bounds,r,style="full"):
 
     if style in ["h","H","half","Half"]:
         neighbs=full2half(neighbs)
-    print "Done generating Neighbor List."
+    #print "Done generating Neighbor List."
     return neighbs
 
 #Generate a neighbor list of the N shortest bonds less than length r
