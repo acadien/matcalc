@@ -36,7 +36,7 @@ for i,b in enumerate(bytenums):
     
     atoms = [map(float,outcar.readline().split()[:3]) for a in range(nAtoms)]
     cn,rcut = orderParam.coordinationNumber(atoms,basis)
-    cnAvg=sum(cn)/len(cn)
+    cnAvg=float(sum(cn))/len(cn)
     cns=" ".join(map(str,cn))
     cnOut.write(str(cnAvg)+"\t"+cns+"\n")
 
