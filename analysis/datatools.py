@@ -6,8 +6,37 @@ from numpy.fft import *
 from numpy import convolve
 import pylab as pl
 from itertools import chain
+from scipy import ndimage
+from scipy import weave
+from scipy.weave import converters
 #mine
 from gaussFunctions import *
+
+#uses a guassian smooth convoluted with finite differences to get an absurdly smooth line but with edge effects
+superSmoothCode="""
+double pre=0.3989422804014327/sigma;
+double dx,xmus;
+
+for(int a=0;a<N;a++){
+    for(int b=0;b<N;b++){
+        if(b==0)
+            dx = xs[b+1]-xs[b];
+        if(b==N-1)
+            dx = xs[b]-xs[b-1];
+        if(b>1 && b<N-1)
+            dx = (xs[b+1]-xs[b-1])/2.0;
+
+        xmus = (xs[a]-xs[b])/sigma;
+        smoothys[a] += pre * exp( xmus * xmus * -0.5) * ys[b] * dx;
+}}
+"""
+def superSmooth(xs,ys,sigma=1.0):
+    N=len(ys)
+    smoothys=zeros(N)
+    xs=array(xs)
+    ys=array(ys)
+    weave.inline(superSmoothCode,['xs','ys','N','smoothys','sigma'])
+    return smoothys
 
 #1D data
 def gaussSmooth(a,n=9,mode='same'):

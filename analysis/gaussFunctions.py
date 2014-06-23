@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from math import *
+from scipy import array,zeros
 from scipy import weave
 from scipy.weave import converters
 import numpy
@@ -11,15 +12,42 @@ import numpy
 #  Normal Gaussians
 #====================
 
-#f(x)=1/(sig sqrt(2*pi)) e ^ -(x-mu)**2/(2sig^2)
-gaussNorm1Dcode = """
+#f(x)=1/(sig * sqrt(2*pi)) e ^ -(x-mu)**2/(2sig^2)
+gaussPointcode = """
 double pre=0.3989422804014327; 
 double xmus=(x-mu)/sig;
 return_val = ( pre/sig ) * exp( xmus*xmus / -2. );
 """
 
-def gaussNorm1D(x,mu,sig):
-    return weave.inline(gaussNorm1Dcode,['x','sig','mu'])
+def gaussPoint(x,mu,sig):
+    return weave.inline(gaussPointcode,['x','sig','mu'])
+
+#f(x)=1/(sig * sqrt(2*pi)) e ^ -(x-mu)**2/(2sig^2)
+gaussNorm1Dcode = """
+double pre=0.3989422804014327/sig; 
+double xmus;
+for(int i=0;i<nx;i++){
+    /*
+    if(i==0)
+        dx = xs[i+1]-xs[i]; 
+    if(i==nx-1)
+        dx = xs[i]-xs[i-1];
+    if(i>0 && i<nx-1)
+        dx = (xs[i+1]-xs[i-1])*0.5;
+    */
+    xmus=(xs[i]-mu)/sig;
+    ys[i] = pre * exp( xmus*xmus / -2. )*yv[i]*dx;
+}
+"""
+
+def gaussNorm1D(xs,mu,sig,yv=None,dx=1.0):
+    nx=xs.shape[0]
+    ys=zeros(nx)
+    if yv==None:
+        yv=zeros(nx)+1
+    weave.inline(gaussNorm1Dcode,['xs','nx','ys','sig','mu','yv','dx'])
+    return ys
+
 
 #f(x,y)=1/(2pi sigx sigy sqrt(1-rho^2)) e ^ z (z=a mess, check wiki)
 gaussNorm2Dcode = """

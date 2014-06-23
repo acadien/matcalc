@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D as ax3d
 #mine
-from datatools import windowAvg
+from datatools import windowAvg,gaussSmooth,wsmooth,superSmooth
 from colors import vizSpec
 
 #Special case for an idiot.
@@ -76,7 +76,7 @@ def usage():
     print "./plot2.py 0 1 datafile1 0 2 datafile2 datafile3"
     print "./plot2.py 0 1s25 datafile1     #windowed average of width 25 is applied"
     print "./plot2.py 0x0.5 1x2.0 datafile #scale of 0.5 on x-axis and scale of 2.0 on y-axis"
-    print "switches: -3d, -stagger, -sort, -avg, -hist,-hist#bins, -scatter, -noleg"
+    print "switches: -3d, -stagger, -sort, -avg, -hist, -hist#bins, -scatter, -noleg, -saveData, -gauss"
     print ""
 
 if __name__=="__main__":
@@ -91,7 +91,7 @@ if __name__=="__main__":
 
     #Pre-parse for switches
     nbins=80
-    switches={"-3d":False,"-stagger":False,"-sort":False,"-avg":False,"-hist":False,"-scatter":False, "-noleg":False}
+    switches={"-3d":False,"-stagger":False,"-sort":False,"-avg":False,"-hist":False,"-scatter":False, "-noleg":False, "-saveData":False, "-gauss":False}
     for i in range(len(sys.argv)-1,-1,-1):
         if sys.argv[i] in switches.keys(): 
             switches[sys.argv[i]]=True
@@ -277,12 +277,18 @@ if __name__=="__main__":
         yWAN=yWANs[i]
         
         if xSmoothEnable:
-            xdata=windowAvg(xdata,xWAN)
+            if swiches["-gauss"]:
+                xdata=superSmooth(xdata,xWAN,xWAN/100.0)
+            else:
+                xdata=windowAvg(xdata,xWAN)
         if ySmoothEnable:
-            ydata=windowAvg(ydata,yWAN)
+            if switches["-gauss"]:
+                ydata=superSmooth(xdata,ydata,yWAN/100.0)
+            else:
+                ydata=windowAvg(ydata,yWAN)
 
         #Correct for window offset, average introduces extra points that need to be chopped off
-        if xSmoothEnable or ySmoothEnable: 
+        if (xSmoothEnable or ySmoothEnable) and not switches["-gauss"]: 
             WAN=max(xWAN,yWAN)
             xdata=xdata[WAN/2+1:WAN/-2]
             ydata=ydata[WAN/2+1:WAN/-2]
@@ -374,17 +380,14 @@ if __name__=="__main__":
                 pl.plot(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)))
 
     if switches["-avg"]:
-        #if switches["-hist"]:
-        #    mn=min(ydata)
-        #    mx=max(ydata)
-        #    dely=(mx-mn)/dely
-        #    ybins=[i*dely/nbins+mn for i in range(-1,nbins+1)]
-        #    yvals=[0]+np.bincount([(y-mn)/(mx-mn)*nbins for y in avgy]).tolist()+[0]
-        #    pl.plot(avgx,avgy)
-        #else:
         avgy=[i/count for i in avgy]
         pl.plot(avgx,avgy)
-
+        if switches["-saveData"]:
+            data=label[xCol] + " " + label[yCol] + "\n"
+            for x,y in zip(avgx,avgy):
+                data+=str(x)+" "+str(y)+"\n"
+            open("plot2.data","w").write(data)
+    
     if not switches["-noleg"]:
         pl.legend(fnames,loc=0)
     pr.prshow("plot2.png")
