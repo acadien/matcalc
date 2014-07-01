@@ -28,6 +28,7 @@ def parse(fname,delim=None):
     data=list() 
     dataIndex=list()
     for i,line in enumerate(fraw):
+
         #drop lines with only newline characters
         if len(line) < 2: continue
             
@@ -49,7 +50,7 @@ def parse(fname,delim=None):
 
         data.append(f)
         dataIndex.append(i)
-    
+
     #Keep only data with the most common number of columns
     columnLengths=map(len,data)
 
@@ -60,6 +61,13 @@ def parse(fname,delim=None):
     parsedData=zip(*parsedData)
 
     labels=fraw[dataNum[0]-1].split(delim)
+    n=len(labels)
+    try:
+        map(float,labels)
+        labels=[" "]*n
+    except:
+        pass
+
     return labels,parsedData
 
 def usage():

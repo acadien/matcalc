@@ -3,6 +3,7 @@
 from numpy import *
 import sys
 import subprocess
+import numpy
 #mine
 from struct_tools import mag,ang
 
@@ -98,18 +99,20 @@ def parseConfigAtStart(dumpF,seekpoint):
             atominfo.sort(key=lambda x:x[0])
             order,types,ax,ay,az=zip(*atominfo)[:5]
 
-            if v1[1]+v1[2]+v2[0]+v2[2]+v3[0]+v3[1]==0.0:
+            if max(ax)<1.1 and min(fabs(ax))>0:
+                a,b,c = array(ax),array(ay),array(az)
+                ax=v1[0]*a+v2[0]*b+v3[0]*c
+                ay=v1[1]*a+v2[1]*b+v3[1]*c
+                az=v1[2]*a+v2[2]*b+v3[2]*c
 
+            if v1[1]+v1[2]+v2[0]+v2[2]+v3[0]+v3[1]==0.0:
                 delx = v1[0]/2. - sum(ax)/len(ax)
                 dely = v2[1]/2. - sum(ay)/len(ay)
                 delz = v3[2]/2. - sum(az)/len(az)
                 ax = [x+delx for x in ax]
                 ay = [y+dely for y in ay]
                 az = [z+delz for z in az]
-            #a,b,c = array(ax),array(ay),array(az)
-            #ax=v1[0]*a+v2[0]*b+v3[0]*c
-            #ay=v1[1]*a+v2[1]*b+v3[1]*c
-            #az=v1[2]*a+v2[2]*b+v3[2]*c
+
             types=map(int,types)
             break
 
@@ -164,6 +167,80 @@ def dumpWriteConfig(dump,basis,types,atoms,head):
     for i,(t,atom) in enumerate(zip(types,atoms)):
         data.append( "\t%d\t%d\t% 6.6f\t% 6.6f\t% 6.6f \n"%(i+1,t,atom[0],atom[1],atom[2]) )
     dump.writelines(data)
+
+#How many atoms in the first step of the dump file
+def nAtoms(dump):
+    f = open(dump)
+    f = [f.readline() for i in range(100)]
+    for i,line in enumerate(f):
+        if "NUMBER OF ATOMS" in line:
+            nAtoms=int(f[i+1])
+            break
+    return nAtoms
+
+#Returns the location of basis in the dump file
+def basisBytes(dump):
+    grepResults = subprocess.check_output("grep -b ITEM:\ BOX\ BOUNDS %s"%dump,shell=True).split("\n")
+    return [int(i.split(":")[0])+26 for i in grepResults if len(i)>2]
+
+#Returns the location of atoms in the dump file with header
+def atomsBytes(dump):
+    grepResults = subprocess.check_output("grep -b ITEM:\ ATOMS %s"%dump,shell=True).split("\n")
+    return [int(i.split(":")[0]) for i in grepResults if len(i)>2]
+
+#Reads the dump file at the given location and returns a basis set
+def parseBasis(dump,b):
+    f = open(dump)
+    f.seek(b)
+    blines=[f.readline() for i in range(3)]
+    if len(blines[0].split())==3:
+        xlo,xhi,xy=map(float,blines[0].split())
+        ylo,yhi,xz=map(float,blines[1].split())
+        zlo,zhi,yz=map(float,blines[2].split())
+    else:
+        xlo,xhi=map(float,blines[0].split())
+        ylo,yhi=map(float,blines[1].split())
+        zlo,zhi=map(float,blines[2].split())
+        xy=xz=yz = 0.0
+    v1=[xhi-xlo+xy+xz,0,0]
+    v2=[xy,yhi-ylo+yz,0]
+    v3=[xz,yz,zhi-zlo]
+    return numpy.array([v1,v2,v3])
+
+#Reads the dump file at the given location and returns a list of atoms, nAtoms long
+def parseAtoms(dump,b,nAtoms,basis):
+    f = open(dump)
+    f.seek(b)
+    
+    #read the header, what index have atom info
+    head = f.readline().split()
+    ixs = head.index("xs")-2
+    iys = head.index("ys")-2
+    izs = head.index("zs")-2
+    itypes = head.index("type")-2
+
+    #parse the file
+    atomLines = [f.readline().split() for i in range(nAtoms)]
+    ax,ay,az = zip(*[map(float,[al[ixs],al[iys],al[izs]]) for al in atomLines])
+    types = [int(al[itypes]) for al in atomLines]
+    
+    #move around atoms to fit them into the 
+    v1,v2,v3 = basis
+    if max(ax)<1.1 and min(fabs(ax))>0:
+        a,b,c = array(ax),array(ay),array(az)
+        ax=v1[0]*a+v2[0]*b+v3[0]*c
+        ay=v1[1]*a+v2[1]*b+v3[1]*c
+        az=v1[2]*a+v2[2]*b+v3[2]*c
+    if v1[1]+v1[2]+v2[0]+v2[2]+v3[0]+v3[1]==0.0:
+        delx = v1[0]/2. - sum(ax)/len(ax)
+        dely = v2[1]/2. - sum(ay)/len(ay)
+        delz = v3[2]/2. - sum(az)/len(az)
+        ax = [x+delx for x in ax]
+        ay = [y+dely for y in ay]
+        az = [z+delz for z in az]
+    
+    return numpy.array(zip(ax,ay,az)),numpy.array(types)
+    
 
 #Converts VASP style boundaries to LAMMPS boundaries
 def basis2lohi(basis):

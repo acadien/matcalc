@@ -81,6 +81,7 @@ for i,var in enumerate(varnames):
     pl.plot(lxdata[i],lydata[i],label=var)
     pl.xlim(xlims)
     pl.ylim(ylims)
+    #pl.ylim([ylims[0]/20,ylims[1]/50])
 #    prit "%3.3s : %4.4e - %4.4e"%(var,min(datay[i]),max(datay[i]))
     pl.legend(loc=0)
     

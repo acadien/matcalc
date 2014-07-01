@@ -13,6 +13,11 @@ import matplotlib.pyplot as plt
 #mine
 import poscar2lmpcfg,poscarGrow,poscarVolume
 
+try:
+    os.remove("POSCAR_eos")
+except OSError:
+    pass
+
 bars2GPa=1./10000.
 kB2GPa=1./10.
 aa3GPa2eV=1./1602.17656
@@ -54,7 +59,7 @@ def initLammpsCmds(potential):
 
     preLammpsCommands=[\
         "units metal","boundary p p p","atom_style atomic", \
-        "neighbor 0.3 bin","neigh_modify delay 5"]
+        "neighbor 0.3 bin","neigh_modify delay 5","box tilt large"]
     postLammpsCommands=masses+[\
         pairstyle, "pair_coeff * * %s %s"%(potential," ".join(lmpelems)), \
         "variable v equal vol",\
