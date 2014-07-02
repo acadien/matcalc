@@ -32,15 +32,15 @@ else:
     lammpsFlag=True
 
 if outcarFlag:
-    nAtoms = outcarIO.nIons(outcarFile)
-    basis = array(map(array,outcarIO.basis(outcarFile)))
+    nAtoms = outcarIO.nIons(filename)
+    basis = array(map(array,outcarIO.basis(filename)))
 
-    #Find the starting locations of atomic data in outcarfile
-    grepResults = subprocess.check_output("grep -b POSITION %s"%outcarFile,shell=True).split("\n")
+    #Find the starting locations of atomic data in filename
+    grepResults = subprocess.check_output("grep -b POSITION %s"%filename,shell=True).split("\n")
     bytenums=[int(i.split(":")[0]) for i in grepResults if len(i)>2]
 
-    outcar= open(outcarFile,"r")
-    cnOut =open(outcarFile+".cn","w")
+    outcar= open(filename,"r")
+    cnOut =open(filename+".cn","w")
     cnOut.write("AverageCN PerAtomCN\n")
     for i,b in enumerate(bytenums):
         outcar.seek(b)
