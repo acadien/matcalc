@@ -30,7 +30,7 @@ for(int a=0;a<N;a++){
         smoothys[a] += pre * exp( xmus * xmus * -0.5) * ys[b] * dx;
 }}
 """
-def superSmooth(xs,ys,sigma=1.0):
+def superSmooth(xs,ys,sigma=0.1):
     N=len(ys)
     smoothys=zeros(N)
     xs=array(xs)

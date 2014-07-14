@@ -13,13 +13,15 @@ from scipy import array,zeros
 import pylab as pl
 
 def usage():
-    print "Usage: %s <Outcar> "%sys.argv[0].split("/")[-1]
+    print "Usage: %s <Outcar> <opt:rcut>"%sys.argv[0].split("/")[-1]
 
 if len(sys.argv)<2:
     usage()
     exit(0)
     
 rcut = None
+if len(sys.argv)==3:
+    rcut=float(sys.argv[2])
 
 filename = sys.argv[1]
 outcarFlag=False
@@ -48,10 +50,11 @@ if outcarFlag:
         outcar.readline()
 
         atoms = [map(float,outcar.readline().split()[:3]) for a in range(nAtoms)]
-        cn,rcut = orderParam.coordinationNumber(atoms,basis,rcut=rcut)
+
+        cn,dummy = orderParam.coordinationNumber(atoms,basis,rcut=rcut)
         cnAvg=float(sum(cn))/len(cn)
         cns=" ".join(map(str,cn))
-        cnOut.write(str(cnAvg)+"\t"+cns+"\n")
+        cnOut.write(str(cnAvg)+" "+cns+"\n")
 
 if lammpsFlag:
     nAtoms = lammpsIO.nAtoms(filename)
@@ -65,7 +68,7 @@ if lammpsFlag:
         basis = lammpsIO.parseBasis(filename,bByte)
         atoms,dummy = lammpsIO.parseAtoms(filename,aByte,nAtoms,basis)
 
-        cn,rcut = orderParam.coordinationNumber(atoms,basis,rcut=rcut)
+        cn,dummy = orderParam.coordinationNumber(atoms,basis,rcut=rcut)
         cnAvg = float(sum(cn))/len(cn)
         cns = " ".join(map(str,cn))
         cnOut.write(str(cnAvg)+" "+cns+"\n")

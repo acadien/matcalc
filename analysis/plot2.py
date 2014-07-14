@@ -257,6 +257,7 @@ if __name__=="__main__":
     label=labels[0]
 
     fig=pl.figure(figsize=[18,9])
+    pl.grid()
     if switches['-3d']:
         ax=fig.gca(projection='3d')
 

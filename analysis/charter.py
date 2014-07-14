@@ -387,5 +387,5 @@ else:
         pl.legend(fileNames,loc=0,fontsize=10)
 
 #Don't plot for some values
-if op not in ["TN","TET"]:
+if op not in ["TN"]:
     pr.prshow("%s_chart_%s.png"%(sys.argv[1],op))
