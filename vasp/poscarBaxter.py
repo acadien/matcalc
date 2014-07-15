@@ -8,7 +8,7 @@ from scipy.signal import cspline1d,cspline1d_eval
 from scipy.integrate import cumtrapz,simps
 from scipy.optimize import leastsq
 from numpy import array,dot,cross,pi,floor
-from datatools import superSmooth
+from datatools import superSmooth,wsmooth
 
 import pylab as pl
 
@@ -68,8 +68,7 @@ basis,atypes,atoms,head,poscar = poscarIO.read(open(sys.argv[1]).readlines())
 atoms=array(atoms)
 basis=array(basis)
 rads,gr = radialDistribution(atoms,basis)
-hr = superSmooth(rads,gr)[:-20] - 1
-rads=rads[-20]
+hr = wsmooth(gr) - 1#superSmooth(rads,gr)[:-20] - 1
 #hr = gr - 1
 dr=rads[1]-rads[0]
 density = dot(cross(basis[0],basis[1]),basis[2])/atoms.shape[0]
@@ -86,7 +85,7 @@ yknots=array([i for i in range(Nknots)])
 #(lsq,success) = leastsq(residual_qhr,yknots,args=(hr,rads),maxfev=100)
 #Q  = interp(dx,lsq,rads)
 #cr = crq_calc(dr,Q,rads)
-hr_new = hrq_calc(dr,Q,hr,rads)
+#hr_new = hrq_calc(dr,Q,hr,rads)
 
 (lsq,success) = leastsq(residual_crhr,yknots,args=(hr,rads),maxfev=100)
 cr = interp(dx,lsq,rads)
