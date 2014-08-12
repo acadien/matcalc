@@ -286,7 +286,7 @@ if __name__=="__main__":
         yWAN=yWANs[i]
         
         if xSmoothEnable:
-            if swiches["-gauss"]:
+            if switches["-gauss"]:
                 xdata=superSmooth(xdata,xWAN,xWAN/100.0)
             else:
                 xdata=windowAvg(xdata,xWAN)

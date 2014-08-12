@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #Calculation tool for POSCARS and LAMMPS dumps.
 
-import sys
+import sys, os.path
 #mine - must be imported before scipy/numpy/mpl
 import plotRemote as pr
 
@@ -90,11 +90,13 @@ if op=="RDF":
 #grab the directory for each file
 fileDirs = list()
 for fn in fileNames:
+    print fn
     fns = fn.split("/")
     if len(fns)==1:
         fileDirs.append("./")
     else:
         fileDirs.append("/".join(fns[:-1])+"/")
+
 #Are all the file in the same directory?
 sameDir = False
 if fileDirs.count(fileDirs[0]) == len(fileDirs):
@@ -174,15 +176,15 @@ for pn in fileNames:
 labels=[]
 if lval==None:
     lval=""
-xylabels={"BO" :[r"BondOrder($Q_%s$)"%str(lval), r"$P(Q_%s)$"%str(lval)],
-          "CN" :[r"Coordination_Number",         r"P(CN)"],
-          "RDF":[r"R$(\AA)$",                    "#_Bonds"],
+xylabels={"BO"  :[r"BondOrder($Q_%s$)"%str(lval), r"$P(Q_%s)$"%str(lval)],
+          "CN"  :[r"Coordination_Number",         r"P(CN)"],
+          "RDF" :[r"R$(\AA)$",                    "#_Bonds"],
           "FRDF":[r"R$(\AA)$",                    "#_Bonds"],
-          "ADF":[r"$\theta(deg)$",               "#_Bond_Angles"],
-          "BA" :[r"R$(\AA)$",                    r"$G_{%s}(r)$"%str(lval)],
-          "SF" :[r"Q$(\AA^{-1})$",               r"S(Q)"],
-          "RAF":[r"temp",r"temp2"],
-          "TET":[r"$q_t$","count"]}
+          "ADF" :[r"$\theta(deg)$",               "#_Bond_Angles"],
+          "BA"  :[r"R$(\AA)$",                    r"$G_{%s}(r)$"%str(lval)],
+          "SF"  :[r"Q$(\AA^{-1})$",               r"S(Q)"],
+          "RAF" :[r"temp",r"temp2"],
+          "TET" :[r"$q_t$","count"]}
 
 #Special case for handling 3D RAF data.
 if op == "RAF":

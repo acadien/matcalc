@@ -25,7 +25,7 @@ sfile=open(sys.argv[1],"r").readlines()[2:]
 fdb=-1
 if len(sys.argv)>=3:
     fdb=["/".join(line.split("ascwork")[-1].split()[0].split("/")) for line in open(sys.argv[2],"r").readlines() if "ifconf" in line]
-print fdb
+
 mxerr=0.05
 if len(sys.argv)==4:
     mxerr=float(sys.argv[3])
