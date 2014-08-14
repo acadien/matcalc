@@ -99,8 +99,8 @@ def parseConfigAtStart(dumpF,seekpoint):
             atominfo.sort(key=lambda x:x[0])
             order,types,ax,ay,az=zip(*atominfo)[:5]
 
-            com=max(fabs(ax))-min(fabs(ax))
-            if fabs(com)<1:
+            com=max(ax)-min(ax)
+            if com<0.9*(v1[0]+v2[0]+v3[0]):
                 a,b,c = array(ax),array(ay),array(az)
                 ax=v1[0]*a+v2[0]*b+v3[0]*c
                 ay=v1[1]*a+v2[1]*b+v3[1]*c
