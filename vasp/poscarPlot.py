@@ -12,7 +12,7 @@ from math import *
 from orderParam import coordinationNumber,bondOrientation,tetrahedral
 from outcarPlotMSDAtom import outcarMeanSquareDisplaceAtom
 from datatools import windowAvg
-import poscarIO,lammpsIO
+import poscarIO,lammpsIO,outcarIO
 
 orderParams={"CN":coordinationNumber, \
              "BO":bondOrientation, \
@@ -35,6 +35,7 @@ def usage():
     print "-rectify: applies PBC to atoms on a cubic cell"
     print "   -rcut: cutoff distance when building neighbor list, follow by float value"
     print "   -hist: generates a histogram of the order parameter"
+    print "   -N #: selects a configuration to use"
     print ""
 
 if len(sys.argv) < 2:
@@ -48,6 +49,7 @@ sliceFlag = False
 histFlag = False
 op = None
 rcut = None
+Nconfig = 0
 lval = 0
 toPop=list()
 for i,v in enumerate(sys.argv):
@@ -55,24 +57,24 @@ for i,v in enumerate(sys.argv):
     if v in ["-rectify","-Rectify"]:
         rectifyFlag = True
         toPop.append(i)
-        #sys.argv.pop(i)
 
     if v == "-rcut":
         rcut = float(sys.argv[i+1])
         toPop.append(i)
         toPop.append(i+1)
-        #sys.argv.pop(i) #pop the flag
-        #sys.argv.pop(i) #pop the float
 
     if v in ["-slice","-Slice"]:
         sliceFlag = True
         toPop.append(i)
-        #sys.argv.pop(i)
 
     if v in ["-hist","-Hist","-HIST"]:
         histFlag = True
         toPop.append(i)
-        #sys.argv.pop(i)
+
+    if v in ["-N","-n"]:
+        Nconfig = int(sys.argv[i+1])
+        toPop.append(i)
+        toPop.append(i+1)
 
 sys.argv = [sys.argv[i] for i in range(len(sys.argv)) if i not in toPop]
 
@@ -122,6 +124,10 @@ elif len(sys.argv)==3:
     opFlag = True
     configFile=sys.argv[2]
 
+else:
+    usage()
+    exit(0)
+
 #Parse POSCAR
 j=0
 if "POSCAR" in configFile or "CONTCAR" in configFile:
@@ -132,9 +138,12 @@ if "POSCAR" in configFile or "CONTCAR" in configFile:
         types+=[j+1]*i
         j+=1
 
+elif "OUTCAR" in configFile:
+    TE,stress,basis,atoms,forces,types = outcarIO.outcarReadConfig(configFile,Nconfig)
+
 #Parse LAMMPS DUMP
 else: 
-    basis,types,atoms = lammpsIO.readConfig(configFile,0)
+    basis,types,atoms = lammpsIO.readConfig(configFile,Nconfig)
 
 ax,ay,az=map(np.array,zip(*atoms))
 v1,v2,v3=basis

@@ -73,12 +73,13 @@ def lammpsGenerateE(vaspPOSCAR,preCmd,postCmd,vRatio):
     lammpsConfig="lmp.config"
     lammpsPOSCAR="POSCAR_eos"
     shutil.copyfile(vaspPOSCAR,lammpsPOSCAR)
-    poscarGrow.poscarGrow(lammpsPOSCAR,lammpsPOSCAR,2,2,2)
+    poscarGrow.poscarGrow(lammpsPOSCAR,lammpsPOSCAR,3,3,3)
     poscarVolume.ratio(lammpsPOSCAR,vRatio)
     poscar2lmpcfg.poscar2dump(lammpsPOSCAR,lammpsConfig)
     
     #Run lammps
     lmp=lammps.lammps()
+    print "here"
     map(lambda x:lmp.command(x),preCmd)
     lmp.command("read_data %s"%lammpsConfig)
     map(lambda x:lmp.command(x),postCmd)
