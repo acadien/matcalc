@@ -32,10 +32,10 @@ def usage():
     print "   FILE : Parses a file (column, row, or CSV data) and applies coloring from that data"
     print "----------------------------------------------------------------------------"
     print "Flags can be used anywhere in args:"
-    print "-rectify: applies PBC to atoms on a cubic cell"
-    print "   -rcut: cutoff distance when building neighbor list, follow by float value"
-    print "   -hist: generates a histogram of the order parameter"
-    print "   -N #: selects a configuration to use"
+    print "-rectify  : applies PBC to atoms on a cubic cell"
+    print "   -rcut #: cutoff distance when building neighbor list, follow by float value"
+    print "   -hist  : generates a histogram of the order parameter"
+    print "   -N #   : selects a configuration to use"
     print ""
 
 if len(sys.argv) < 2:
