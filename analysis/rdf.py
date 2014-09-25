@@ -1,6 +1,6 @@
 
 from math import *
-from numpy import degrees,array,zeros
+from numpy import degrees,array,zeros,linalg,ceil
 from scipy import weave
 from scipy.weave import converters
 import pylab as pl
@@ -128,9 +128,9 @@ for(int i=0;i<natoms;i++){
         ajz=atoms[j*3+2];
 
         //Minimum image distance
-        for(int t1=-1;t1<2;t1++){
-        for(int t2=-1;t2<2;t2++){
-        for(int t3=-1;t3<2;t3++){
+        for(int t1=-tmax[0]+1;t1<tmax[0];t1++){
+        for(int t2=-tmax[1]+1;t2<tmax[1];t2++){
+        for(int t3=-tmax[2]+1;t3<tmax[2];t3++){
             d=aix-ajx+t1*b[0]+t2*b[3]+t3*b[6];
             c=d*d;
             d=aiy-ajy+t1*b[1]+t2*b[4]+t3*b[7];
@@ -148,11 +148,22 @@ for(int i=0;i<natoms;i++){
 }
 """
 def rdfperHelper(atoms,bins,cut,b):
+
+    #align things for passing off to weave
     natoms=len(atoms)
     atoms.shape=len(atoms)*3
+
+    #Handles periodic minimum distance atoms to the proper cutoff
+    ls=[linalg.norm(bv) for bv in b]
+    tmax=array([max([ceil(cut/l*2.0),2]) for l in ls])
+
+    #more aligning
     b.shape=9
     nbins=len(bins)
-    weave.inline(RDFPerCode,['atoms','natoms','bins','nbins','cut','b'])
+
+    weave.inline(RDFPerCode,['atoms','natoms','bins','nbins','cut','b','tmax'])
+    
+    #re-align back to original shape
     atoms.shape=[len(atoms)/3,3]
     b.shape=[3,3]
     return bins

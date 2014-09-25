@@ -1,15 +1,14 @@
 #!/usr/bin/python
 
-from scipy import weave
+from scipy import weave,integrate
 from scipy.weave import converters
-import scipy
-from scipy import linalg
 import numpy as np
 from math import *
 import cmath
 import random
 #mine
 from rdf import rdf_periodic
+from rdfExtend import rdfExtend
 
 #Calculate the Structure factor from the rdf
 def sf(rdfX,rdfY,ndens,Lmax=20.0,qbins=1024,damped=True):
@@ -24,11 +23,46 @@ def sf(rdfX,rdfY,ndens,Lmax=20.0,qbins=1024,damped=True):
     dx=rdfX[1]-rdfX[0]
 
     if damped:
-        sf=[1 + 4*pi*ndens * scipy.integrate.simps((rdfY-1.0)*np.sin(q*rdfX)*np.sin(pi*rdfX/maxR)*maxR/(q*pi) ,dx=dx) for i,q in enumerate(qs)]
+        sf=[1 + 4*pi*ndens * integrate.simps((rdfY-1.0)*np.sin(q*rdfX)*np.sin(pi*rdfX/maxR)*maxR/(q*pi) ,dx=dx) for i,q in enumerate(qs)]
     else:
-        sf=[1 + 4*pi*ndens * scipy.integrate.simps((rdfY-1.0)*np.sin(q*rdfX)*rdfX/q ,dx=dx) for i,q in enumerate(qs)]
+        sf=[1 + 4*pi*ndens * integrate.simps((rdfY-1.0)*np.sin(q*rdfX)*rdfX/q ,dx=dx) for i,q in enumerate(qs)]
 
     return qs,sf
+
+def sfq0(rdfX,rdfY,ndens,Lmax=20.0,qbins=1024,damped=None):
+    minq,maxq,dq=0,Lmax,Lmax/qbins
+    qs=[i*dq+minq for i in range(qbins)]
+    qs[0]=1E-10
+
+    maxR = max(rdfX)
+    rdfY=np.array(rdfY)
+    rdfX=np.array(rdfX)
+    dx = rdfX[1]-rdfX[0]
+
+    #Extend the h(r) to get a better estimate near q0
+    grExtx,grExty = rdfExtend(rdfX,rdfY,ndens,rmax=50.0,Niter=25,T=1000.0,rm=2.5,eps=-1,damped=True)
+
+    sf1=list()
+    for i,q in enumerate(qs):
+        sf1 += [1 + 4*pi*ndens * integrate.simps((rdfY-1.0)*np.sin(q*rdfX)*rdfX/q ,dx=dx)]
+
+    import pylab as pl
+    
+    sf2=list()
+    for i,q in enumerate(qs):
+        sf2 += [1 + 4*pi*ndens * integrate.simps((grExty-1.0)*np.sin(q*grExtx)*grExtx/q ,dx=dx)]
+    #        R=1.0/q
+    #        alpha = np.array([(1-rij/2.0/R)**2 * (1+rij/4.0/R) if rij<2*R else 0 for rij in rdfX])
+    #        sf2 += [1 + 4*pi*ndens * integrate.simps((rdfY-1.0)*np.sin(q*rdfX)*rdfX/q*alpha,dx=dx)]
+
+    f=open("/home/acadien/Dropbox/sfq0.dat","w")
+    a=map(lambda x: "%f %f\n"%(x[0],x[1]),zip(qs,sf2))
+    f.writelines(a)
+    exit(0)
+#    pl.plot(qs,sf1)
+#    pl.plot(qs,sf2)
+#    pl.show()
+#    exit(0)
 
 #stepsize => nqvectors
 #0.1 => 425172
@@ -158,7 +192,7 @@ def sfq(atoms,basis,nqbins=290,qcut=7.5):
     sf = np.zeros([nqbins])
     sfsg = np.zeros([nqbins])
     nqVecs = 200
-    qstep = 0.8
+    qstep = 0.1
 
     #Reshape
     atoms.shape=natoms*3

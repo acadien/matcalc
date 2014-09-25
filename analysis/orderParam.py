@@ -13,7 +13,7 @@ import plotRemote as pr
 from neighbors import neighbors,nNearestNeighbors,full2half,voronoiNeighbors
 from struct_tools import *
 from rdf import *
-from sf import sf,sfq
+from sf import sf,sfq,sfq0
 
 #local bond-orientational: Q_l for each atom.  atomi>-1 selects a specific atom
 #rcut is interms of shells not a distance
@@ -125,14 +125,14 @@ def radangDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     return rdf_by_adf(atoms,neighbs,basis,rcut=rcut)
             
 def radialDistribution(atoms,basis,l=1000,neighbs=None,rcut=None,debug=False):
-     if rcut==None:
-         rcut = 10.0
- 
-     nbins=l
-     if nbins==None:
-         nbins=1000
-
-     return rdf_periodic(atoms,basis,cutoff=rcut,nbins=nbins)#,rdist
+    if rcut==None:
+        rcut = 10.0
+        
+    nbins=l
+    if nbins==None:
+        nbins=1000
+     
+    return rdf_periodic(atoms,basis,cutoff=rcut,nbins=nbins)#,rdist
 
 def angleDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     if rcut==None:
@@ -160,12 +160,28 @@ def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     Nr=len(rbins)
     density = atoms.shape[0] / volume(basis)
 
-    qbins,qvals = sf(rbins,rdist,density,Lmax=l,qbins=2048,damped=False)
+    #qbins,qvals = sfq(rbins,rdist,density,Lmax=l,qbins=2048,damped=False)
+    qbins,qvals = sfq(atoms,basis,nqbins=300,qcut=7.5)
     return qbins,qvals
 
 def structureFactor0(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
-   sfq(atoms,basis)
-   return 0
+    #sfq(atoms,basis)
+    if rcut==None:
+        rcut = sum([basis[0][0],basis[1][1],basis[2][2]])/6
+        if rcut<20.0: rcut = 10.0
+        print "Automatically generating r-cutoff=",rcut
+
+    if l==None:
+        l=6.0
+    
+    rcut = float(rcut)
+    rbins,rdist = rdf_periodic(atoms,basis,cutoff=rcut)
+    Nr=len(rbins)
+    density = atoms.shape[0] / volume(basis)
+
+    qbins,qvals = sfq0(rbins,rdist,density,Lmax=l,qbins=2048,damped=True)
+
+    return 0
 
 """
 def structureFactor0(rdfX,rdfY,nDensity,l=None,neighbs=None,rcut=None,debug=False):

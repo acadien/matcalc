@@ -9,7 +9,6 @@ double c,d,atomd;
 double *seta,*setb;
 int dt;
 
-#pragma omp parallel for default(shared) private(dt,c)
 for(dt=1;dt<Ntime;dt++){
 
   c=0.0;
@@ -46,14 +45,14 @@ def meanSquareDist(atoms,Natom,Ntime,lengths,byAtom=False):
     msd=zeros(len(delT))
     msdByAtom=zeros(len(delT)*Natom)
 
-    compiler_args=['-march=native -O3 -fopenmp']
-    headers=r"""#include <omp.h>"""
-    libs=['gomp']
+#    compiler_args=['-march=native -O3 -fopenmp']
+#    headers=r"""#include <omp.h>"""
+#    libs=['gomp']
 
-    weave.inline(msdCode,['atoms','Ntime','Natom','lengths','msd','msdByAtom'],\
-                     extra_compile_args=compiler_args,\
-                     support_code=headers,\
-                     libraries=libs)
+    weave.inline(msdCode,['atoms','Ntime','Natom','lengths','msd','msdByAtom'])
+#                     extra_compile_args=compiler_args,\
+#                     support_code=headers,\
+#                     libraries=libs)
 
     msdByAtom.shape=[len(delT),Natom]
 
@@ -66,7 +65,6 @@ int index;
 double d;
 double *seta,*setb;
 
-#pragma omp parallel for default(shared) private(index,d)
 //first you need to unwrap the periodic boundary conditions in certain cases to ensure continuity
 for(int i=0;i<Ntime-1;i++){
 
@@ -77,8 +75,8 @@ for(int i=0;i<Ntime-1;i++){
     for(int dof=0;dof<3;dof++){       //loop over each Degree of Freedom
       index=j*3+dof;
       d = seta[index]-setb[index];
-      if( d > lengths[dof]/2.0 ) setb[index] += lengths[dof];  //Lower PBC
-      if( d <-lengths[dof]/2.0 ) setb[index] -= lengths[dof];  //Upper PBC
+      if( d > lengths[dof]/3.0 ) setb[index] += lengths[dof];  //Lower PBC
+      if( d <-lengths[dof]/3.0 ) setb[index] -= lengths[dof];  //Upper PBC
     }
   }
 } 
@@ -91,7 +89,6 @@ double *seta,*setb;
 
 seta=&(refAtoms[0]);
 
-//#pragma omp parallel for default(shared) private(c,d,atomd)
 for(int i=0;i<Ntime;i++){
 
   setb=&(atoms[(i)*Natom*3]);
@@ -125,24 +122,24 @@ def meanSquareDistRef(atoms,ref,Natom,Ntime,lengths,byAtom=False):
     msd=zeros(len(delT))
     msdByAtom=zeros(Ntime*Natom)
 
-    compiler_args=['-march=native -O3 -fopenmp']
-    headers=r"""#include <omp.h>"""
-    libs=['gomp']
+#    compiler_args=['-march=native -O3 -fopenmp']
+#    headers=r"""#include <omp.h>"""
+#    libs=['gomp']
 
-    weave.inline(undoPBCcode,['atoms','Ntime','Natom','lengths'],\
-                     extra_compile_args=compiler_args,\
-                     support_code=headers,\
-                     libraries=libs)
+    weave.inline(undoPBCcode,['atoms','Ntime','Natom','lengths'])
+#                     extra_compile_args=compiler_args,\
+#                     support_code=headers,\
+#                     libraries=libs)
 
     #do this after undoing PBC to ensure refAtoms are in same state as atoms set.
     atoms.shape=(Ntime,Natom,3)
     refAtoms=atoms[ref] #refAtoms is an Natom x 3 array... now flattened
     atom=atoms.ravel()
     refAtoms=refAtoms.ravel()
-    weave.inline(msdRefCode,['atoms','refAtoms','Ntime','Natom','lengths','msd','msdByAtom'],\
-                     extra_compile_args=compiler_args,\
-                     support_code=headers,\
-                     libraries=libs)
+    weave.inline(msdRefCode,['atoms','refAtoms','Ntime','Natom','lengths','msd','msdByAtom'])
+#                     extra_compile_args=compiler_args,\
+#                     support_code=headers,\
+#                     libraries=libs)
     msdByAtom.shape=[Ntime,Natom]
 
     if byAtom:
@@ -156,7 +153,6 @@ double *seta,*setb;
 
 seta=&(refAtoms[0]);
 
-#pragma omp parallel for default(shared) private(c,d)
 for(int i=0;i<Ntime;i++){
 
   setb=&(atoms[(i)*Natom*3]);
@@ -187,24 +183,32 @@ def meanSquareDistRefAtom(atoms,ref,Natom,Ntime,lengths):
     delT=array(range(1,Ntime+1))
     msdAtom=zeros(Ntime*Natom)
 
-    compiler_args=['-march=native -O3 -fopenmp']
-    headers=r"""#include <omp.h>"""
-    libs=['gomp']
+#    compiler_args=['-march=native -O3 -fopenmp']
+#    headers=r"""#include <omp.h>"""
+#    libs=['gomp']
 
-    weave.inline(undoPBCcode,['atoms','Ntime','Natom','lengths'],\
-                     extra_compile_args=compiler_args,\
-                     support_code=headers,\
-                     libraries=libs)
+    weave.inline(undoPBCcode,['atoms','Ntime','Natom','lengths'])
+#                     extra_compile_args=compiler_args,\
+#                     support_code=headers,\
+#                     libraries=libs)
 
     #do this after undoing PBC to ensure refAtoms are in same state as atoms set.
     atoms.shape=(Ntime,Natom,3)
     refAtoms=atoms[ref] #refAtoms is an Natom x 3 array... now flattened
     atom=atoms.ravel()
     refAtoms=refAtoms.ravel()
-    weave.inline(msdRefAtomCode,['atoms','refAtoms','Ntime','Natom','lengths','msdAtom'],\
-                     extra_compile_args=compiler_args,\
-                     support_code=headers,\
-                     libraries=libs)
+    weave.inline(msdRefAtomCode,['atoms','refAtoms','Ntime','Natom','lengths','msdAtom'])
+#                     extra_compile_args=compiler_args,\
+#                     support_code=headers,\
+#                     libraries=libs)
     msdAtom.shape=[Ntime,Natom]
     msdAtom=msdAtom.T
     return delT,msdAtom
+
+
+def unwrap(atoms,Natom,Ntime,lengths):
+    atoms=array(atoms).ravel() #atoms is an Ntime x Natom x 3 array... now flattened
+    msdAtom=zeros(Ntime*Natom)
+    weave.inline(undoPBCcode,['atoms','Ntime','Natom','lengths'])
+    atoms.shape=(Ntime,Natom,3)
+    return atoms
