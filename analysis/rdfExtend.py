@@ -66,7 +66,7 @@ def rdfExtend(rdfX,rdfY,ndens,rmax=50.0,Niter=20,T=100.0,rm=2.5,eps=-1,damped=Tr
     #rm and eps are parameters for the LJ (used as the PY closure)
     #T is the temperature for the energy, effects smoothing near the transition point
 
-    rdfX=list([r for r in rdfX])
+    rdfX=list(rdfX)
     rdfY=list(rdfY[:len(rdfX)])
 
     drx = rdfX[1]-rdfX[0]
@@ -85,25 +85,21 @@ def rdfExtend(rdfX,rdfY,ndens,rmax=50.0,Niter=20,T=100.0,rm=2.5,eps=-1,damped=Tr
     for k in range(Niter):
         qrp = calc_qpr_rltcut(icut,ndens,hrx,hry,cr,qr,qrp)
         qrp = calc_qpr_rgtcut(icut,ndens,hrx,hry,cr,qr,qrp)
+        qrp = superSmooth(hrx,qrp,sigma=0.1)
         qr  = calc_qr        (icut,ndens,hrx,hry,cr,qr,qrp)
         hry = calc_hr_rgtcut (icut,ndens,hrx,hry,cr,qr,qrp)
         cr  = calc_cr_rgtcut (icut,ndens,hrx,hry,cr,qr,qrp,phi,beta)
+    calc_hr(len(hrx),ndens,hrx,hry,cr,qr,qrp)
 
-    if not damped:
-        qrp=superSmooth(hrx,qrp,sigma=0.05)
-        qr =calc_qr(icut,ndens,hrx,hry,cr,qr,qrp)
-        nZeros=int(np.ceil(1.0/drx))
-        hry[:nZeros]=[-1.0]*nZeros
-        hry[-nZeros:]=[0.0]*nZeros
-    grExtendx = np.array([i+1.0 for i in hry])
-    hry=calc_hr(icut,ndens,hrx,hry,cr,qr,qrp)
+    grExtended = np.array([i+1.0 for i in hry])
 
-    f= open("/home/acadien/Dropbox/ozsf.dat","w")
-    a=map(lambda x:"%f %f\n"%(x[0],x[1]),zip(hrx,grExtendx))
+    f= open("/home/acadien/Dropbox/ozsf%d.dat"%rrcut,"w")
+    a=map(lambda x:"%f %f\n"%(x[0],x[1]),zip(hrx,grExtended))
     f.writelines(a)
     f.close()
-    f= open("/home/acadien/Dropbox/qrpsf.dat","w")
+    f= open("/home/acadien/Dropbox/qrpsf%d.dat"%rrcut,"w")
     a=map(lambda x:"%f %f\n"%(x[0],x[1]),zip(hrx,qrp))
     f.writelines(a)
     f.close()
-    return hrx,grExtendx
+
+    return hrx,grExtended

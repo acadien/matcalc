@@ -58,11 +58,11 @@ def sfq0(rdfX,rdfY,ndens,Lmax=20.0,qbins=1024,damped=None):
     f=open("/home/acadien/Dropbox/sfq0.dat","w")
     a=map(lambda x: "%f %f\n"%(x[0],x[1]),zip(qs,sf2))
     f.writelines(a)
-    exit(0)
-#    pl.plot(qs,sf1)
-#    pl.plot(qs,sf2)
-#    pl.show()
 #    exit(0)
+    pl.plot(qs,sf1)
+    pl.plot(qs,sf2)
+    pl.show()
+    exit(0)
 
 #stepsize => nqvectors
 #0.1 => 425172
