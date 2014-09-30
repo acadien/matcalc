@@ -71,7 +71,6 @@ def rdfExtend(rdfX,rdfY,ndens,rmax=50.0,Niter=5,T=100.0,rm=2.5,eps=-1,damped=Tru
     #rm and eps are parameters for the LJ (used as the PY closure)
     #T is the temperature for the energy, effects smoothing near the transition point
     #PY selects the Percus Yevick Closure for C(r), if false, the HNC criterion are used.
-    Niter=5
     rdfX=list([r for r in rdfX])
     rdfY=list(rdfY[:len(rdfX)])
 
@@ -91,25 +90,20 @@ def rdfExtend(rdfX,rdfY,ndens,rmax=50.0,Niter=5,T=100.0,rm=2.5,eps=-1,damped=Tru
     for k in range(Niter):
         qrp = calc_qpr_rltcut(icut,ndens,hrx,hry,cr,qr,qrp)
         qrp = calc_qpr_rgtcut(icut,ndens,hrx,hry,cr,qr,qrp)
+        qrp = superSmooth(hrx,qrp,sigma=0.1)
         qr  = calc_qr        (icut,ndens,hrx,hry,cr,qr,qrp)
         hry = calc_hr_rgtcut (icut,ndens,hrx,hry,cr,qr,qrp)
         cr  = calc_cr_rgtcut (icut,ndens,hrx,hry,cr,qr,qrp,phi,beta,PY)
+    calc_hr(len(hrx),ndens,hrx,hry,cr,qr,qrp)
+    grExtended = np.array([i+1.0 for i in hry])
 
-    if not damped:
-        qrp=superSmooth(hrx,qrp,sigma=0.05)
-        qr =calc_qr(icut,ndens,hrx,hry,cr,qr,qrp)
-        nZeros=int(np.ceil(1.0/drx))
-        hry[:nZeros]=[-1.0]*nZeros
-        hry[-nZeros:]=[0.0]*nZeros
-    grExtendx = np.array([i+1.0 for i in hry])
-    hry=calc_hr(icut,ndens,hrx,hry,cr,qr,qrp)
-
-    f= open("/home/acadien/Dropbox/ozsf.dat","w")
-    a=map(lambda x:"%f %f\n"%(x[0],x[1]),zip(hrx,grExtendx))
+    f= open("/home/acadien/Dropbox/ozsf%d.dat"%rrcut,"w")
+    a=map(lambda x:"%f %f\n"%(x[0],x[1]),zip(hrx,grExtended))
     f.writelines(a)
     f.close()
-    f= open("/home/acadien/Dropbox/qrpsf.dat","w")
+    f= open("/home/acadien/Dropbox/qrpsf%d.dat"%rrcut,"w")
     a=map(lambda x:"%f %f\n"%(x[0],x[1]),zip(hrx,qrp))
     f.writelines(a)
     f.close()
-    return hrx,grExtendx
+
+    return hrx,grExtended
