@@ -47,25 +47,31 @@ def calc_hr(icut,dens,hrx,hry,cr,qr,qrp):
         hry[i] = (-qrp[i] + 2*pi*dens*integ(hrx,qr*(r-hrx)*hry[np.abs(i-ti)]))/r
     return hry
 
-
-def calc_cr_rgtcut(icut,dens,hrx,hry,cr,qr,qrp,phi,beta):
+def calc_cr_rgtcut(icut,dens,hrx,hry,cr,qr,qrp,phi,beta,PY):
     gr =hry+1.0
     for i,r in enumerate(hrx[icut:]):
         i+=icut
-        cr[i] = (1.0-np.exp(phi[i]*beta))*gr[i]
+        if PY: #Use percus-yevick
+            cr[i] = (1.0-np.exp(phi[i]*beta))*gr[i]
+        else: #Use HyperNettedChain HNC
+            cr[i] = hry[i]-np.log(gr[i]*np.exp(phi[i]*beta))
     return cr
 
-def calc_cr(icut,dens,hrx,hry,cr,qr,qrp,phi,beta):
+def calc_cr(icut,dens,hrx,hry,cr,qr,qrp,phi,beta,PY):
     gr =hry+1.0
     for i,r in enumerate(hrx):
         if r>1:
-            cr[i] = (1.0-np.exp(phi[i]*beta))*gr[i]
+            if PY:
+                cr[i] = (1.0-np.exp(phi[i]*beta))*gr[i]
+            else:
+                cr[i] = hry[i]-np.log(gr[i]*np.exp(phi[i]*beta))
     return cr
 
-def rdfExtend(rdfX,rdfY,ndens,rmax=50.0,Niter=20,T=100.0,rm=2.5,eps=-1,damped=True):
+def rdfExtend(rdfX,rdfY,ndens,rmax=50.0,Niter=5,T=100.0,rm=2.5,eps=-1,damped=True,PY=True):
     #rm and eps are parameters for the LJ (used as the PY closure)
     #T is the temperature for the energy, effects smoothing near the transition point
-
+    #PY selects the Percus Yevick Closure for C(r), if false, the HNC criterion are used.
+    Niter=5
     rdfX=list([r for r in rdfX])
     rdfY=list(rdfY[:len(rdfX)])
 
@@ -87,7 +93,7 @@ def rdfExtend(rdfX,rdfY,ndens,rmax=50.0,Niter=20,T=100.0,rm=2.5,eps=-1,damped=Tr
         qrp = calc_qpr_rgtcut(icut,ndens,hrx,hry,cr,qr,qrp)
         qr  = calc_qr        (icut,ndens,hrx,hry,cr,qr,qrp)
         hry = calc_hr_rgtcut (icut,ndens,hrx,hry,cr,qr,qrp)
-        cr  = calc_cr_rgtcut (icut,ndens,hrx,hry,cr,qr,qrp,phi,beta)
+        cr  = calc_cr_rgtcut (icut,ndens,hrx,hry,cr,qr,qrp,phi,beta,PY)
 
     if not damped:
         qrp=superSmooth(hrx,qrp,sigma=0.05)

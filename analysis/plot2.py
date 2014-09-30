@@ -84,7 +84,7 @@ def usage():
     print "./plot2.py 0 1 datafile1 0 2 datafile2 datafile3"
     print "./plot2.py 0 1s25 datafile1     #windowed average of width 25 is applied"
     print "./plot2.py 0x0.5 1x2.0 datafile #scale of 0.5 on x-axis and scale of 2.0 on y-axis"
-    print "switches: -3d, -stagger, -sort, -avg, -hist, -hist#bins, -scatter, -noleg, -saveData, -gauss"
+    print "switches: -3d, -stagger, -sort, -avg, -hist, -hist#bins, -scatter, -noleg, -saveData, -gauss, -noGhost"
     print ""
 
 if __name__=="__main__":
@@ -99,7 +99,7 @@ if __name__=="__main__":
 
     #Pre-parse for switches
     nbins=80
-    switches={"-3d":False,"-stagger":False,"-sort":False,"-avg":False,"-hist":False,"-scatter":False, "-noleg":False, "-saveData":False, "-gauss":False}
+    switches={"-3d":False,"-stagger":False,"-sort":False,"-avg":False,"-hist":False,"-scatter":False, "-noleg":False, "-saveData":False, "-gauss":False, "-noGhost":False}
     for i in range(len(sys.argv)-1,-1,-1):
         if sys.argv[i] in switches.keys(): 
             switches[sys.argv[i]]=True
@@ -113,7 +113,7 @@ if __name__=="__main__":
 
     #Parse for column selection and file selection.
     for i in range(1,len(sys.argv)):
-        reresult=re.search('^[-]?\d+[sx]?[\d]*\.?[\d]*$',sys.argv[i])
+        reresult=re.search('^[-]?\d+[sx]?[-]?[\d]*\.?[\d]*$',sys.argv[i])
         try:
             if reresult.group(0) == sys.argv[i]:
                 columnIndeces.append(i)
@@ -256,6 +256,7 @@ if __name__=="__main__":
         fdatas.append(f)
     label=labels[0]
 
+    plt.style.use('ggplot')
     fig=pl.figure(figsize=[18,9])
     pl.grid()
     if switches['-3d']:
@@ -284,21 +285,25 @@ if __name__=="__main__":
         ySmoothEnable=ySmoothEnables[i]
         xWAN=xWANs[i]
         yWAN=yWANs[i]
-        
+        xdataSmooth=[]
+        ydataSmooth=[]
+
         if xSmoothEnable:
             if switches["-gauss"]:
-                xdata=superSmooth(xdata,xWAN,xWAN/100.0)
+                xdataSmooth=superSmooth(xdata,ydata,xWAN/100.0)
             else:
-                xdata=windowAvg(xdata,xWAN)
+                xdataSmooth=windowAvg(xdata,xWAN)
         if ySmoothEnable:
             if switches["-gauss"]:
-                ydata=superSmooth(xdata,ydata,yWAN/100.0)
+                ydataSmooth=superSmooth(xdata,ydata,yWAN/100.0)
             else:
-                ydata=windowAvg(ydata,yWAN)
+                ydataSmooth=windowAvg(ydata,yWAN)
 
         #Correct for window offset, average introduces extra points that need to be chopped off
-        if (xSmoothEnable or ySmoothEnable) and not switches["-gauss"]: 
+        if not switches["-gauss"] and xSmoothEnable or ySmoothEnable: 
             WAN=max(xWAN,yWAN)
+            xdataSmooth=xdataSmooth[WAN/2+1:WAN/-2]
+            ydataSmooth=ydataSmooth[WAN/2+1:WAN/-2]
             xdata=xdata[WAN/2+1:WAN/-2]
             ydata=ydata[WAN/2+1:WAN/-2]
 
@@ -310,8 +315,22 @@ if __name__=="__main__":
         
         if xScaleEnable:
             xdata=[x*xScale for x in xdata]
+            xdataSmooth=[x*xScale for x in xdataSmooth]
         if yScaleEnable:
             ydata=[y*yScale for y in ydata]
+            ydataSmooth=[y*yScale for y in ydataSmooth]
+
+        if switches["-stagger"]:
+            m=min(ydata)
+            if i==0:
+                dely=(max(ydata)-min(ydata))/2.
+            ydata=[y-m+i*dely for y in ydata]
+            ydataSmooth=[y-m+i*dely for y in ydataSmooth]
+            #if colors==None:
+            #    pl.plot(xdata,ydata,lw=1.5)
+            #else:
+            #    pl.plot(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)))
+            pl.tick_params(labelleft='off')
 
         #Plotting
         #Use column labels if available
@@ -345,17 +364,6 @@ if __name__=="__main__":
                 ax.plot(xdata,ydata,zs=i,lw=1.5)
             else:
                 ax.plot(xdata,ydata,zs=i,lw=2,c=vizSpec(float(i)/len(fnames)))
-        
-        elif switches["-stagger"]:
-            m=min(ydata)
-            if i==0:
-                dely=(max(ydata)-min(ydata))/2.
-            ydata=[y-m+i*dely for y in ydata]
-            if colors==None:
-                pl.plot(xdata,ydata,lw=1.5)
-            else:
-                pl.plot(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)))
-            pl.tick_params(labelleft='off')
 
         elif switches["-hist"]:
             mn=min(ydata)
@@ -373,20 +381,44 @@ if __name__=="__main__":
             if len(avgy)!=len(ydata):
                 print "Not all data is the same length, unable to average lists of different lengths."
                 exit(0)
-
-            avgy+=np.array(ydata)
+            if ySmoothEnable:
+                avgy+=np.array(ydataSmooth)
+            else:
+                avgy+=np.array(ydata)
             count+=1
 
         elif switches["-scatter"]:
+            if xSmoothEnable:
+                xdata=xdataSmooth
+            if ySmoothEnable:
+                ydata=ydataSmooth
+
             if colors==None:
-                pl.scatter(xdata,ydata,lw=1.5)
+                pl.scatter(xdata,ydata,lw=1.5,label=fnames[i])
             else:
-                pl.scatter(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)))
+                pl.scatter(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)),label=fnames[i])
         else:
             if colors==None:
-                pl.plot(xdata,ydata,lw=1.5)
+                cc=None
             else:
-                pl.plot(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)))
+                cc=vizSpec(float(i)/len(fnames))
+
+            if xSmoothEnable or ySmoothEnable:
+                if not switches["-noGhost"]:
+                    if colors==None:
+                        cp, = pl.plot(xdata,ydata,alpha=0.4,zorder=1)
+                        cc=cp.get_color()
+                    else:
+                        pl.plot(xdata,ydata,alpha=0.4,zorder=1,c=cc)
+
+            if xSmoothEnable and ySmoothEnable:
+                pl.plot(xdataSmooth,ydataSmooth,c=cc,lw=2,alpha=1.0,label=fnames[i])
+            elif ySmoothEnable:
+                pl.plot(xdata,ydataSmooth,c=cc,lw=2,alpha=1.0,label=fnames[i])
+            elif xSmoothEnable:
+                pl.plot(xdataSmooth,ydata,c=cc,lw=2,alpha=1.0,label=fnames[i])
+            else:
+                pl.plot(xdata,ydata,lw=1.5,c=cc,label=fnames[i])            
 
     if switches["-avg"]:
         avgy=[i/count for i in avgy]
@@ -398,5 +430,6 @@ if __name__=="__main__":
             open("plot2.data","w").write(data)
     
     if not switches["-noleg"]:
-        pl.legend(fnames,loc=0)
+        pl.legend(loc=0)
+    plt.grid(True)
     pr.prshow("plot2.png")
