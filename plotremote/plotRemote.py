@@ -2,6 +2,7 @@
 
 import os
 import matplotlib
+import matplotlib.pyplot as plt
 
 #This script detects if a session is being run remotely:
 #if remote - save figure to directory BASEDIR
@@ -10,7 +11,7 @@ import matplotlib
 #use prshow(fname) instead of pylab.show()
 
 REMOTESESSION_BASEDIR = "/home/acadien/Dropbox/"
-
+#plt.style.use('ggplot')
 try:
     os.environ['SSH_CLIENT']
 except KeyError:
@@ -28,6 +29,7 @@ if socket.gethostname()=="mozart":
     matplotlib.use('WX')
 
 def prshow(fname="latestplot.png"):
+    plt.grid(True)
     if REMOTESESSION:
         matplotlib.pyplot.savefig(REMOTESESSION_BASEDIR + fname)
     else:

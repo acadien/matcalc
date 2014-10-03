@@ -3,8 +3,7 @@
 #mine
 import plotRemote as pr
 #notmine
-import re
-import sys
+import re, sys, select
 import pylab as pl
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,6 +18,12 @@ if "OUTCAR" in sys.argv:
     print "You're an idiot Adam. Stop running this program on OUTCAR."
     print "***"
     exit(0)
+
+if len(sys.argv)==1:
+    if select.select([sys.stdin,],[],[],0.0)[0]:
+        import fileinput
+        sys.argv += fileinput.input().readline().split()
+
 
 #returns a parsed file, keeping only rows that can be converted to floats
 #keeps rows with the most common number of columns.
@@ -247,6 +252,7 @@ if __name__=="__main__":
     labels=list()
     fdatas=list()
     for fname in fnames:
+        print "here"
         if fname[-3:]=="csv":
             l,f = parse(fname,",")
         else:
@@ -256,7 +262,6 @@ if __name__=="__main__":
         fdatas.append(f)
     label=labels[0]
 
-    plt.style.use('ggplot')
     fig=pl.figure(figsize=[18,9])
     pl.grid()
     if switches['-3d']:
@@ -399,7 +404,8 @@ if __name__=="__main__":
                 pl.scatter(xdata,ydata,lw=2,c=vizSpec(float(i)/len(fnames)),label=fnames[i])
         else:
             if colors==None:
-                cc=None
+                cp, = pl.plot([],[])
+                cc = cp.get_color()
             else:
                 cc=vizSpec(float(i)/len(fnames))
 
@@ -407,7 +413,7 @@ if __name__=="__main__":
                 if not switches["-noGhost"]:
                     if colors==None:
                         cp, = pl.plot(xdata,ydata,alpha=0.4,zorder=1)
-                        cc=cp.get_color()
+                        cc  = cp.get_color()
                     else:
                         pl.plot(xdata,ydata,alpha=0.4,zorder=1,c=cc)
 
@@ -431,5 +437,5 @@ if __name__=="__main__":
     
     if not switches["-noleg"]:
         pl.legend(loc=0)
-    plt.grid(True)
+
     pr.prshow("plot2.png")

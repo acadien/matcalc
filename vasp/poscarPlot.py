@@ -17,7 +17,7 @@ import poscarIO,lammpsIO,outcarIO
 orderParams={"CN":coordinationNumber, \
              "BO":bondOrientation, \
              "TET":tetrahedral,}
-#MSD is not an order parameter but useful for labeling atoms at high temperatures.
+#RMSD is not an order parameter but useful for labeling atoms at high temperatures.
 #FILE is not an order parameter but applies colors based data from a file
 
 def usage():
@@ -28,7 +28,7 @@ def usage():
     print "     CN : Coordination Number"
     print "    BO# : Bond Orientation (Q) with l=#"
     print "    TET : Tetrahedral order parameter (Sg)"
-    print "    MSD : Mean Square Displacement, requires OUTCAR (annealed MD simulation)"
+    print "   RMSD : Mean Square Displacement, requires OUTCAR (annealed MD simulation)"
     print "   FILE : Parses a file (column, row, or CSV data) and applies coloring from that data"
     print "----------------------------------------------------------------------------"
     print "Flags can be used anywhere in args:"
@@ -79,11 +79,11 @@ for i,v in enumerate(sys.argv):
 sys.argv = [sys.argv[i] for i in range(len(sys.argv)) if i not in toPop]
 
 #Process args, look for special cases etc.
-if sys.argv[1]=="MSD":
-    op = "MSD"
+if sys.argv[1]=="RMSD":
+    op = "RMSD"
     if len(sys.argv)!=5:
         print "Error usage:"
-        print "%s MSD POSCAR OUTCAR 25"%sys.argv[0].split("/")[-1]
+        print "%s RMSD POSCAR OUTCAR 25"%sys.argv[0].split("/")[-1]
         exit(0)
 
     configFile = sys.argv[2]
@@ -163,7 +163,7 @@ if opFlag:
     ops,rcut = orderParams[op](np.array(atoms),np.array(basis),l=lval,rcut=rcut)
 else:
     ops = types
-if op=="MSD":
+if op=="RMSD":
     ops=np.sqrt(msd.T[-1])
 
 n=None
@@ -188,7 +188,7 @@ else:
 
 #Color bar formatting
 if op != None:
-    if op=="MSD":
+    if op=="RMSD":
         op+="^0.5"
     cb = mlab.colorbar(title=op, orientation='vertical', nb_labels=n,nb_colors=n)
     cb.use_default_range = False
