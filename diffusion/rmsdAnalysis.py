@@ -7,6 +7,9 @@ import plotRemote as pr
 
 rmsdFile = sys.argv[1]
 if rmsdFile[-4:]!="rmsd": exit(0)
+
+rcut=1.5
+
 rmsdAvg=list()
 rmsdPerAtom=list()
 
@@ -26,7 +29,6 @@ jumpedFlag400=[]
 jumpedFlag500=[]
 jumpedFlag1000=[]
 
-rcut=1.5
 for i,line in enumerate(open(rmsdFile,"r").readlines()):
     if i==0:
         continue

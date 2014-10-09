@@ -4,24 +4,21 @@ import sys
 from math import *
 import subprocess
 import os
+from numpy import array
 #mine
 import outcarIO
 import lammpsIO
-import rootMeanSquareDist
-
-from scipy import array,zeros
-import pylab as pl
+import neighbors
 
 def usage():
-    print "Usage: %s <Outcar/Lammpsdump> "%sys.argv[0].split("/")[-1]
+    print "Usage: %s <Outcar/Lammpsdump> <rcut>"%sys.argv[0].split("/")[-1]
 
-if len(sys.argv)<2:
+if len(sys.argv)!=3:
     usage()
     exit(0)
 
-rcut = 3.2
-
 filename = sys.argv[1]
+rcut = float(sys.argv[2])
 outcarFlag=False
 lammpsFlag=False
 if "OUTCAR" in filename:
@@ -32,10 +29,11 @@ else:
     lammpsFlag=True
 
 
-atoms=list()
+neighbs=list()
 if outcarFlag:
     nAtoms = outcarIO.nIons(filename)
     basis = array(map(array,outcarIO.basis(filename)))
+    bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
 
     #Find the starting locations of atomic data in outcarfile
     grepResults = subprocess.check_output("grep -b POSITION %s"%filename,shell=True).split("\n")
@@ -46,7 +44,8 @@ if outcarFlag:
         outcar.seek(b)
         outcar.readline()
         outcar.readline()
-        atoms.append([map(float,outcar.readline().split()[:3]) for a in range(nAtoms)])
+        atoms = [map(float,outcar.readline().split()[:3]) for a in range(nAtoms)]
+        neighbs.append(neighbors.neighbors(atoms,bounds,rcut))
 
 if lammpsFlag:
     nAtoms = lammpsIO.nAtoms(filename)
@@ -55,17 +54,15 @@ if lammpsFlag:
     
     for i,(bByte,aByte) in enumerate(zip(basisByteNums,atomsByteNums)):
         basis = lammpsIO.parseBasis(filename,bByte)
-        a,dummy = lammpsIO.parseAtoms(filename,aByte,nAtoms,basis)
-        atoms.append(a)
+        bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
+        atoms,dummy = lammpsIO.parseAtoms(filename,aByte,nAtoms,basis)
+        neighbs.append(neighbors.neighbors(atoms,bounds,rcut))
 
-atoms = array(atoms)
-nTime = len(atoms)
-lengths = array([basis[0][0],basis[1][1],basis[2][2]])
-delT,rmsd,rmsdByAtom=rootMeanSquareDist.rootMeanSquareDistRef(atoms,0,nAtoms,nTime,lengths,byAtom=True)
+neighbsfile=filename+".neighb"
+header=["Spaces Seperate Neighbs, Commas Seperate Atoms, Lines Seperate Arrangements\n"]
+lines=header
+for atomns in neighbs:
+    lines += [",".join([" ".join(map(str,atomn)) for atomn in atomns])+"/n"]
 
-rmsdfile=filename+".rmsd"
-header=["AverageRMSD PerAtomRMSD\n"]
-rmsddata=header+[str(y)+" "+" ".join(map(str,z))+"\n" for y,z in zip(rmsd,rmsdByAtom)]
-
-print "Writing %s."%rmsdfile
-open(rmsdfile,"w").writelines(rmsddata)
+print "Writing %s."%neighbsfile
+open(neighbsfile,"w").writelines(lines)

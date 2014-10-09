@@ -2,7 +2,7 @@
 
 import os
 import matplotlib
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 #This script detects if a session is being run remotely:
 #if remote - save figure to directory BASEDIR
@@ -29,7 +29,7 @@ if socket.gethostname()=="mozart":
     matplotlib.use('WX')
 
 def prshow(fname="latestplot.png"):
-    plt.grid(True)
+#    plt.grid(True)
     if REMOTESESSION:
         matplotlib.pyplot.savefig(REMOTESESSION_BASEDIR + fname)
     else:

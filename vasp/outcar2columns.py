@@ -17,7 +17,6 @@ if len(sys.argv)<2:
 outcarFiles = sys.argv[1:]
 outputFiles = [i+".col" for i in outcarFiles]
 
-convPress= lambda x: float(x)/10.
 shellExec= lambda x: subprocess.check_output(x,shell=True).split("\n")
 
 #example full grep usage
@@ -29,7 +28,10 @@ shellExec= lambda x: subprocess.check_output(x,shell=True).split("\n")
 kbKAA3=0.013806488
 #boltzmann's constant in J/K / avogadro's number
 kbmol=8.9312353E-10
-
+#Kbar to GPa
+kBarGPa=1./10.
+#Joules to eV
+jeV=0.00624150934
 for ocf,outputFile in zip(outcarFiles,outputFiles):
 
     #natom
@@ -37,11 +39,11 @@ for ocf,outputFile in zip(outcarFiles,outputFiles):
 
     #External Pressure
     grepResults = shellExec("grep external\ pressure %s"%ocf)
-    extPressures = [convPress(i.split()[3]) for i in grepResults if len(i)>0]
+    extPressures = [float(i.split()[3])*kBarGPa for i in grepResults if len(i)>0]
 
     #Pressure vectors
     grepResults = shellExec("grep in\ kB %s"%ocf)
-    xyz6Pressures = [map(convPress,i.split()[2:]) for i in grepResults if len(i)>0]
+    xyz6Pressures = [map(lambda x: float(x)*kBarGPa, i.split()[2:]) for i in grepResults if len(i)>0]
     xx,yy,zz,xy,xz,yz=zip(*xyz6Pressures)
 
     #Temperature & Kinetic Energy
@@ -61,14 +63,14 @@ for ocf,outputFile in zip(outcarFiles,outputFiles):
     grepResults = shellExec("grep volume\ of\ cell %s"%ocf)
     volumes = [float(i.split()[4])/natom for i in grepResults if len(i)>0]
 
-    #Total Pressure
+    #Total Pressure (with thermal part)
     totPressures = [extP + kbKAA3*t/v for extP,v,t in zip(extPressures,volumes,temperatures)]
 
     #Total Energy
     totEnergies = [ekin+e for ekin,e in zip(kinEnergies,energies)]
 
     #Enthalpy
-    enthalpies = [float(e)+float(p)*float(v)*0.00624150934 for e,p,v in zip(energies,totPressures,volumes)]
+    enthalpies = [float(e)+float(p)*float(v)*jeV for e,p,v in zip(energies,totPressures,volumes)]
 
     #Steps
     steps = range(len(enthalpies))

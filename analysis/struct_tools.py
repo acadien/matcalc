@@ -128,6 +128,12 @@ def minImageAtom(a,b,basis):
     bnew = b+ translations[where(ds==min(ds))[0][0]]
     return bnew
 
+def minImageTranslation(a,b,basis):
+    translations = tensordot(basis.T, translation_unit_vectors,[1,1]).T
+    imageDists = (b-a)+translations
+    ds = diag(tensordot(imageDists,imageDists.T,1))
+    return translations[where(ds==min(ds))[0][0]]
+
 def imageDists(a,b,basis):
     #Find all basis vector translations
     translations = tensordot(basis.T, translation_unit_vectors,[1,1]).T
