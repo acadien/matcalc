@@ -6,14 +6,14 @@ import subprocess
 import os
 from numpy import array
 #mine
-import outcarIO
+import outcarIO,xdatcarIO,poscarIO
 import lammpsIO
 import neighbors
 
 def usage():
-    print "Usage: %s <Outcar/Lammpsdump> <rcut>"%sys.argv[0].split("/")[-1]
+    print "Usage: %s <Outcar/Lammpsdump/Xdatcar> <rcut> <poscarfile if xdat used>"%sys.argv[0].split("/")[-1]
 
-if len(sys.argv)!=3:
+if len(sys.argv) not in [3,4]:
     usage()
     exit(0)
 
@@ -21,15 +21,29 @@ filename = sys.argv[1]
 rcut = float(sys.argv[2])
 outcarFlag=False
 lammpsFlag=False
+xdatcarFlag=False
 if "OUTCAR" in filename:
     outcarFlag=True
-    lammpsFlag=False
+elif "XDATCAR" in filename:
+    xdatcarFlag=True
+    poscarFile = sys.argv[3]
 else:
-    outcarFlag=False
     lammpsFlag=True
 
+neighbsfile=filename+".neighb"
+header=["Spaces Seperate Neighbs, Commas Seperate Atoms, Lines Seperate Arrangements\n"]
+lines=header
 
-neighbs=list()
+if xdatcarFlag:
+    basis,dummy,atoms,dummy,dummy = poscarIO.read(poscarFile)
+    nAtoms = len(atoms)
+    bounds = [[0,1],[0,1],[0,1]]
+    rcut /= basis[0][0]
+    for i,atoms in enumerate(xdatcarIO.read2(filename)):
+        neighbs = neighbors.neighbors(atoms,bounds,rcut)
+        lines += [",".join([" ".join(map(str,atomn)) for atomn in neighbs])+"/n"]
+        print i
+
 if outcarFlag:
     nAtoms = outcarIO.nIons(filename)
     basis = array(map(array,outcarIO.basis(filename)))
@@ -45,7 +59,9 @@ if outcarFlag:
         outcar.readline()
         outcar.readline()
         atoms = [map(float,outcar.readline().split()[:3]) for a in range(nAtoms)]
-        neighbs.append(neighbors.neighbors(atoms,bounds,rcut))
+        neighbs = neighbors.neighbors(atoms,bounds,rcut)
+        lines += [",".join([" ".join(map(str,atomn)) for atomn in neighbs])+"/n"]
+        print i
 
 if lammpsFlag:
     nAtoms = lammpsIO.nAtoms(filename)
@@ -56,13 +72,9 @@ if lammpsFlag:
         basis = lammpsIO.parseBasis(filename,bByte)
         bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
         atoms,dummy = lammpsIO.parseAtoms(filename,aByte,nAtoms,basis)
-        neighbs.append(neighbors.neighbors(atoms,bounds,rcut))
-
-neighbsfile=filename+".neighb"
-header=["Spaces Seperate Neighbs, Commas Seperate Atoms, Lines Seperate Arrangements\n"]
-lines=header
-for atomns in neighbs:
-    lines += [",".join([" ".join(map(str,atomn)) for atomn in atomns])+"/n"]
+        neighbs = neighbors.neighbors(atoms,bounds,rcut)
+        lines += [",".join([" ".join(map(str,atomn)) for atomn in neighbs])+"/n"]
+        print i
 
 print "Writing %s."%neighbsfile
 open(neighbsfile,"w").writelines(lines)

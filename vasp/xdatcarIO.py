@@ -26,10 +26,26 @@ def read(xdatFile):
             if len(atoms[-1])==nAtomsTot:
                 atoms.append([])
                 startBlockFlag=False
+
     atoms.pop(-1)
     print "%d configs found in %s"%(len(atoms),xdatFile)
     return atoms
 
+def read2(xdatFile):
+    startBlockFlag=False
+    headlen=0
+    nAtomsTot = 0
+    atoms = []
+
+    f=open(xdatFile,"r")
+    nAtomsTot = int(f.readline().split()[0])
+    [f.readline() for i in range(4)]
+    atomRange = range(nAtomsTot)
+
+    while f.readline():
+        atoms = map(lambda x: map(float,x.split()),f.read(nAtomsTot*38).split("\n")[:-1])
+        #atoms = [map(float,f.readline().split()) for a in atomRange]
+        yield atoms
 
 def nSteps(xdatFile):
     natom = int(open(xdatFile,"r").readline().split()[0])

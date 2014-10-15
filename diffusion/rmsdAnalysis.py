@@ -2,8 +2,11 @@
 
 import sys
 from numpy import *
+import utils
 #mine
 import plotRemote as pr
+
+utils.usage(["<OUTCAR.rmds>"],1,1)
 
 rmsdFile = sys.argv[1]
 if rmsdFile[-4:]!="rmsd": exit(0)
@@ -112,7 +115,7 @@ pl.plot(jumpCount100,label="Jts100")
 #pl.plot(jumpCount300,label="Jts300")    
 pl.plot(jumpCount400,label="Jts400")    
 pl.plot(jumpCount500,label="Jts500")    
-pl.plot(jumpCount1000,label="Jts500")    
+pl.plot(jumpCount1000,label="Jts1000")    
 #pl.plot(jumpCount100,label="Jts100")    
 pl.plot(rmsdAvg,lw=2,label="RMSD")
 pl.legend(loc=0)

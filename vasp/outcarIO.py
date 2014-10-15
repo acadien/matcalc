@@ -198,9 +198,15 @@ def timestep(outcarFile):
 def nIons(outcarFile):
     nums = subprocess.check_output("head -n 1000 %s | grep ions\ per\ type "%outcarFile,shell=True).split("\n")[0].split("=")[1:]
     nums=map(int,nums)
-    types = [[i]*nums[i] for i in range(len(nums))]
     Natoms=sum(nums)
     return Natoms
+
+#Retursn the types of the atoms in the simulation
+def types(outcarFile):
+    nums = subprocess.check_output("head -n 1000 %s | grep ions\ per\ type "%outcarFile,shell=True).split("\n")[0].split("=")[1:]
+    nums=map(int,nums)
+    types = [j for j in flatten([[i]*nums[i] for i in range(len(nums))])]
+    return types
 
 #Returns the initial basis of the simulation
 def basis(outcarFile):

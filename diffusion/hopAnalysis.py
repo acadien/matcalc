@@ -29,7 +29,7 @@ rmsdPerAtom=list()
 for i,line in enumerate(open(rmsdFile,"r").readlines()):
     if i==0:
         continue
-    line = map(lambda x: sqrt(float(x)),line.split())
+    line = map(lambda x: float(x),line.split())
     rmsdAvg.append(line[0])
     rmsdPerAtom.append(array(line[1:])[atomsJumped200])
 rmsdPerAtom=array(rmsdPerAtom)
@@ -55,6 +55,7 @@ mxx = rmsdPerAtom.max()*1.1
 
 #figure out the geometry of the plotting window
 natom = rmsdPerAtom.shape[1]
+nr,nc = 25,25
 if natom<49:
     nr,nc = 6,8
 elif natom<97:
@@ -63,7 +64,10 @@ elif natom<151:
     nr,nc = 15,10
 elif natom<193:
     nr,nc = 16,12
-
+elif natom<253:
+    nr,nc = 18,14
+elif natom<289:
+    nr,nc = 18,16
 grid = Grid(fig, rect=111, nrows_ncols=(nr,nc),
             axes_pad=0.05, label_mode='L')
 
@@ -85,10 +89,9 @@ for i,rmsd in enumerate(rmsdPerAtom.swapaxes(0,1)):
         grid[i].plot(coarseGrain(rmsd,100),label = str(atomsJumped200[i]))
     else:
         cgy,cgv = coarseGrain(rmsd,100),coarseGrain(atomOP[i],100)
-        cgx=linspace(0.0,len(cgy)-1,len(cgy))
+        cgx=linspace(0.0,len(rmsd)-1,len(cgy))
         grid[i].add_collection(colorLine(cgx,cgy,c=cgv))
-        grid[i].set_xlim([0,len(cgy)])
-    grid[i].set_xticklabels([])
+    grid[i].set_xlim([0,cgx[-1]])
     grid[i].set_ylim([0,mxx])
     grid[i].text(0.5,0.8,str(atomsJumped200[i]),horizontalalignment='center',verticalalignment='center',transform=grid[i].transAxes)
     
