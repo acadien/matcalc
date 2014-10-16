@@ -4,24 +4,19 @@ import sys
 from math import *
 import subprocess
 import os
+from numpy import *
 #mine
 import outcarIO
 import lammpsIO
 import rootMeanSquareDist
+import utils
 
-from scipy import array,zeros
-import pylab as pl
-
-def usage():
-    print "Usage: %s <Outcar/Lammpsdump> "%sys.argv[0].split("/")[-1]
-
-if len(sys.argv)<2:
-    usage()
-    exit(0)
-
-rcut = 3.2
+utils.usage(["<Outcar/Lammpsdump>"],1,1)
 
 filename = sys.argv[1]
+header=["AverageRMSD PerAtomRMSD\n"]
+rmsddata = header
+
 outcarFlag=False
 lammpsFlag=False
 if "OUTCAR" in filename:
@@ -30,7 +25,6 @@ if "OUTCAR" in filename:
 else:
     outcarFlag=False
     lammpsFlag=True
-
 
 atoms=list()
 if outcarFlag:
@@ -52,7 +46,7 @@ if lammpsFlag:
     nAtoms = lammpsIO.nAtoms(filename)
     basisByteNums = lammpsIO.basisBytes(filename)
     atomsByteNums = lammpsIO.atomsBytes(filename)
-    
+
     for i,(bByte,aByte) in enumerate(zip(basisByteNums,atomsByteNums)):
         basis = lammpsIO.parseBasis(filename,bByte)
         a,dummy = lammpsIO.parseAtoms(filename,aByte,nAtoms,basis)
@@ -61,11 +55,11 @@ if lammpsFlag:
 atoms = array(atoms)
 nTime = len(atoms)
 lengths = array([basis[0][0],basis[1][1],basis[2][2]])
+
 delT,rmsd,rmsdByAtom=rootMeanSquareDist.rootMeanSquareDistRef(atoms,0,nAtoms,nTime,lengths,byAtom=True)
+rmsddata+=[str(y)+" "+" ".join(map(str,z))+"\n" for y,z in zip(rmsd,rmsdByAtom)]
 
 rmsdfile=filename+".rmsd"
-header=["AverageRMSD PerAtomRMSD\n"]
-rmsddata=header+[str(y)+" "+" ".join(map(str,z))+"\n" for y,z in zip(rmsd,rmsdByAtom)]
 
 print "Writing %s."%rmsdfile
 open(rmsdfile,"w").writelines(rmsddata)
