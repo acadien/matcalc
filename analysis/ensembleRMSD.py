@@ -53,10 +53,7 @@ if lammpsFlag:
         atoms.append(a)
 
 atoms = array(atoms)
-nTime = len(atoms)
-lengths = array([basis[0][0],basis[1][1],basis[2][2]])
-
-delT,rmsd,rmsdByAtom=rootMeanSquareDist.rootMeanSquareDistRef(atoms,0,nAtoms,nTime,lengths,byAtom=True)
+delT,rmsd,rmsdByAtom=rootMeanSquareDist.rootMeanSquareDistRef(atoms,0,basis,byAtom=True)
 rmsddata+=[str(y)+" "+" ".join(map(str,z))+"\n" for y,z in zip(rmsd,rmsdByAtom)]
 
 rmsdfile=filename+".rmsd"

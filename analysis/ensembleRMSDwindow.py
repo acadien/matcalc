@@ -56,9 +56,7 @@ if lammpsFlag:
         atoms.append(a)
 
 atoms = array(atoms)
-nTime = len(atoms)
-lengths = array([basis[0][0],basis[1][1],basis[2][2]])
-delT,rmsd,rmsdByAtom=rootMeanSquareDist.rootMeanSquareDistWindow(atoms,window,nAtoms,nTime,lengths,byAtom=True)
+delT,rmsd,rmsdByAtom=rootMeanSquareDist.rootMeanSquareDistWindow(atoms,window,basis,byAtom=True)
 
 rmsdfile=filename+".rmsd%d"%window
 header=["AverageRMSD PerAtomRMSD\n"]
