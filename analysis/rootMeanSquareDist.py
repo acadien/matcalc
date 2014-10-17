@@ -43,19 +43,7 @@ for(int i=0;i<nTime-1;i++){
         minDof3 = dof3;
       }
     }}}
-/*    
-if(minDof1 != 0 || minDof2 != 0 || minDof3 != 0){
-    debug[0]=minC;
-    debug[1]=dx*dx;//seta[zIndex];
-    debug[2]=dy*dy;//setb[zIndex];
-    debug[3]=dz;//minDof3;
-    setb[xIndex] += minDof1*b[0] + minDof2*b[3] + minDof3*b[6];
-    setb[yIndex] += minDof1*b[1] + minDof2*b[4] + minDof3*b[7];
-    setb[zIndex] += minDof1*b[2] + minDof2*b[5] + minDof3*b[8];
 
-    break;
-    }
-*/
     //If unwrapping is necessary apply it to all future steps for the atom.
     if(minDof1 != 0 || minDof2 != 0 || minDof3 != 0){
       for(int k=i+1; k<nTime;k++){
@@ -64,6 +52,7 @@ if(minDof1 != 0 || minDof2 != 0 || minDof3 != 0){
         atoms[(k*nAtom+j)*3+2] += minDof1*b[2] + minDof2*b[5] + minDof3*b[8];
       }
     }
+
   }
 }
 """
@@ -269,16 +258,6 @@ def unwrap(atoms,basis):
 #    print debug;
 #    exit(0)
     atoms.shape=(nTime,nAtom,3)
-    from struct_tools import dist
-
-    for j,(atoms1,atoms2) in enumerate(zip(atoms[:-1],atoms[1:])):
-        for i in range(len(atoms1)):
-            d = dist(atoms1[i],atoms2[i])
-            if d>0.1:
-                print d,"timestep%d"%j,"atom%d"%i
-                print atoms1[i]
-                print atoms2[i]
-                exit(0)
     return atoms
 
 
