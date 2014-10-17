@@ -11,8 +11,8 @@ from numpy import *
 
 undoPBCcode = """
 int xIndex,yIndex,zIndex;
-int minDof1,minDof2,minDof3,minC;
-double d,l,fd,c;
+int minDof1,minDof2,minDof3;
+double dx,dy,dz,c,minC;
 double *seta,*setb;
 
 //first you need to unwrap the periodic boundary conditions in certain cases to ensure continuity
@@ -31,12 +31,10 @@ for(int i=0;i<nTime-1;i++){
     for(int dof1=-1;dof1<2;dof1++){       
     for(int dof2=-1;dof2<2;dof2++){       
     for(int dof3=-1;dof3<2;dof3++){       
-      d = seta[xIndex]-(setb[xIndex]+dof1*b[0]+dof2*b[3]+dof3*b[6]);
-      c = d*d;
-      d = seta[yIndex]-(setb[yIndex]+dof1*b[1]+dof2*b[4]+dof3*b[7]);
-      c += d*d;
-      d = seta[zIndex]-(setb[zIndex]+dof1*b[2]+dof2*b[5]+dof3*b[8]);
-      c += d*d;
+      dx = seta[xIndex] - (setb[xIndex] + dof1*b[0] + dof2*b[3] + dof3*b[6]);
+      dy = seta[yIndex] - (setb[yIndex] + dof1*b[1] + dof2*b[4] + dof3*b[7]);
+      dz = seta[zIndex] - (setb[zIndex] + dof1*b[2] + dof2*b[5] + dof3*b[8]);
+      c = dx*dx+dy*dy+dz*dz;
 
       if(c<minC){
         minC = c;
@@ -45,7 +43,19 @@ for(int i=0;i<nTime-1;i++){
         minDof3 = dof3;
       }
     }}}
+/*    
+if(minDof1 != 0 || minDof2 != 0 || minDof3 != 0){
+    debug[0]=minC;
+    debug[1]=dx*dx;//seta[zIndex];
+    debug[2]=dy*dy;//setb[zIndex];
+    debug[3]=dz;//minDof3;
+    setb[xIndex] += minDof1*b[0] + minDof2*b[3] + minDof3*b[6];
+    setb[yIndex] += minDof1*b[1] + minDof2*b[4] + minDof3*b[7];
+    setb[zIndex] += minDof1*b[2] + minDof2*b[5] + minDof3*b[8];
 
+    break;
+    }
+*/
     //If unwrapping is necessary apply it to all future steps for the atom.
     if(minDof1 != 0 || minDof2 != 0 || minDof3 != 0){
       for(int k=i+1; k<nTime;k++){
@@ -54,7 +64,6 @@ for(int i=0;i<nTime-1;i++){
         atoms[(k*nAtom+j)*3+2] += minDof1*b[2] + minDof2*b[5] + minDof3*b[8];
       }
     }
-
   }
 }
 """
@@ -243,15 +252,33 @@ def rootMeanSquareDistRefAtom(atoms,ref,basis):
 #############################################################################################
 #############################################################################################
 
-def unwrap(atoms,nAtom,nTime,basis):
+def unwrap(atoms,basis):
+
+    atoms = array(atoms)
+    nTime = atoms.shape[0]
+    nAtom = atoms.shape[1]
+    atoms = atoms.ravel() #atoms is an nTime x nAtom x 3 array... now flattened
+    debug = zeros(4)
+
     b=array(basis).ravel()
     if(len(b)!=9): 
         print "noooooooooooooooo"
         exit(0)
-    atoms=array(atoms).ravel() #atoms is an nTime x nAtom x 3 array... now flattened
-    rmsdAtom=zeros(nTime*nAtom)
-    weave.inline(undoPBCcode,['atoms','nTime','nAtom','b'])
+
+    weave.inline(undoPBCcode,['atoms','nTime','nAtom','b','debug'])
+#    print debug;
+#    exit(0)
     atoms.shape=(nTime,nAtom,3)
+    from struct_tools import dist
+
+    for j,(atoms1,atoms2) in enumerate(zip(atoms[:-1],atoms[1:])):
+        for i in range(len(atoms1)):
+            d = dist(atoms1[i],atoms2[i])
+            if d>0.1:
+                print d,"timestep%d"%j,"atom%d"%i
+                print atoms1[i]
+                print atoms2[i]
+                exit(0)
     return atoms
 
 
