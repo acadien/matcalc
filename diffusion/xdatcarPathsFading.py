@@ -91,15 +91,34 @@ def colorLine(x, y, z, c=None, cmap=plt.get_cmap('cool'),alpha=0.4):
     points = array([x, y, z]).T.reshape(-1, 1, 3)
     segments = concatenate([points[:-1], points[1:]], axis=1)
     alphas = linspace(0.0, 1.0, len(x))**2
+    cmap = plt.get_cmap('Blues')
     rgba = cmap(c)
     rgba[:,3] = alphas
-    lc = Line3DCollection(segments, edgecolor = rgba, lw=2)
+    lw = linspace(16,3,len(x))
+    lc = Line3DCollection(segments, edgecolor = rgba, lw=lw)
     return lc
     
 fig = plt.figure(figsize=(18,18))
-ax = fig.gca(projection='3d')
+
+mxx=atomsTraj[:,0,0].max()
+mmx=atomsTraj[:,0,0].min()
+mxy=atomsTraj[:,1,0].max()
+mmy=atomsTraj[:,1,0].min()
+mxz=atomsTraj[:,2,0].max()
+mmz=atomsTraj[:,2,0].min()
+d=max([mxx-mmx,mxy-mmy,mxz-mmz])/2.0
+comx=(mxx+mmx)/2
+comy=(mxy+mmy)/2
+comz=(mxz+mmz)/2
+
+ax = fig.gca(projection='3d',frame_on=False)
+ax.set_frame_on(False)
+#ax.set_axes([comx-d,comy-d,comz-d,comx+d,comy+d,comy+d])
+plt.tight_layout(pad=-1.0,h_pad=-1.0,w_pad=-1.0)
+
 l=100
-for a in range(0,nTime-l):
+m=0
+for a in range(0,nTime-l,5):
     for atomTraj,atomOP in zip(atomsTraj,atomsOP):
         #atomTraj = apply_along_axis(coarseGrain,1,atomTraj,coarseGrainN)
         #atomTraj = concatenate((atomTraj[:,0].reshape(3,1),atomTraj,atomTraj[:,-1].reshape(3,1)),axis=1)
@@ -111,29 +130,25 @@ for a in range(0,nTime-l):
             cmap = plt.get_cmap('jet')
         else:
             cmap = plt.get_cmap('cool')
-        if min(atomOP)<0.7:
+        if max(atomOP)>1.0:
             ax.add_collection(colorLine(atomTraj[0][a:a+l],atomTraj[1][a:a+l],atomTraj[2][a:a+l],c=atomOP[a:a+l],cmap=cmap,alpha=1))
-    #    break
-        #ax.scatter(atomTraj[0][0],atomTraj[1][0],atomTraj[2][0])
+        break
+    ax.set_frame_on(False)
+    ax.set_xticklabels([""]*len(ax.get_xticklabels()),visible=False)
+    ax.set_yticklabels([""]*len(ax.get_yticklabels()),visible=False)
+    ax.set_zticklabels([""]*len(ax.get_zticklabels()),visible=False)
+    ax.set_xlim(atomTraj[0].min(),atomTraj[0].max())
+    ax.set_ylim(atomTraj[1].min(),atomTraj[1].max())
+    ax.set_zlim(atomTraj[2].min(),atomTraj[2].max())
+#        ax.set_xlim(comx-d,comx+d)
+#        ax.set_ylim(comy-d,comy+d)
+#        ax.set_zlim(comz-d,comz+d)
 
-    #Set plot bounds so things are scaled poorly
-    if a==0:
-        mxx=atomsTraj[:,0,:].max()
-        mmx=atomsTraj[:,0,:].min()
-        mxy=atomsTraj[:,1,:].max()
-        mmy=atomsTraj[:,1,:].min()
-        mxz=atomsTraj[:,2,:].max()
-        mmz=atomsTraj[:,2,:].min()
-        d=max([mxx-mmx,mxy-mmy,mxz-mmz])/2.0
-        comx=(mxx+mmx)/2
-        comy=(mxy+mmy)/2
-        comz=(mxz+mmz)/2
-
-        ax.set_xlim(comx-d,comx+d)
-        ax.set_ylim(comy-d,comy+d)
-        ax.set_zlim(comz-d,comz+d)
-        plt.tight_layout()
-    fig.savefig("%4.4d.png"%a,bbox_inches='tight')
+    ax.set_frame_on(False)
+    fig.savefig("%4.4d.png"%m)#,bbox_inches='tight',pad_inches=0.0,edgecolor="red",facecolor="blue")
+    m+=1
     plt.cla()
+    print a
+
     #plotRemote.prshow()
         
