@@ -41,8 +41,7 @@ if xdatcarFlag:
     rcut /= basis[0][0]
     for i,atoms in enumerate(xdatcarIO.read2(filename)):
         neighbs = neighbors.neighbors(atoms,bounds,rcut)
-        lines += [",".join([" ".join(map(str,atomn)) for atomn in neighbs])+"/n"]
-        print i
+        lines += [",".join([" ".join(map(str,atomn)) for atomn in neighbs])+"\n"]
 
 if outcarFlag:
     nAtoms = outcarIO.nIons(filename)
@@ -60,8 +59,7 @@ if outcarFlag:
         outcar.readline()
         atoms = [map(float,outcar.readline().split()[:3]) for a in range(nAtoms)]
         neighbs = neighbors.neighbors(atoms,bounds,rcut)
-        lines += [",".join([" ".join(map(str,atomn)) for atomn in neighbs])+"/n"]
-        print i
+        lines += [",".join([" ".join(map(str,atomn)) for atomn in neighbs])+"\n"]
 
 if lammpsFlag:
     nAtoms = lammpsIO.nAtoms(filename)
@@ -73,8 +71,7 @@ if lammpsFlag:
         bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
         atoms,dummy = lammpsIO.parseAtoms(filename,aByte,nAtoms,basis)
         neighbs = neighbors.neighbors(atoms,bounds,rcut)
-        lines += [",".join([" ".join(map(str,atomn)) for atomn in neighbs])+"/n"]
-        print i
+        lines += [",".join([" ".join(map(str,atomn)) for atomn in neighbs])+"\n"]
 
 print "Writing %s."%neighbsfile
 open(neighbsfile,"w").writelines(lines)
