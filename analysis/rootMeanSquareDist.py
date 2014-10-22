@@ -21,13 +21,13 @@ for(int i=0;i<nTime-1;i++){
   setb=&(atoms[(i+1)*nAtom*3]);
 
   for(int j=0;j<nAtom;j++){
-    minC = 100000.0;
 
     xIndex=j*3+0;
     yIndex=j*3+1;
     zIndex=j*3+2;
 
     //Find the minimum image distance between atom and itself in next timestep.
+    minC = 100000.0;
     for(int dof1=-1;dof1<2;dof1++){       
     for(int dof2=-1;dof2<2;dof2++){       
     for(int dof3=-1;dof3<2;dof3++){       
@@ -46,13 +46,20 @@ for(int i=0;i<nTime-1;i++){
 
     //If unwrapping is necessary apply it to all future steps for the atom.
     if(minDof1 != 0 || minDof2 != 0 || minDof3 != 0){
-      for(int k=i+1; k<nTime;k++){
-        atoms[(k*nAtom+j)*3]   += minDof1*b[0] + minDof2*b[3] + minDof3*b[6];
-        atoms[(k*nAtom+j)*3+1] += minDof1*b[1] + minDof2*b[4] + minDof3*b[7];
-        atoms[(k*nAtom+j)*3+2] += minDof1*b[2] + minDof2*b[5] + minDof3*b[8];
-      }
-    }
+      dx = minDof1*b[0] + minDof2*b[3] + minDof3*b[6];
+      dy = minDof1*b[1] + minDof2*b[4] + minDof3*b[7];
+      dz = minDof1*b[2] + minDof2*b[5] + minDof3*b[8];
 
+      atoms[((i+1)*nAtom+j)*3]   += dx;
+      atoms[((i+1)*nAtom+j)*3+1] += dy;
+      atoms[((i+1)*nAtom+j)*3+2] += dz;
+      /*
+      for(int k=i+1; k<nTime;k++){
+        atoms[(k*nAtom+j)*3]   += dx;
+        atoms[(k*nAtom+j)*3+1] += dy;
+        atoms[(k*nAtom+j)*3+2] += dz;
+      }*/
+    }
   }
 }
 """
@@ -97,11 +104,12 @@ def rootMeanSquareDistRef(atoms,ref,basis,byAtom=False):
     delT=linspace(1,nTime+1,nTime+1)
     rmsd=zeros(len(delT))
     rmsdByAtom=zeros(nTime*nAtom)
+    debug = zeros(4)
 
 #    compiler_args=['-march=native -O3 -fopenmp']
 #    headers=r"""#include <omp.h>"""
 #    libs=['math.h']
-    weave.inline(undoPBCcode,['atoms','nTime','nAtom','b'])#,libraries=libs)
+    weave.inline(undoPBCcode,['atoms','nTime','nAtom','b','debug'])#,libraries=libs)
 #                     extra_compile_args=compiler_args,\
 #                     support_code=headers,\
 
@@ -215,15 +223,14 @@ def rootMeanSquareDistRefAtom(atoms,ref,basis):
     delT=linspace(1,nTime+1,nTime+1)
     rmsd=zeros(len(delT))
     rmsdAtom=zeros(nTime*nAtom)
-
+    debug = zeros(4)
 #    compiler_args=['-march=native -O3 -fopenmp']
 #    headers=r"""#include <omp.h>"""
 #    libs=['math.h']
 
-    weave.inline(undoPBCcode,['atoms','nTime','nAtom','b'])#,libraries=libs)
+    weave.inline(undoPBCcode,['atoms','nTime','nAtom','b','debug'])#,libraries=libs)
 #                     extra_compile_args=compiler_args,\
 #                     support_code=headers,\
-
     #do this after undoing PBC to ensure refAtoms are in same state as atoms set.
     atoms.shape=(nTime,nAtom,3)
     refAtoms=atoms[ref] #refAtoms is an nAtom x 3 array... now flattened

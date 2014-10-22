@@ -2,20 +2,14 @@
 
 import sys
 #mine
-from lammpsIO import *
+import lammpsIO
+import utils
 
-def usage():
-    print sys.argv[0].split("/")[-1]+" <input dump file> <configuration #> <output config file>"
-    print "LAMMPS dump file must have bounds, atom type and atomic locations."
-    
+utils.usage(["<input dump file>","<configuration #>","<output config file>"],3,3,"LAMMPS dump file must have bounds, atom type and atomic locations.")
 
-if len(sys.argv)!=4:
-    usage()
-    exit(0)
-
-iDump=open(sys.argv[1],"r").readlines()
+iDump=sys.argv[1]
 cfg=int(sys.argv[2])
-bounds,types,atoms,head=dumpReadConfig(iDump,cfg)
+bounds,types,atoms=lammpsIO.readConfig(iDump,cfg)
 oCnfg=open(sys.argv[3],"w")
-dumpWriteConfig(oCnfg,bounds,types,atoms,head)
+lammpsIO.dumpWriteConfig(oCnfg,bounds,types,atoms,"config made by %s, from file %s config %d"%(sys.argv[0].split("/")[-1],iDump,cfg))
 

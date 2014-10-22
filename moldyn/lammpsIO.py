@@ -34,11 +34,11 @@ def dumpReadNext(dump,step=0):
             head="From LAMMPS dump, Timestep: %s"%dump[i+1]
             continue
         if "ITEM: BOX BOUNDS" in line:
-            if len(dump[i+1].split())==3:
+            try:
                 xlo,xhi,xy=map(float,dump[i+1].split())
                 ylo,yhi,xz=map(float,dump[i+2].split())
                 zlo,zhi,yz=map(float,dump[i+3].split())
-            else:
+            except ValueError:
                 xlo,xhi=map(float,dump[i+1].split())
                 ylo,yhi=map(float,dump[i+2].split())
                 zlo,zhi=map(float,dump[i+3].split())
@@ -81,11 +81,11 @@ def parseConfigAtStart(dumpF,seekpoint):
     #File must be parsed in a while loop because there is no garauntee on ordering or that file contains required data
     for i,line in enumerate(dump):
         if "BOX BOUNDS" in line: #assume: ITEM: BOX BOUNDS xy xz yz pp pp p
-            if len(dump[i+1].split())==3:
+            try:
                 xlo,xhi,xy=map(float,dump[i+1].split())
                 ylo,yhi,xz=map(float,dump[i+2].split())
                 zlo,zhi,yz=map(float,dump[i+3].split())
-            else:
+            except ValueError:
                 xlo,xhi=map(float,dump[i+1].split())
                 ylo,yhi=map(float,dump[i+2].split())
                 zlo,zhi=map(float,dump[i+3].split())
@@ -237,12 +237,13 @@ def atomsBytes(dump):
 def parseBasis(dump,b):
     f = open(dump)
     f.seek(b)
+#    f.readline()
     blines=[f.readline() for i in range(3)]
-    if len(blines[0].split())==3:
+    try:
         xlo,xhi,xy=map(float,blines[0].split())
         ylo,yhi,xz=map(float,blines[1].split())
         zlo,zhi,yz=map(float,blines[2].split())
-    else:
+    except ValueError:
         xlo,xhi=map(float,blines[0].split())
         ylo,yhi=map(float,blines[1].split())
         zlo,zhi=map(float,blines[2].split())
@@ -259,6 +260,7 @@ def parseAtoms(dump,b,nAtoms,basis):
     
     #read the header, what index have atom info
     head = f.readline().split()
+    idl = head.index("id")-2
     ixs = head.index("xs")-2
     iys = head.index("ys")-2
     izs = head.index("zs")-2
@@ -266,8 +268,11 @@ def parseAtoms(dump,b,nAtoms,basis):
 
     #parse the file
     atomLines = [f.readline().split() for i in range(nAtoms)]
-    ax,ay,az = zip(*[map(float,[al[ixs],al[iys],al[izs]]) for al in atomLines])
-    types = [int(al[itypes]) for al in atomLines]
+    atomlines = [map(float,[al[idl],al[ixs],al[iys],al[izs],al[itypes]]) for al in atomLines]
+    atomlines.sort()
+
+    ids,ax,ay,az,types  = zip(*atomlines)
+    types = map(int,types)
     
     #move around atoms to fit them into the 
     v1,v2,v3 = basis
@@ -276,6 +281,8 @@ def parseAtoms(dump,b,nAtoms,basis):
         ax=v1[0]*a+v2[0]*b+v3[0]*c
         ay=v1[1]*a+v2[1]*b+v3[1]*c
         az=v1[2]*a+v2[2]*b+v3[2]*c
+
+    """
     if v1[1]+v1[2]+v2[0]+v2[2]+v3[0]+v3[1]==0.0:
         delx = v1[0]/2. - sum(ax)/len(ax)
         dely = v2[1]/2. - sum(ay)/len(ay)
@@ -283,9 +290,28 @@ def parseAtoms(dump,b,nAtoms,basis):
         ax = [x+delx for x in ax]
         ay = [y+dely for y in ay]
         az = [z+delz for z in az]
-    
+    """
     return numpy.array(zip(ax,ay,az)),numpy.array(types)
     
+#Reads the dump file at the given location and returns a list of velocities
+def parseVelocities(dump,b,nAtoms):
+    f = open(dump)
+    f.seek(b)
+
+    #read the header, what index have atom info
+    head = f.readline().split()
+    idl = head.index("id")-2
+    ixs = head.index("vx")-2
+    iys = head.index("vy")-2
+    izs = head.index("vz")-2
+
+    #parse the file
+    atomLines = [f.readline().split() for i in range(nAtoms)]
+    atomlines = zip(*[map(float,[al[idl],al[vx],al[vy],al[vz]]) for al in atomLines])
+    atomlines.sort(key = lambda x:x[0])
+    ids,vx,vy,vz = atomlines
+    return numpy.array(zip(vx,vy,vz))
+
 
 #Converts VASP style boundaries to LAMMPS boundaries
 def basis2lohi(basis):
