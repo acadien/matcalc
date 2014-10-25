@@ -11,8 +11,8 @@ def parseEnsemble(ensembleFile):
         except ValueError:
             pass
 
-def parseOutcarAtoms(bytenums,outcarFile,nAtoms):
-    for i,b in enumerate(bytenums):
+def parseOutcarAtoms(byteNums,outcarFile,nAtoms):
+    for i,b in enumerate(byteNums):
         outcarFile.seek(b)
         outcarFile.readline()
         outcarFile.readline()
@@ -27,3 +27,19 @@ def parseNeighbor(neighborFile):
             yield map(lambda x: map(int,x.split()),line.split(","))
         except ValueError:
             pass
+
+def parseLammpsAtoms(byteNums,lammpsFile,nAtoms):
+    f2parse = open(lammpsFile,"r")
+    for i,b in enumerate(byteNums):
+        f2parse.seek(b)
+        head = f2parse.readline().split()
+        idl = head.index("id")-2
+        ixs = head.index("xs")-2
+        iys = head.index("ys")-2
+        izs = head.index("zs")-2
+        itypes = head.index("type")-2
+        atomLines = [f2parse.readline().split() for i in range(nAtoms)]
+        atomLines = [map(float,[al[idl],al[ixs],al[iys],al[izs],al[itypes]]) for al in atomLines]
+        atomLines.sort()
+        ids,ax,ay,az,types  = zip(*atomLines)
+        yield zip(ax,ay,az)

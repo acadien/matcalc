@@ -171,7 +171,7 @@ def writeDump(dumpfile,basis,types,atomConfigs,atomOptionals,atomOptionalsHead):
     #BBhead+=" 0.0000  % 6.6f  % 6.6f\n"%(yhi,xz)
     #BBhead+=" 0.0000  % 6.6f  % 6.6f\n"%(zhi,yz)
 
-    BBhead="ITEM: BOX BOUNDS xx yy zz\n"
+    BBhead="ITEM: BOX BOUNDS\n"
     xhi,yhi,zhi,xy,xz,yz=basis2lohi(basis)
     BBhead+=" 0.0000  % 6.6f\n"%(xhi)
     BBhead+=" 0.0000  % 6.6f\n"%(yhi)
@@ -192,6 +192,7 @@ def writeDump(dumpfile,basis,types,atomConfigs,atomOptionals,atomOptionalsHead):
         atoms = map(lambda x:" ".join(map(str,unfrac(x,A))),ensemb[0])
         extras = map(lambda x:" ".join(map(str,x))+"\n",zip(*ensemb[1:]))
         atomlines = map(lambda x: " ".join(x),zip(*[ids,types,atoms,extras]))
+
         dump.writelines(head)
         dump.writelines(atomlines)
         i+=1
@@ -223,6 +224,10 @@ def nAtoms(dump):
             break
     return nAtoms
 
+def basis(dump):
+    b = basisBytes(dump)
+    return parseBasis(dump,b[0])
+
 #Returns the location of basis in the dump file
 def basisBytes(dump):
     grepResults = subprocess.check_output("grep -b ITEM:\ BOX\ BOUNDS %s"%dump,shell=True).split("\n")
@@ -237,8 +242,13 @@ def atomsBytes(dump):
 def parseBasis(dump,b):
     f = open(dump)
     f.seek(b)
-#    f.readline()
     blines=[f.readline() for i in range(3)]
+    try:
+        map(float,blines[0])
+    except ValueError:
+        blines.pop(0)
+        blines.append(f.readline())
+
     try:
         xlo,xhi,xy=map(float,blines[0].split())
         ylo,yhi,xz=map(float,blines[1].split())

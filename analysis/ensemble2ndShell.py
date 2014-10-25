@@ -15,7 +15,7 @@ ensembGen = parserGens.parseEnsemble(ensembFile)
 
 #secondShellEnsemb=list()
 efp = ensembFile.split(".")
-outfile = efp[0] + ".2shell" + efp[1]
+outfile = ".".join(efp[0:-1]) + ".2shell" + efp[-1]
 out = open(outfile,"w")
 out.write("2ndShellAvg%s 2ndShellPerAtom%s\n"%(efp[1],efp[1]))
 
@@ -34,3 +34,7 @@ for ensembG,neighbG in itertools.izip(ensembGen,neighbGen):
 
     avg = sum(secondShellEnsemb)/len(secondShellEnsemb)    
     out.write(str(avg)+" " + " ".join(map(str,secondShellEnsemb))+"\n")
+
+out.close()
+print "Wrote %s."%outfile
+
