@@ -252,7 +252,6 @@ if __name__=="__main__":
     labels=list()
     fdatas=list()
     for fname in fnames:
-        print "here"
         if fname[-3:]=="csv":
             l,f = parse(fname,",")
         else:
@@ -260,6 +259,7 @@ if __name__=="__main__":
 
         labels.append(l)
         fdatas.append(f)
+        print fname
     label=labels[0]
 
     fig=pl.figure(figsize=[18,9])

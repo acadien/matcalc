@@ -52,7 +52,10 @@ if lammpsFlag:
     
     for i,(bByte,aByte) in enumerate(zip(basisByteNums,atomsByteNums)):
         basis = lammpsIO.parseBasis(filename,bByte)
-        a,dummy = lammpsIO.parseAtoms(filename,aByte,nAtoms,basis)
+        try:
+            a,dummy = lammpsIO.parseAtoms(filename,aByte,nAtoms,basis)
+        except IndexError:
+            break
         atoms.append(a)
 
 atoms = array(atoms)

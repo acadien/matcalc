@@ -11,7 +11,7 @@ import lammpsIO
 import parserGens
 import utils
 
-possibleSuffix = [".rmsd",".cn",".tetra",".rmsd100",".rmsd1000",".rmsd5000",".rmsd10000",".2shelltetra",".2shellcn"]
+possibleSuffix = [".rmsd",".cn",".tetra",".rmsd100",".rmsd1000",".rmsd5000",".rmsd10000",".2shelltetra",".2shellcn",".2shellrmsd100"]
 
 utils.usage(["<outcar,lamps dump>"],1,1,"Note: Automatically looks for <OUTCAR/dump.suffix> for per atom ensembles. to include in the dump")
 

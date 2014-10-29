@@ -174,14 +174,21 @@ if op=="TET":
     mxop=1.0
     n=11
 
+nAtom = len(ax)
+res=16.0
+while nAtom > 1100 and res>3.0:
+    nAtom/=4.0
+    res/=2.0
+nAtom = len(ax)
+
 #Only plot with coloring if there is some variance in the OP
 if mxop - mnop > 1E-10:
     #spectral
-    mp3d = mlab.points3d(ax,ay,az,ops,colormap='jet',scale_factor=1.9,scale_mode='none',resolution=14)
+    mp3d = mlab.points3d(ax,ay,az,ops,colormap='jet',scale_factor=1.9,scale_mode='none',resolution=res)
     if n==None:
         n=min(len(set(ops)),10)
 else:
-    mp3d = mlab.points3d(ax,ay,az,[mnop]*len(az),colormap='jet',scale_factor=1.9,scale_mode='none',resolution=14)
+    mp3d = mlab.points3d(ax,ay,az,[mnop]*len(az),colormap='jet',scale_factor=1.9,scale_mode='none',resolution=res)
     n=2
 #else:
 #    mp3d = mlab.points3d(ax,ay,az,colormap='jet',scale_factor=1.9,scale_mode='none',resolution=14)

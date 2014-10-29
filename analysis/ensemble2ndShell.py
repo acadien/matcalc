@@ -18,7 +18,7 @@ efp = ensembFile.split(".")
 outfile = ".".join(efp[0:-1]) + ".2shell" + efp[-1]
 out = open(outfile,"w")
 out.write("2ndShellAvg%s 2ndShellPerAtom%s\n"%(efp[1],efp[1]))
-
+stopFlag=False
 for ensembG,neighbG in itertools.izip(ensembGen,neighbGen):
 
     secondShellEnsemb = list()
@@ -30,8 +30,12 @@ for ensembG,neighbG in itertools.izip(ensembGen,neighbGen):
         if N==0:
             secondShellEnsemb.append(ensembG[a])
         else:
-            secondShellEnsemb.append(sum([ensembG[i] for i in totalNeighb])/N)
-
+            try:
+                secondShellEnsemb.append(sum([ensembG[i] for i in totalNeighb])/N)
+            except IndexError:
+                stopFlag=True
+                break
+    if stopFlag: break
     avg = sum(secondShellEnsemb)/len(secondShellEnsemb)    
     out.write(str(avg)+" " + " ".join(map(str,secondShellEnsemb))+"\n")
 

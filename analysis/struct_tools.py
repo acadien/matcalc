@@ -159,7 +159,6 @@ else
 """
 angcode = """
 double x,dkx,dky,dkz,djx,djy,djz,dkr,djr;
-double pi=3.14159266; //intentionally overestimate pi by a tiny bit to correct acos behavior
 dkx = c[0]-a[0];
 dky = c[1]-a[1];
 dkz = c[2]-a[2];

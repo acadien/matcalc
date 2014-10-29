@@ -69,7 +69,10 @@ if lammpsFlag:
     for i,(bByte,aByte) in enumerate(zip(basisByteNums,atomsByteNums)):
         basis = lammpsIO.parseBasis(filename,bByte)
         bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
-        atoms,dummy = lammpsIO.parseAtoms(filename,aByte,nAtoms,basis)
+        try:
+            atoms,dummy = lammpsIO.parseAtoms(filename,aByte,nAtoms,basis)
+        except IndexError:
+            break
         neighbs = neighbors.neighbors(atoms,bounds,rcut)
         lines += [",".join([" ".join(map(str,atomn)) for atomn in neighbs])+"\n"]
 

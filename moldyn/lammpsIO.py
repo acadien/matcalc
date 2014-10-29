@@ -244,7 +244,7 @@ def parseBasis(dump,b):
     f.seek(b)
     blines=[f.readline() for i in range(3)]
     try:
-        map(float,blines[0])
+        map(float,blines[0].split())
     except ValueError:
         blines.pop(0)
         blines.append(f.readline())
