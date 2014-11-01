@@ -179,6 +179,7 @@ res=16.0
 while nAtom > 1100 and res>3.0:
     nAtom/=4.0
     res/=2.0
+res=max(res,3.0)
 nAtom = len(ax)
 
 #Only plot with coloring if there is some variance in the OP
