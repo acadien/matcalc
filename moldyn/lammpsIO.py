@@ -101,12 +101,13 @@ def parseConfigAtStart(dumpF,seekpoint):
             order,types,ax,ay,az=zip(*atominfo)[:5]
 
             com=max(ax)-min(ax)
-            if com<0.9*(v1[0]+v2[0]+v3[0]):
+            #if com<0.9*(v1[0]+v2[0]+v3[0]):
+            if max(ax)<1.1 and min(fabs(ax))>0:
                 a,b,c = array(ax),array(ay),array(az)
-                ax=v1[0]*a+v2[0]*b+v3[0]*c
-                ay=v1[1]*a+v2[1]*b+v3[1]*c
-                az=v1[2]*a+v2[2]*b+v3[2]*c
-
+                ax = v1[0]*a+v2[0]*b+v3[0]*c
+                ay = v1[1]*a+v2[1]*b+v3[1]*c
+                az = v1[2]*a+v2[2]*b+v3[2]*c
+            """
             if v1[1]+v1[2]+v2[0]+v2[2]+v3[0]+v3[1]==0.0:
                 delx = v1[0]/2. - sum(ax)/len(ax)
                 dely = v2[1]/2. - sum(ay)/len(ay)
@@ -114,6 +115,7 @@ def parseConfigAtStart(dumpF,seekpoint):
                 ax = [x+delx for x in ax]
                 ay = [y+dely for y in ay]
                 az = [z+delz for z in az]
+            """
 
             types=map(int,types)
             break
@@ -271,9 +273,14 @@ def parseAtoms(dump,b,nAtoms,basis):
     #read the header, what index have atom info
     head = f.readline().split()
     idl = head.index("id")-2
-    ixs = head.index("xs")-2
-    iys = head.index("ys")-2
-    izs = head.index("zs")-2
+    try:
+        ixs = head.index("xs")-2
+        iys = head.index("ys")-2
+        izs = head.index("zs")-2
+    except ValueError:
+        ixs = head.index("xu")-2
+        iys = head.index("yu")-2
+        izs = head.index("zu")-2
     itypes = head.index("type")-2
 
     #parse the file

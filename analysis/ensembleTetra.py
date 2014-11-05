@@ -66,6 +66,7 @@ if lammpsFlag:
     tetraOut.write("AverageTetra PerAtomTetra\n")
     for i,(bByte,aByte) in enumerate(zip(basisByteNums,atomsByteNums)):
         basis = lammpsIO.parseBasis(filename,bByte)
+
         atoms,dummy = lammpsIO.parseAtoms(filename,aByte,nAtoms,basis)
 
         tet,rcut = orderParam.tetrahedral(atoms,basis,rcut=rcut)

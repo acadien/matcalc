@@ -76,6 +76,10 @@ for i,v in enumerate(sys.argv):
         toPop.append(i)
         toPop.append(i+1)
 
+    if v in ["-h"]:
+        usage()
+        exit(0)
+
 sys.argv = [sys.argv[i] for i in range(len(sys.argv)) if i not in toPop]
 
 #Process args, look for special cases etc.

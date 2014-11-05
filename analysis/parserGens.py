@@ -34,9 +34,14 @@ def parseLammpsAtoms(byteNums,lammpsFile,nAtoms):
         f2parse.seek(b)
         head = f2parse.readline().split()
         idl = head.index("id")-2
-        ixs = head.index("xs")-2
-        iys = head.index("ys")-2
-        izs = head.index("zs")-2
+        try:
+            ixs = head.index("xs")-2
+            iys = head.index("ys")-2
+            izs = head.index("zs")-2
+        except ValueError:
+            ixs = head.index("xu")-2
+            iys = head.index("yu")-2
+            izs = head.index("zu")-2
         itypes = head.index("type")-2
         atomLines = [f2parse.readline().split() for i in range(nAtoms)]
         atomLines = [map(float,[al[idl],al[ixs],al[iys],al[izs],al[itypes]]) for al in atomLines]
