@@ -11,12 +11,15 @@ from math import *
 #mine
 from orderParam import coordinationNumber,bondOrientation,tetrahedral
 from outcarPlotMSDAtom import outcarMeanSquareDisplaceAtom
-from datatools import windowAvg
+import datatools
+from neighbors import neighbors
 import poscarIO,lammpsIO,outcarIO
 
 orderParams={"CN":coordinationNumber, \
              "BO":bondOrientation, \
-             "TET":tetrahedral,}
+             "TET":tetrahedral, \
+             "TET2":tetrahedral}
+
 #RMSD is not an order parameter but useful for labeling atoms at high temperatures.
 #FILE is not an order parameter but applies colors based data from a file
 
@@ -28,6 +31,7 @@ def usage():
     print "     CN : Coordination Number"
     print "    BO# : Bond Orientation (Q) with l=#"
     print "    TET : Tetrahedral order parameter (Sg)"
+    print "   TET2 : 2nd shell averaged TET (Sg)"
     print "   RMSD : Mean Square Displacement, requires OUTCAR (annealed MD simulation)"
     print "   FILE : Parses a file (column, row, or CSV data) and applies coloring from that data"
     print "----------------------------------------------------------------------------"
@@ -36,6 +40,7 @@ def usage():
     print "   -rcut #: cutoff distance when building neighbor list, follow by float value"
     print "   -hist  : generates a histogram of the order parameter"
     print "   -N #   : selects a configuration to use"
+    print "-bounds #,# : min,max bounds on order parameter"
     print ""
 
 if len(sys.argv) < 2:
@@ -52,6 +57,7 @@ rcut = None
 Nconfig = 0
 lval = 0
 toPop=list()
+minv,maxv = None,None
 for i,v in enumerate(sys.argv):
 
     if v in ["-rectify","-Rectify"]:
@@ -79,6 +85,11 @@ for i,v in enumerate(sys.argv):
     if v in ["-h"]:
         usage()
         exit(0)
+
+    if v in ["-bound","-bounds","-bnds","-bnd"]:
+        minv,maxv = map(float,sys.argv[i+1].split(","))
+        toPop.append(i)
+        toPop.append(i+1)
 
 sys.argv = [sys.argv[i] for i in range(len(sys.argv)) if i not in toPop]
 
@@ -158,7 +169,7 @@ if rectifyFlag:
 fig=mlab.figure(bgcolor=(0.8,0.8,0.8))
 
 #Set default rcut value for tetrahedral ordering
-if op=="TET" and rcut==None:
+if op in ["TET","TET2"] and rcut==None:
     rcut=3.2
 
 #Get the order parameter and convert to integer format (opsn) for
@@ -167,13 +178,33 @@ if opFlag:
     ops,rcut = orderParams[op](np.array(atoms),np.array(basis),l=lval,rcut=rcut)
 else:
     ops = types
+
+
 if op=="RMSD":
     ops=np.sqrt(msd.T[-1])
+
+if op=="TET2":
+
+    bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
+    neighbs = neighbors(atoms,bounds,rcut)
+    secondShell = list()
+
+    for a,firstNeighbs in enumerate(neighbs):
+        secondNeighbs = [neighbs[i] for i in firstNeighbs]
+        totalNeighb = set(datatools.flatten([firstNeighbs]+secondNeighbs))
+        N = len(totalNeighb)
+
+        if N==0:
+            secondShell.append(ops[a])
+        else:
+            secondShell.append(sum([ops[i] for i in totalNeighb])/N)
+
+    ops = secondShell
 
 n=None
 mnop = min(ops)
 mxop = max(ops)
-if op=="TET":
+if op in ["TET","TET2"]:
     mnop=0.0
     mxop=1.0
     n=11
@@ -204,7 +235,12 @@ if op != None:
         op+="^0.5"
     cb = mlab.colorbar(title=op, orientation='vertical', nb_labels=n,nb_colors=n)
     cb.use_default_range = False
-    cb.data_range = (mnop,mxop)
+    print "here"
+    if minv == None and maxv==None:
+        cb.data_range = (mnop,mxop)
+    else:
+        cb.data_range = (minv,maxv)
+
 
 #Stupid surrounding box code, sooooo ugly...
 z=[0,0,0]
@@ -256,7 +292,7 @@ if sliceFlag:
         
         zBins=[0]+zBins
         zVals=[zVals[-1]]+zVals
-    zValsAvg=windowAvg(zVals[-3:]+zVals+zVals[:3],5)[3:-3]
+    zValsAvg=datatools.windowAvg(zVals[-3:]+zVals+zVals[:3],5)[3:-3]
 
     #plot
     pl.figure()
