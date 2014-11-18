@@ -3,6 +3,7 @@
 import sys
 #mine
 import plotRemoteMaya as prm
+import plotRemote as pr
 
 from mayavi import mlab
 import numpy as np
@@ -166,8 +167,6 @@ v1,v2,v3=basis
 if rectifyFlag:
     ax,ay,az = ax%v1[0], ay%v2[1], az%v3[2]
 
-fig=mlab.figure(bgcolor=(0.8,0.8,0.8))
-
 #Set default rcut value for tetrahedral ordering
 if op in ["TET","TET2"] and rcut==None:
     rcut=3.2
@@ -217,6 +216,21 @@ while nAtom > 1100 and res>3.0:
 res=max(res,3.0)
 nAtom = len(ax)
 
+if histFlag:
+    if op==None:
+        print "Need an order parameter in order to generate histogram"
+        exit(0)
+
+    pl.figure()
+    pl.hist(ops)
+    pl.xlabel(op)
+    pl.ylabel("Count")
+    pl.draw() #needed when using interactive plotting
+    pr.prshow()
+    exit(0)
+
+fig=mlab.figure(bgcolor=(0.8,0.8,0.8))
+
 #Only plot with coloring if there is some variance in the OP
 if mxop - mnop > 1E-10:
     #spectral
@@ -251,17 +265,6 @@ mlab.plot3d([v2[0],v2[0]+v3[0]],[v2[1],v2[1]+v3[1]],[v2[2],v2[2]+v3[2]],color=(0
 mlab.plot3d([v1[0]+v2[0],v1[0]+v2[0]+v3[0]],[v1[1]+v2[1],v1[1]+v2[1]+v3[1]],[v1[2]+v2[2],v1[2]+v2[2]+v3[2]],color=(0,0,0),line_width=0.5)
 
 pl.ion() #turn on interactive plotting
-if histFlag:
-    if op==None:
-        print "Need an order parameter in order to generate histogram"
-        exit(0)
-
-    pl.figure()
-    pl.hist(ops)
-    pl.xlabel(op)
-    pl.ylabel("Count")
-    pl.draw() #needed when using interactive plotting
-    pl.show()
 
 #average orderParameter based on z-coordinate of atom
 if sliceFlag:
