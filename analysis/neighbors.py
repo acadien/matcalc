@@ -57,8 +57,9 @@ def voronoiNeighbors(atoms,basis,atypes=None,style="half"):
 
 #Fast neighbor list generation for orthogonal unit cell vectors
 def neighbors(atoms,bounds,r,style="full"):
-    atoms=array(atoms)
     #Assumes atom location is >=(min bound) but strictly <(max bound)
+    atoms = array(atoms)
+    nAtoms = atoms.shape[0]
 
     stepsz=[0.0,0.0,0.0]
     bounds=[map(float,i) for i in bounds]
@@ -76,14 +77,20 @@ def neighbors(atoms,bounds,r,style="full"):
     [Ncx,Ncy,Ncz]=[int(lengths[i]/stepsz[i]) for i in range(3)]
     Ncells=Ncx*Ncy*Ncz
     #Returns the (1-D) index of a cell given its (3-D) coordinates
-    coord2ind=lambda (a,b,c): int(a*(Ncy*Ncz)+b*Ncz+c)
+    def coord2ind((a,b,c)): 
+        return int(a*(Ncy*Ncz)+b*Ncz+c)
 
     #Figure out which atom is in which cell
-    coord2cell=lambda axyz: coord2ind(map(int,[floor(mod(axyz[0],lengths[0])/stepsz[0]),floor(mod(axyz[1],lengths[1])/stepsz[1]),floor(mod(axyz[2],lengths[2])/stepsz[2])]))
+    def coord2cell(x,y,z):
+        return coord2ind(map(int,[ \
+                    floor(mod(x,lengths[0])/stepsz[0]),\
+                    floor(mod(y,lengths[1])/stepsz[1]),\
+                    floor(mod(z,lengths[2])/stepsz[2])]))
 
     cells=[list() for i in range(Ncells)]
-    for ind,cell in enumerate(map(coord2cell,atoms)):
-        cells[cell].append(ind)
+    for i in range(nAtoms):
+        cell = coord2cell(atoms[i][0],atoms[i][1],atoms[i][2])
+        cells[cell].append(i)
         
     #Returns the set of neighbor cells for celli, includes celli
     def cellNeighbs(celli):

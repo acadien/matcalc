@@ -43,7 +43,6 @@ else:
     bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
     b = lammpsIO.atomsBytes(fname)
     dummy,types = lammpsIO.parseAtoms(fname,b[0],nAtoms,basis)
-    
     dumpParsed = parserGens.parseLammpsAtoms(b,fname,nAtoms)
 
     lammpsIO.writeDump(dumpFilename,basis,types,dumpParsed,ensembles,ensembleHead)

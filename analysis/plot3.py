@@ -154,25 +154,29 @@ if "POSCAR" in configFile or "CONTCAR" in configFile:
         types+=[j+1]*i
         j+=1
 
+#Parse OUTCAR
 elif "OUTCAR" in configFile:
     TE,stress,basis,atoms,forces,types = outcarIO.outcarReadConfig(configFile,Nconfig)
 
-#Parse LAMMPS DUMP
+#Parse LAMMPS
 else: 
     basis,types,atoms = lammpsIO.readConfig(configFile,Nconfig)
 
 ax,ay,az=map(np.array,zip(*atoms))
+nAtoms = len(ax)
 v1,v2,v3=basis
+
 
 if rectifyFlag:
     ax,ay,az = ax%v1[0], ay%v2[1], az%v3[2]
+    atoms = np.vstack((ax,ay,az))
+    atoms.shape = nAtoms,3
 
 #Set default rcut value for tetrahedral ordering
 if op in ["TET","TET2"] and rcut==None:
-    rcut=3.2
+    rcut=3.1
 
-#Get the order parameter and convert to integer format (opsn) for
-#coloring of atoms
+#Get the order parameter and convert to integer format (opsn) for coloring of atoms
 if opFlag:
     ops,rcut = orderParams[op](np.array(atoms),np.array(basis),l=lval,rcut=rcut)
 else:
@@ -180,10 +184,9 @@ else:
 
 
 if op=="RMSD":
-    ops=np.sqrt(msd.T[-1])
+    ops = np.sqrt(msd.T[-1])
 
-if op=="TET2":
-
+if op=="TET2": 
     bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
     neighbs = neighbors(atoms,bounds,rcut)
     secondShell = list()
@@ -204,10 +207,9 @@ n=None
 mnop = min(ops)
 mxop = max(ops)
 if op in ["TET","TET2"]:
-    mnop=0.0
-    mxop=1.0
-    n=11
+    mnop, mxop, n = 0.0, 1.0, 11
 
+#Auto-set the resolution so you don't burn your computer down trying to render this
 nAtom = len(ax)
 res=16.0
 while nAtom > 1100 and res>3.0:
@@ -240,8 +242,6 @@ if mxop - mnop > 1E-10:
 else:
     mp3d = mlab.points3d(ax,ay,az,[mnop]*len(az),colormap='jet',scale_factor=1.9,scale_mode='none',resolution=res)
     n=2
-#else:
-#    mp3d = mlab.points3d(ax,ay,az,colormap='jet',scale_factor=1.9,scale_mode='none',resolution=14)
 
 #Color bar formatting
 if op != None:
@@ -249,7 +249,7 @@ if op != None:
         op+="^0.5"
     cb = mlab.colorbar(title=op, orientation='vertical', nb_labels=n,nb_colors=n)
     cb.use_default_range = False
-    print "here"
+
     if minv == None and maxv==None:
         cb.data_range = (mnop,mxop)
     else:
@@ -307,4 +307,4 @@ if sliceFlag:
     pl.draw()
     pl.show()
 
-prm.prmshow(fname="POSCAR.png")
+prm.prmshow(fname="plot3.png")

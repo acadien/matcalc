@@ -16,9 +16,27 @@ from struct_tools import *
 from rdf import *
 from sf import sf,sfq,sfq0
 
+#Maps atomic coordinates back into the basis, assumes an orthogonal basis set
+def rectify(atoms,basis):
+    """
+    ax,ay,az=hsplit(atoms.T,0)
+    print ax.shape
+    ax = ax%basis[0][0]
+    ay = ay%basis[1][1]
+    az = az%basis[2][2]
+    atoms = np.vstack((ax,ay,az))
+    """
+    atoms[:,0] = np.mod(atoms[:,0],basis[0][0])
+    atoms[:,1] = np.mod(atoms[:,1],basis[1][1])
+    atoms[:,2] = np.mod(atoms[:,2],basis[2][2])
+    return atoms
+
 #local bond-orientational: Q_l for each atom.  atomi>-1 selects a specific atom
 #rcut is interms of shells not a distance
 def bondOrientation(atoms,basis,l,neighbs=None,rcut=1,debug=False):
+    atoms = array(atoms)
+    basis = array(basis)    
+    atoms = rectify(atoms,basis)
 
     if neighbs==None:
         bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
@@ -42,6 +60,10 @@ def bondOrientation(atoms,basis,l,neighbs=None,rcut=1,debug=False):
 
 #Helper function, returns Qlm values m=(-l .. 0 .. +l) for a specific atom pair: atomi,atomj
 def bondOrientR(atoms,basis,l,atomi,atomj):
+    atoms = array(atoms)
+    basis = array(basis)    
+    atoms = rectify(atoms,basis)
+
     ai = atoms[atomi]
     aj = atoms[atomj]
     Qlm = pairSphereHarms(ai,minImageAtom(ai,aj,basis),l)
@@ -50,7 +72,10 @@ def bondOrientR(atoms,basis,l,atomi,atomj):
 #Bond antle correlation function Gl as defined in:
 #       Nature Materials, Vol2, Nov. 2003, Sastry & Angell
 def bondAngleCorr(atoms,basis,l,neighbs=None,rcut=None,debug=False):
-    
+    atoms = array(atoms)
+    basis = array(basis)    
+    atoms = rectify(atoms,basis)
+
     print "Start Bond Angle Correlation Calculation"
     if rcut==None:
         rcut = generateRCut(atoms,basis,debug=debug)
@@ -97,6 +122,10 @@ def bondAngleCorr(atoms,basis,l,neighbs=None,rcut=None,debug=False):
     return rbins,gvals
 
 def coordinationNumber(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+    atoms = array(atoms)
+    basis = array(basis)    
+    atoms = rectify(atoms,basis)
+
     #l: not used
     if neighbs==None:
         if rcut==None:
@@ -113,6 +142,10 @@ def coordinationNumber(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     return cns,rcut
 
 def radangDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+    atoms = array(atoms)
+    basis = array(basis)    
+    atoms = rectify(atoms,basis)
+
     #l: not used
     if neighbs==None:
         if rcut==None:
@@ -136,6 +169,10 @@ def radialDistribution(atoms,basis,l=1000,neighbs=None,rcut=None,debug=False):
     return rdf_periodic(atoms,basis,cutoff=rcut,nbins=nbins)#,rdist
 
 def angleDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+    atoms = array(atoms)
+    basis = array(basis)    
+    atoms = rectify(atoms,basis)
+
     if rcut==None:
         rcut = generateRCut(atoms,basis,debug=debug)
         print "Using RDF to generate r-cutoff=",rcut
@@ -150,6 +187,10 @@ def angleDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     return adf(atoms,neighbs,basis,rcut,nbins=360)
 
 def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+    atoms = array(atoms)
+    basis = array(basis)    
+    atoms = rectify(atoms,basis)
+
     if rcut==None:
         rcut = min(sum([basis[0][0],basis[1][1],basis[2][2]])/6, 10.0)
         print "Automatically generating r-cutoff=",rcut
@@ -166,6 +207,10 @@ def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     return qbins,qvals
 
 def structureFactor0(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+    atoms = array(atoms)
+    basis = array(basis)    
+    atoms = rectify(atoms,basis)
+
     #sfq(atoms,basis)
     if rcut==None:
         rcut = sum([basis[0][0],basis[1][1],basis[2][2]])/6
@@ -319,6 +364,7 @@ for(int i=0;i<nAtoms;i++){ //Central atom
 def tetrahedral(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     atoms = array(atoms)
     basis = array(basis)
+    atoms = rectify(atoms,basis)
 
     if neighbs==None:
         if rcut==None:
