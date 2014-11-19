@@ -163,14 +163,15 @@ else:
     basis,types,atoms = lammpsIO.readConfig(configFile,Nconfig)
 
 ax,ay,az=map(np.array,zip(*atoms))
-nAtoms = len(ax)
+nAtom = len(ax)
 v1,v2,v3=basis
 
 
 if rectifyFlag:
-    ax,ay,az = ax%v1[0], ay%v2[1], az%v3[2]
-    atoms = np.vstack((ax,ay,az))
-    atoms.shape = nAtoms,3
+    atoms = np.array(atoms)
+    ax = np.mod(atoms[:,0],v1[0])
+    ay = np.mod(atoms[:,1],v2[1])
+    az = np.mod(atoms[:,2],v3[2])
 
 #Set default rcut value for tetrahedral ordering
 if op in ["TET","TET2"] and rcut==None:
@@ -210,7 +211,6 @@ if op in ["TET","TET2"]:
     mnop, mxop, n = 0.0, 1.0, 11
 
 #Auto-set the resolution so you don't burn your computer down trying to render this
-nAtom = len(ax)
 res=16.0
 while nAtom > 1100 and res>3.0:
     nAtom/=4.0

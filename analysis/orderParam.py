@@ -18,14 +18,6 @@ from sf import sf,sfq,sfq0
 
 #Maps atomic coordinates back into the basis, assumes an orthogonal basis set
 def rectify(atoms,basis):
-    """
-    ax,ay,az=hsplit(atoms.T,0)
-    print ax.shape
-    ax = ax%basis[0][0]
-    ay = ay%basis[1][1]
-    az = az%basis[2][2]
-    atoms = np.vstack((ax,ay,az))
-    """
     atoms[:,0] = np.mod(atoms[:,0],basis[0][0])
     atoms[:,1] = np.mod(atoms[:,1],basis[1][1])
     atoms[:,2] = np.mod(atoms[:,2],basis[2][2])
@@ -96,7 +88,6 @@ def bondAngleCorr(atoms,basis,l,neighbs=None,rcut=None,debug=False):
 
     #Get the atomic pairs at each bond length
     for i,ineighbs in enumerate(hneighbs):
-    #    print i,len(ineighbs)
         for j in ineighbs:
             #i & j make an atom pair, d is the bond length between them
             jatom = minImageAtom(atoms[i],atoms[j],basis)
