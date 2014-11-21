@@ -270,7 +270,7 @@ if __name__=="__main__":
     pl.grid()
     if switches['-3d']:
         ax=fig.gca(projection='3d')
-
+    
     for i in range(sum(columnFileCounter)):
         fdata=fdatas[i]
         xCol=xCols[i]
@@ -419,10 +419,12 @@ if __name__=="__main__":
                         cp, = pl.plot(xdata,ydata,alpha=0.4,zorder=1)
                         cc  = cp.get_color()
                     else:
+                        pass
                         pl.plot(xdata,ydata,alpha=0.4,zorder=1,c=cc)
 
             if xSmoothEnable and ySmoothEnable:
                 pl.plot(xdataSmooth,ydataSmooth,c=cc,lw=2,alpha=1.0,label=fnames[i])
+
             elif ySmoothEnable:
                 pl.plot(xdata,ydataSmooth,c=cc,lw=2,alpha=1.0,label=fnames[i])
             elif xSmoothEnable:
@@ -441,5 +443,5 @@ if __name__=="__main__":
     
     if not switches["-noLeg"]:
         pl.legend(loc=0)
-
+    
     pr.prshow("plot2.png")

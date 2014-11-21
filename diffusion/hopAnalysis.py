@@ -56,10 +56,13 @@ mxx = rmsdPerAtom.max()*1.1
 #figure out the geometry of the plotting window
 natom = rmsdPerAtom.shape[1]
 nr,nc = 25,25
+print natom
 if natom<49:
     nr,nc = 6,8
 elif natom<97:
     nr,nc = 12,8
+elif natom<105:
+    nr,nc = 13,8
 elif natom<151:
     nr,nc = 15,10
 elif natom<193:
