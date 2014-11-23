@@ -167,7 +167,6 @@ for pn in fileNames:
         else:
             basiss,types,atomss = lammpsIO.readConfig(pn,cfgNums)
             for basis,atoms in zip(basiss,atomss):
-                atoms = rectify(array(atoms),basis)
                 orderVals.append(orderParams[op]( \
                     array(atoms),array(basis),l=lval,neighbs=neighbs,rcut=args.rcut,debug=args.debug))
 

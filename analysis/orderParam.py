@@ -150,6 +150,10 @@ def radangDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     return rdf_by_adf(atoms,neighbs,basis,rcut=rcut)
             
 def radialDistribution(atoms,basis,l=1000,neighbs=None,rcut=None,debug=False):
+    atoms = array(atoms)
+    basis = array(basis)    
+    atoms = rectify(atoms,basis)
+
     if rcut==None:
         rcut = 10.0
         
