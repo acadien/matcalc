@@ -200,8 +200,8 @@ double x=b[0]-a[0];
 double y=b[1]-a[1];
 double z=b[2]-a[2];
 double r=sqrt(x*x+y*y+z*z);
-angs[0]=acos(z/r); //theta
-angs[1]=atan(y/x); //phi
+angs[0]=acos(z/r);  //theta - colatitude
+angs[1]=atan2(y,x); //phi - polar
 """
 def sphang(a,b):
     angs=zeros(2)
@@ -213,7 +213,6 @@ def sphang(a,b):
 #the spherical harmonic corresponding to two atoms a and b
 def pairSphereHarms(a,b,l):
     theta,phi=sphang(a,b)
-    print theta,phi
     return special.sph_harm(np.array(range(-l,l+1)),l,theta,phi)
 
 bounds_code="""

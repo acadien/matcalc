@@ -11,7 +11,7 @@ from operator import mul
 import pylab as pl
 import plotRemote as pr
 #mine
-from neighbors import neighbors,nNearestNeighbors,full2half,voronoiNeighbors
+from neighbors import neighbors,nNearestNeighbors,full2half,voronoiNeighbors,secondShell
 from struct_tools import *
 from rdf import *
 from sf import sf,sfq,sfq0
@@ -25,29 +25,62 @@ def rectify(atoms,basis):
 
 #local bond-orientational: Q_l for each atom.  atomi>-1 selects a specific atom
 #rcut is interms of shells not a distance
-def bondOrientation(atoms,basis,l,neighbs=None,rcut=1,debug=False):
+def bondOrientation(atoms,basis,l,neighbs=None,rcut=None,debug=False):
     atoms = array(atoms)
     basis = array(basis)    
     atoms = rectify(atoms,basis)
 
     if neighbs==None:
         bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
-        if rcut<=1:
+        
+        if rcut==None:
             rcut = generateRCut(atoms,basis,debug=debug)
             print "Automatically generating r-cutoff=",rcut
-            neighbs = neighbors(atoms,bounds,rcut)
-        elif rcut==2:
-            rcut = generateRCut(atoms,basis,debug=debug)
-            print "Automatically generating r-cutoff=",rcut
-            neighbs = neighbors(atoms,bounds,rcut)
-            neighbs = secondShell(neighbs)
-        else:
-            neighbs = neighbors(atoms,bounds,rcut)
+        
+        neighbs = neighbors(atoms,bounds,rcut)
 
     #sum the spherical harmonic over ever neighbor pair
-    Qlms = [sum( [ pairSphereHarms(atoms[i],minImageAtom(atoms[i],atoms[j],basis),l) for j in ineighbs ] ) / len(ineighbs) for i,ineighbs in enumerate(neighbs) ] 
-    Ql = [ (((Qlm.conjugate()*Qlm *4*np.pi / (2*l+1.))).real)**0.5 for Qlm in Qlms] 
+    a = 4*np.pi / (2*l+1.)
+    Ql=list()
+    for i,ineighbs in enumerate(neighbs):
+        n=len(ineighbs)
 
+        shij = np.vectorize(complex)(zeros(2*l+1)) #spherical harmonic for bond i-j
+        for j in ineighbs:
+            shij += pairSphereHarms(atoms[i],minImageAtom(atoms[i],atoms[j],basis),l)/n
+        shi = a * sum( scipy.real( scipy.multiply(shij,scipy.conj(shij)) ) )
+        Ql.append(shi**0.5)
+    return Ql,rcut
+
+#local bond-orientational: Q_l for each atom.  atomi>-1 selects a specific atom
+#rcut is interms of shells not a distance
+#uses 2nd shell from neighbor list
+def bondOrientation2sh(atoms,basis,l,neighbs=None,rcut=None,debug=False):
+    atoms = array(atoms)
+    basis = array(basis)    
+    atoms = rectify(atoms,basis)
+
+    if neighbs==None:
+        bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
+
+        if rcut==None:
+            rcut = generateRCut(atoms,basis,debug=debug)
+            print "Automatically generating r-cutoff=",rcut
+
+        neighbs = secondShell( neighbors(atoms,bounds,rcut) )
+
+    #sum the spherical harmonic over ever neighbor pair
+    a = 4*np.pi / (2*l+1.)
+    Ql=list()
+    for i,ineighbs in enumerate(neighbs):
+        n=len(ineighbs)
+
+        shij = np.vectorize(complex)(zeros(2*l+1)) #spherical harmonic for bond i-j
+        for j in ineighbs:
+            shij += pairSphereHarms(atoms[i],minImageAtom(atoms[i],atoms[j],basis),l)/n
+        shi = a * sum( scipy.real( scipy.multiply(shij,scipy.conj(shij)) ) )
+        Ql.append(shi**0.5)
+    
     return Ql,rcut
 
 #Helper function, returns Qlm values m=(-l .. 0 .. +l) for a specific atom pair: atomi,atomj
@@ -370,6 +403,7 @@ def tetrahedral(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
         neighbs = nNearestNeighbors(4,atoms,bounds,rcut)
 
     def accumulateLen(x, y=[0]): y[0] += len(x); return y[0];
+
     nNeighbs = array(map(accumulateLen,neighbs))
     nAtoms = atoms.shape[0]
     atoms.shape = nAtoms*3

@@ -10,7 +10,7 @@ import numpy as np
 import pylab as pl
 from math import *
 #mine
-from orderParam import coordinationNumber,bondOrientation,tetrahedral
+from orderParam import coordinationNumber,bondOrientation,bondOrientation2sh,tetrahedral
 from outcarPlotMSDAtom import outcarMeanSquareDisplaceAtom
 import datatools
 from neighbors import neighbors
@@ -18,8 +18,8 @@ import poscarIO,lammpsIO,outcarIO
 
 orderParams={"CN":coordinationNumber, \
              "BO":bondOrientation, \
-             "TET":tetrahedral, \
-             "TET2":tetrahedral}
+             "2BO":bondOrientation2sh, \
+             "TET":tetrahedral}
 
 #RMSD is not an order parameter but useful for labeling atoms at high temperatures.
 #FILE is not an order parameter but applies colors based data from a file
@@ -31,17 +31,18 @@ def usage():
     print "Order Parameter can be one of:"
     print "     CN : Coordination Number"
     print "    BO# : Bond Orientation (Q) with l=#"
+    print "   2BO# : Bond Orientation (Q) with l=# uses 2nd shell in calculation"
     print "    TET : Tetrahedral order parameter (Sg)"
-    print "   TET2 : 2nd shell averaged TET (Sg)"
     print "   RMSD : Mean Square Displacement, requires OUTCAR (annealed MD simulation)"
     print "   FILE : Parses a file (column, row, or CSV data) and applies coloring from that data"
     print "----------------------------------------------------------------------------"
     print "Flags can be used anywhere in args:"
-    print "-rectify  : applies PBC to atoms on a cubic cell"
+    print "-rectify  : disables PBC to atoms on a cubic cell"
     print "   -rcut #: cutoff distance when building neighbor list, follow by float value"
     print "   -hist  : generates a histogram of the order parameter"
     print "   -N #   : selects a configuration to use"
-    print "-bounds #,# : min,max bounds on order parameter"
+    print "   -2sh   : 2nd shell averaging is turned on"
+    print "-bounds #,# : min,max bounds on order parameter, default=0,1"
     print ""
 
 if len(sys.argv) < 2:
@@ -49,10 +50,11 @@ if len(sys.argv) < 2:
     exit(0)
 
 #Preprocess Args for flags
-rectifyFlag=False
+rectifyFlag=True
 opFlag = False
 sliceFlag = False
 histFlag = False
+shell2Flag = False
 op = None
 rcut = None
 Nconfig = 0
@@ -62,7 +64,7 @@ minv,maxv = None,None
 for i,v in enumerate(sys.argv):
 
     if v in ["-rectify","-Rectify"]:
-        rectifyFlag = True
+        rectifyFlag = False
         toPop.append(i)
 
     if v == "-rcut":
@@ -83,14 +85,21 @@ for i,v in enumerate(sys.argv):
         toPop.append(i)
         toPop.append(i+1)
 
+    if v in ["-2sh","-2shell"]:
+        shell2Flag=True
+        toPop.append(i)
+
     if v in ["-h"]:
         usage()
         exit(0)
 
     if v in ["-bound","-bounds","-bnds","-bnd"]:
-        minv,maxv = map(float,sys.argv[i+1].split(","))
         toPop.append(i)
-        toPop.append(i+1)
+        try:
+            minv,maxv = map(float,sys.argv[i+1].split(","))
+            toPop.append(i+1)
+        except (IndexError,ValueError):
+            minv,maxv = 0.0,1.0
 
 sys.argv = [sys.argv[i] for i in range(len(sys.argv)) if i not in toPop]
 
@@ -137,6 +146,10 @@ elif len(sys.argv)==3:
     if op[:2]=="BO":
         lval=int(op[-1])
         op="BO"
+    if op[:3]=="2BO":
+        lval=int(op[-1])
+        op="2BO"
+        
     opFlag = True
     configFile=sys.argv[2]
 
@@ -174,7 +187,7 @@ if rectifyFlag:
     az = np.mod(atoms[:,2],v3[2])
 
 #Set default rcut value for tetrahedral ordering
-if op in ["TET","TET2"] and rcut==None:
+if op in ["TET"] and rcut==None:
     rcut=3.1
 
 #Get the order parameter and convert to integer format (opsn) for coloring of atoms
@@ -187,7 +200,7 @@ else:
 if op=="RMSD":
     ops = np.sqrt(msd.T[-1])
 
-if op=="TET2": 
+if shell2Flag: 
     bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
     neighbs = neighbors(atoms,bounds,rcut)
     secondShell = list()
@@ -207,7 +220,7 @@ if op=="TET2":
 n=None
 mnop = min(ops)
 mxop = max(ops)
-if op in ["TET","TET2"]:
+if op in ["TET"]:
     mnop, mxop, n = 0.0, 1.0, 11
 
 #Auto-set the resolution so you don't burn your computer down trying to render this
@@ -217,6 +230,8 @@ while nAtom > 1100 and res>3.0:
     res/=2.0
 res=max(res,3.0)
 nAtom = len(ax)
+
+res=18
 
 if histFlag:
     if op==None:

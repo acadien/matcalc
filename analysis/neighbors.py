@@ -176,7 +176,11 @@ def secondShell(neighbs):
     #loop over each central atoms
     for i,ineighbs in enumerate(neighbs):
         #use set to get uniques
-        ashell = list(set(flatten([neighbs[j] for j in ineighbs]+ineighbs)))
+        ashell = list(set([z for z in flatten([neighbs[j] for j in ineighbs])]+ineighbs))
+        try:
+            ashell.remove(i) #remove central atom from neighbor list (atom can't be a neighbor to itself)
+        except ValueError:
+            pass
         shell2.append(ashell)
     
     return shell2
