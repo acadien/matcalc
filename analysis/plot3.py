@@ -9,6 +9,7 @@ from mayavi import mlab
 import numpy as np
 import pylab as pl
 from math import *
+import Tkinter as tk
 #mine
 from orderParam import coordinationNumber,bondOrientation,bondOrientation2sh,tetrahedral
 from outcarPlotMSDAtom import outcarMeanSquareDisplaceAtom
@@ -231,8 +232,6 @@ while nAtom > 1100 and res>3.0:
 res=max(res,3.0)
 nAtom = len(ax)
 
-res=18
-
 if histFlag:
     if op==None:
         print "Need an order parameter in order to generate histogram"
@@ -262,6 +261,10 @@ else:
 if op != None:
     if op=="RMSD":
         op+="^0.5"
+    if op in ["BO","2BO"]:
+        op+=",l=%d"%lval
+    if shell2Flag:
+        op+=",2sh"
     cb = mlab.colorbar(title=op, orientation='vertical', nb_labels=n,nb_colors=n)
     cb.use_default_range = False
 
@@ -270,6 +273,7 @@ if op != None:
     else:
         cb.data_range = (minv,maxv)
 
+mlab.text(0.01,0.01,configFile,width=0.2)
 
 #Stupid surrounding box code, sooooo ugly...
 z=[0,0,0]
