@@ -190,7 +190,7 @@ def rdf_periodic(atoms,basis,cutoff=10.0,nbins=1000):
             vol=4.0*pi*dr*dr*dr/3.0
         else:
             vol=4.0*pi*r*r*dr
-        rdist[i]/=vol*(Ndensity*N)
+        rdist[i]/=vol*Ndensity*N
 
     return [rbins,rdist]
 

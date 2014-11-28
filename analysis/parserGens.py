@@ -28,6 +28,17 @@ def parseNeighbor(neighborFile):
         except ValueError:
             pass
 
+def parseLammpsBasis(byteNums,lammpsFile):
+    f2parse = open(lammpsFile,"r")
+    for i,b in enumerate(byteNums):
+        f2parse.seek(b)
+        f2parse.readline()
+        xlo,xhi = map(float,f2parse.readline().split()[:2])
+        ylo,yhi = map(float,f2parse.readline().split()[:2])
+        zlo,zhi = map(float,f2parse.readline().split()[:2])
+        basis = [ [xhi-xlo,0,0], [0,yhi-ylo,0], [0,0,zhi-zlo] ]
+        yield basis
+
 def parseLammpsAtoms(byteNums,lammpsFile,nAtoms):
     f2parse = open(lammpsFile,"r")
     for i,b in enumerate(byteNums):

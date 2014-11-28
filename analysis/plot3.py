@@ -251,6 +251,7 @@ fig=mlab.figure(bgcolor=(0.8,0.8,0.8))
 if mxop - mnop > 1E-10:
     #spectral
     mp3d = mlab.points3d(ax,ay,az,ops,colormap='jet',scale_factor=1.9,scale_mode='none',resolution=res)
+
     if n==None:
         n=min(len(set(ops)),10)
 else:
