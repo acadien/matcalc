@@ -89,7 +89,8 @@ def usage():
     print "./plot2.py 0 1 datafile1 0 2 datafile2 datafile3"
     print "./plot2.py 0 1s25 datafile1     #windowed average of width 25 is applied"
     print "./plot2.py 0x0.5 1x2.0 datafile #scale of 0.5 on x-axis and scale of 2.0 on y-axis"
-    print "switches: -3d, -stagger, -sort, -avg, -hist, -hist#bins, -scatter, -noLeg, -saveData, -gauss, -noGhost"
+    print "switches: -3d, -stagger, -sort, -avg, -hist, -hist#bins, -scatter, -noLeg, -saveData, -gauss, -ghost"
+    print "switches: -alpha#val"
     print ""
 
 if __name__=="__main__":
@@ -104,14 +105,22 @@ if __name__=="__main__":
 
     #Pre-parse for switches
     nbins=80
-    switches={"-3d":False,"-stagger":False,"-sort":False,"-avg":False,"-hist":False,"-scatter":False, "-noLeg":False, "-saveData":False, "-gauss":False, "-noGhost":False, "-h":False}
+    alpha=1.0 #transparency
+    switches={"-3d":False,"-stagger":False,"-sort":False,"-avg":False,"-hist":False,"-scatter":False, "-noLeg":False, "-saveData":False, "-gauss":False, "-ghost":False, "-h":False,"-alpha":None}
     for i in range(len(sys.argv)-1,-1,-1):
-        if sys.argv[i] in switches.keys(): 
-            switches[sys.argv[i]]=True
+        if "-hist" in sys.argv[i]: #special case hist with nbins proceding
+            try:
+                nbins = int(sys.argv[i].lstrip("-hist"))
+                switches["-hist"]=True
+                sys.argv.pop(i)
+            except (ValueError,IndexError):
+                pass
+        elif "-alpha" in sys.argv[i]: #special case alpha
+            switches["-alpha"]=True
+            alpha = float(sys.argv[i].lstrip("-alpha"))
             sys.argv.pop(i)
-        elif "-hist" in sys.argv[i]: #special case hist with nbins proceding
-            nbins = int(sys.argv[i].lstrip("-hist"))
-            switches["-hist"]=True
+        elif sys.argv[i] in switches.keys(): 
+            switches[sys.argv[i]]=True
             sys.argv.pop(i)
         else:
             break
@@ -414,7 +423,7 @@ if __name__=="__main__":
                 cc=vizSpec(float(i)/len(fnames))
 
             if xSmoothEnable or ySmoothEnable:
-                if not switches["-noGhost"]:
+                if switches["-ghost"]:
                     if colors==None:
                         cp, = pl.plot(xdata,ydata,alpha=0.4,zorder=1)
                         cc  = cp.get_color()
@@ -423,14 +432,16 @@ if __name__=="__main__":
                         pl.plot(xdata,ydata,alpha=0.4,zorder=1,c=cc)
 
             if xSmoothEnable and ySmoothEnable:
-                pl.plot(xdataSmooth,ydataSmooth,c=cc,lw=2,alpha=1.0,label=fnames[i])
+                pl.plot(xdataSmooth,ydataSmooth,c=cc,lw=2,label=fnames[i],alpha=alpha)
 
             elif ySmoothEnable:
-                pl.plot(xdata,ydataSmooth,c=cc,lw=2,alpha=1.0,label=fnames[i])
+                pl.plot(xdata,ydataSmooth,c=cc,lw=2,label=fnames[i],alpha=alpha)
+
             elif xSmoothEnable:
-                pl.plot(xdataSmooth,ydata,c=cc,lw=2,alpha=1.0,label=fnames[i])
+                pl.plot(xdataSmooth,ydata,c=cc,lw=2,label=fnames[i],alpha=alpha)
+
             else:
-                pl.plot(xdata,ydata,lw=1.5,c=cc,label=fnames[i])            
+                pl.plot(xdata,ydata,lw=1.5,c=cc,label=fnames[i],alpha=alpha)            
 
     if switches["-avg"]:
         avgy=[i/count for i in avgy]
