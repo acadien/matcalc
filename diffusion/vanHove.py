@@ -6,6 +6,9 @@
 #SHOULD BE RUN ONLY ON NVT/NVE SIMULATIONS WITH UNWRAPPED COORDINATES
 #Unwraps outcar coordinates
 
+#mine
+import plotRemote as pr
+#theirs
 import sys
 import itertools
 from scipy import weave
@@ -17,6 +20,7 @@ import utils
 import parserGens,lammpsIO,outcarIO
 from rootMeanSquareDist import unwrap
 from struct_tools import volume
+import pylab as pl
 
 #Self Part of the Van Hove Function
 vhSelfRefCode = """
@@ -43,7 +47,7 @@ for(int s=0; s<nStep; s++){ //loop over step size
 }}}
 """
 
-def vanHoveSelf(atoms,basis,steps,cutr=10.0,nBin=1000):
+def vanHoveSelf(atoms,basis,steps,cutr=10.0,nBin=1000,norm=False):
     atoms = array(atoms)
     basis = array(basis)
     
@@ -65,6 +69,10 @@ def vanHoveSelf(atoms,basis,steps,cutr=10.0,nBin=1000):
 
     bins.shape = [nStep,nBin]
     atoms.shape = [nTime,nAtom,3]
+
+    if norm: #apply 4pir^2 correction
+        for i in range(nStep):
+            bins[i] = [bins[i][k]*4*pi*rbins[k]**2 for k in range(nBin)]
 
     return rbins,bins
 
@@ -112,10 +120,9 @@ for(int s=0; s<nStep; s++){ //loop over step size
             bins[ s*nBin + (int)(cmin/dr) ]+=c;
 
 }}}}
-
 """
 
-def vanHoveDistinct(atoms,basis,steps,cutr=10.0,nBin=1000):
+def vanHoveDistinct(atoms,basis,steps,cutr=10.0,nBin=1000,norm=False):
     atoms = array(atoms)
     basis = array(basis)
     
@@ -138,14 +145,15 @@ def vanHoveDistinct(atoms,basis,steps,cutr=10.0,nBin=1000):
     bins.shape = [nStep,nBin]
     atoms.shape = [nTime,nAtom,3]
 
-    Ndensity=nAtom/volume(basis)
-    for i,r in enumerate(rbins):
-        if i==0:
-            vol=4.0*pi*dr*dr*dr/3.0
-        else:
-            vol=4.0*pi*r*r*dr
-        for k in range(nStep):
-            bins[k][i] /= vol*Ndensity
+    if norm:
+        Ndensity=nAtom/volume(basis)
+        for i,r in enumerate(rbins):
+            if i==0:
+                vol=4.0*pi*dr*dr*dr/3.0
+            else:
+                vol=4.0*pi*r*r*dr
+            for k in range(nStep):
+                bins[k][i] /= vol*Ndensity
 
     return rbins,bins
 
@@ -195,7 +203,7 @@ for(int s=0; s<nStep; s++){ //loop over step size
 }}}}
 """
 
-def vanHoveTotal(atoms,basis,steps,cutr=10.0,nBin=1000):
+def vanHoveTotal(atoms,basis,steps,cutr=10.0,nBin=1000,norm=False):
     atoms = array(atoms)
     basis = array(basis)
     
@@ -218,14 +226,15 @@ def vanHoveTotal(atoms,basis,steps,cutr=10.0,nBin=1000):
     bins.shape = [nStep,nBin]
     atoms.shape = [nTime,nAtom,3]
 
-    Ndensity=nAtom/volume(basis)
-    for i,r in enumerate(rbins):
-        if i==0:
-            vol=4.0*pi*dr*dr*dr/3.0
-        else:
-            vol=4.0*pi*r*r*dr
-        for k in range(nStep):
-            bins[k][i] /= vol*Ndensity
+    if norm:
+        Ndensity=nAtom/volume(basis)
+        for i,r in enumerate(rbins):
+            if i==0:
+                vol=4.0*pi*dr*dr*dr/3.0
+            else:
+                vol=4.0*pi*r*r*dr
+            for k in range(nStep):
+                bins[k][i] /= vol*Ndensity
 
     return rbins,bins
 
@@ -262,27 +271,24 @@ if __name__ == "__main__":
 
     nBin = 1000
     cutr = 10.0
-
+    norm = True #an arbitrary normalization is applied
     if vhType == "total":
-        rbins,bins = vanHoveTotal(atomsTime,basis,steps,cutr=cutr,nBin=nBin)
+        rbins,bins = vanHoveTotal(atomsTime,basis,steps,cutr=cutr,nBin=nBin,norm=norm)
         ylab = "$G(r,t) / V_{shell}(r)$"
     elif vhType == "self":
-        rbins,bins = vanHoveSelf(atomsTime,basis,steps,cutr=cutr,nBin=nBin)
-        for i in range(nStep):
-            bins[i] = [bins[i][k]*4*pi*rbins[k]**2 for k in range(nBin)]
+        rbins,bins = vanHoveSelf(atomsTime,basis,steps,cutr=cutr,nBin=nBin,norm=norm)
         ylab = "$4\pi r^2 $*$ \, G_s(r,t)$"
     elif vhType == "distinct":
-        rbins,bins = vanHoveDistinct(atomsTime,basis,steps,cutr=cutr,nBin=nBin)
+        rbins,bins = vanHoveDistinct(atomsTime,basis,steps,cutr=cutr,nBin=nBin,norm=norm)
         ylab = r"$G_d(r,t) / V_{shell}(r)$"
 
     xlab = "$r \; (\AA)$"
     nBin = len(rbins)
 
-    import pylab as pl
     for i,s in enumerate(steps):
         pl.plot(rbins,bins[i],label=str(steps[i]))
     pl.legend(loc=0,title="step size")
     pl.xlabel(xlab)
     pl.ylabel(ylab)
     pl.title("VanHove - "+vhType)
-    pl.show()
+    pr.prshow()
