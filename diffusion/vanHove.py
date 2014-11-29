@@ -254,8 +254,14 @@ if __name__ == "__main__":
             vhType = "distinct"
 
     if "OUTCAR" in inputFile:
-        pass
-        unwrap(atoms,basis)
+        ocarFile = inputFile
+        atomByteNums = outcarIO.atomBytes(ocarFile)
+        nAtom = outcarIO.nAtoms(ocarFile)
+        basis = outcarIO.basis(ocarFile)
+        
+        configIterator = parserOutcarAtoms(atomByteNums,ocarFile,nAtoms)
+        atomsTime = [array(atoms) for atoms in configIterator]
+        atomsTime = unwrap(atomsTime,basis)
     else:
         lmpFile = inputFile
         atomByteNums = lammpsIO.atomsBytes(lmpFile)
@@ -263,11 +269,8 @@ if __name__ == "__main__":
         basis = lammpsIO.basis(lmpFile)
         bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
 
-        nStep=len(steps)
-
         configIterator = parserGens.parseLammpsAtoms(atomByteNums,lmpFile,nAtom)
         atomsTime = [array(atoms) for atoms in configIterator]
-
 
     nBin = 1000
     cutr = 10.0

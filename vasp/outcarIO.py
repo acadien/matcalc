@@ -219,3 +219,9 @@ def basis(outcarFile):
     b = [map(float,outcar.readline().split()[0:3]) for i in range(3)]
     
     return b
+
+#Returns the byte wise location of atoms in an OUTCAR file
+def atomsByteNums(outcarFile):
+    grepResults = subprocess.check_output("grep -b POSITION %s"%filename,shell=True).split("\n")
+    bytenums=[int(i.split(":")[0]) for i in grepResults if len(i)>2]
+    return bytenums
