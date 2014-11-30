@@ -28,7 +28,7 @@ else:
 
 atoms=list()
 if outcarFlag:
-    nAtoms = outcarIO.nIons(filename)
+    nAtoms = outcarIO.nAtoms(filename)
     basis = array(map(array,outcarIO.basis(filename)))
 
     #Find the starting locations of atomic data in outcarfile

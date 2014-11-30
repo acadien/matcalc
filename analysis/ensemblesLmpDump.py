@@ -25,7 +25,7 @@ if len(possibleSuffix)>0:
     ensembles  = [parserGens.parseEnsemble(fname+i) for i in possibleSuffix]
 
 if "OUTCAR" in fname:
-    nAtoms = outcarIO.nIons(fname)
+    nAtoms = outcarIO.nAtoms(fname)
     basis = array(map(array,outcarIO.basis(fname)))
     bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
     types = outcarIO.types(fname)

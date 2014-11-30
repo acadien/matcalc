@@ -44,7 +44,7 @@ if xdatcarFlag:
         lines += [",".join([" ".join(map(str,atomn)) for atomn in neighbs])+"\n"]
 
 if outcarFlag:
-    nAtoms = outcarIO.nIons(filename)
+    nAtoms = outcarIO.nAtoms(filename)
     basis = array(map(array,outcarIO.basis(filename)))
     bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
 

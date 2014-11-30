@@ -195,7 +195,7 @@ def timestep(outcarFile):
     return ts
 
 #Returns the number of atoms in the simulation
-def nIons(outcarFile):
+def nAtoms(outcarFile):
     nums = subprocess.check_output("head -n 1000 %s | grep ions\ per\ type "%outcarFile,shell=True).split("\n")[0].split("=")[1:]
     nums=map(int,nums)
     Natoms=sum(nums)
@@ -221,7 +221,7 @@ def basis(outcarFile):
     return b
 
 #Returns the byte wise location of atoms in an OUTCAR file
-def atomsByteNums(outcarFile):
-    grepResults = subprocess.check_output("grep -b POSITION %s"%filename,shell=True).split("\n")
+def atomBytes(outcarFile):
+    grepResults = subprocess.check_output("grep -b POSITION %s"%outcarFile,shell=True).split("\n")
     bytenums=[int(i.split(":")[0]) for i in grepResults if len(i)>2]
     return bytenums

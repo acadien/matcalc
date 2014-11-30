@@ -259,7 +259,7 @@ if __name__ == "__main__":
         nAtom = outcarIO.nAtoms(ocarFile)
         basis = outcarIO.basis(ocarFile)
         
-        configIterator = parserOutcarAtoms(atomByteNums,ocarFile,nAtoms)
+        configIterator = parserGens.parseOutcarAtoms(atomByteNums,ocarFile,nAtom)
         atomsTime = [array(atoms) for atoms in configIterator]
         atomsTime = unwrap(atomsTime,basis)
     else:

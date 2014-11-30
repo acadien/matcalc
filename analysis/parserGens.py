@@ -12,11 +12,12 @@ def parseEnsemble(ensembleFile):
             pass
 
 def parseOutcarAtoms(byteNums,outcarFile,nAtoms):
+    ocar = open(outcarFile,"r")
     for i,b in enumerate(byteNums):
-        outcarFile.seek(b)
-        outcarFile.readline()
-        outcarFile.readline()
-        atoms = [map(float,outcarFile.readline().split()[:3]) for a in range(nAtoms)]
+        ocar.seek(b)
+        ocar.readline()
+        ocar.readline()
+        atoms = [map(float,ocar.readline().split()[:3]) for a in range(nAtoms)]
         yield atoms
 
 def parseNeighbor(neighborFile):
