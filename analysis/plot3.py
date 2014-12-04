@@ -44,6 +44,7 @@ def usage():
     print "   -N #   : selects a configuration to use"
     print "   -2sh   : 2nd shell averaging is turned on"
     print "-bounds #,# : min,max bounds on order parameter, default=0,1"
+    print "-lowbnd # : sets a lower bound on which atoms to render"
     print ""
 
 if len(sys.argv) < 2:
@@ -62,6 +63,8 @@ Nconfig = 0
 lval = 0
 toPop=list()
 minv,maxv = None,None
+lowBound = None
+upBound = None
 for i,v in enumerate(sys.argv):
 
     if v in ["-rectify","-Rectify"]:
@@ -100,7 +103,18 @@ for i,v in enumerate(sys.argv):
             minv,maxv = map(float,sys.argv[i+1].split(","))
             toPop.append(i+1)
         except (IndexError,ValueError):
+            print "Using default minv,maxv = [0,1]"
             minv,maxv = 0.0,1.0
+    
+    if v in ["-lowbnd","-lb","-lowBound"]:
+        toPop.append(i)
+        toPop.append(i+1)
+        lowBound = float(sys.argv[i+1])
+
+    if v in ["-upbnd","-ub","-upBound"]:
+        toPop.append(i)
+        toPop.append(i+1)
+        upBound = float(sys.argv[i+1])
 
 sys.argv = [sys.argv[i] for i in range(len(sys.argv)) if i not in toPop]
 
@@ -180,9 +194,8 @@ ax,ay,az=map(np.array,zip(*atoms))
 nAtom = len(ax)
 v1,v2,v3=basis
 
-
 if rectifyFlag:
-    atoms = np.array(atoms)
+    atoms = np.array(atoms) #unrectified for orderParam calculations.
     ax = np.mod(atoms[:,0],v1[0])
     ay = np.mod(atoms[:,1],v2[1])
     az = np.mod(atoms[:,2],v3[2])
@@ -196,7 +209,6 @@ if opFlag:
     ops,rcut = orderParams[op](np.array(atoms),np.array(basis),l=lval,rcut=rcut)
 else:
     ops = types
-
 
 if op=="RMSD":
     ops = np.sqrt(msd.T[-1])
@@ -223,6 +235,13 @@ mnop = min(ops)
 mxop = max(ops)
 if op in ["TET"]:
     mnop, mxop, n = 0.0, 1.0, 11
+
+if lowBound != None:
+    ax,ay,az,ops = zip(*[[x,y,z,o] for x,y,z,o in zip(ax,ay,az,ops) if o > lowBound])
+
+if upBound != None:
+    ax,ay,az,ops = zip(*[[x,y,z,o] for x,y,z,o in zip(ax,ay,az,ops) if o < upBound])
+
 
 #Auto-set the resolution so you don't burn your computer down trying to render this
 res=16.0
