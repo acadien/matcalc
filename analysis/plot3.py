@@ -43,8 +43,10 @@ def usage():
     print "   -hist  : generates a histogram of the order parameter"
     print "   -N #   : selects a configuration to use"
     print "   -2sh   : 2nd shell averaging is turned on"
-    print "-bounds #,# : min,max bounds on order parameter, default=0,1"
-    print "-lowbnd # : sets a lower bound on which atoms to render"
+    print "-bounds #,# : min,max bounds on coloring the order parameter, default = 0,1"
+    print "-lowbnd # : sets a lower bound, trimming atoms with OP below this value"
+    print " -upbnd # : sets an upper bound, trimming atoms with OP above this value"
+    print "   -res # : overrides the default resolution, may take forever to render (suggested ~10)"
     print ""
 
 if len(sys.argv) < 2:
@@ -65,6 +67,7 @@ toPop=list()
 minv,maxv = None,None
 lowBound = None
 upBound = None
+res = None
 for i,v in enumerate(sys.argv):
 
     if v in ["-rectify","-Rectify"]:
@@ -115,6 +118,11 @@ for i,v in enumerate(sys.argv):
         toPop.append(i)
         toPop.append(i+1)
         upBound = float(sys.argv[i+1])
+
+    if v in ["-res"]:
+        toPop.append(i)
+        toPop.append(i+1)
+        res = int(sys.argv[i+1])
 
 sys.argv = [sys.argv[i] for i in range(len(sys.argv)) if i not in toPop]
 
@@ -242,13 +250,13 @@ if lowBound != None:
 if upBound != None:
     ax,ay,az,ops = zip(*[[x,y,z,o] for x,y,z,o in zip(ax,ay,az,ops) if o < upBound])
 
-
 #Auto-set the resolution so you don't burn your computer down trying to render this
-res=16.0
-while nAtom > 1100 and res>3.0:
-    nAtom/=4.0
-    res/=2.0
-res=max(res,3.0)
+if res == None:
+    res=16.0
+    while nAtom > 1100 and res>3.0:
+        nAtom/=4.0
+        res/=2.0
+    res=max(res,3.0)
 nAtom = len(ax)
 
 if histFlag:
@@ -264,7 +272,8 @@ if histFlag:
     pr.prshow()
     exit(0)
 
-fig=mlab.figure(bgcolor=(0.8,0.8,0.8))
+#fig=mlab.figure(bgcolor=(0.8,0.8,0.8))
+fig=mlab.figure(bgcolor=(1,1,1),fgcolor=(0.2,0.2,0.2))
 
 #Only plot with coloring if there is some variance in the OP
 if mxop - mnop > 1E-10:

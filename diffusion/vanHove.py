@@ -43,21 +43,23 @@ for(int s=0; s<nStep; s++){ //loop over step size
       dz = setb[i*3+2] - seta[i*3+2];
       d = sqrt(dx*dx + dy*dy + dz*dz);
 
-      bins[s*nBin+(int)(d/dr)]+=1; //c
+      if(d/dr > nBin) continue;
+
+      bins[s*nBin+(int)(d/dr)]+=c;
 }}}
 """
 
-def vanHoveSelf(atoms,basis,steps,cutr=10.0,nBin=1000,norm=False):
+def vanHoveSelf(atoms,basis,steps,cutr=10.0,nBin=2000,norm=False):
     atoms = array(atoms)
     basis = array(basis)
-    
-    if type(steps) != type(list()): #handle the case where steps is just a single step
-        steps = list(steps)
-    steps = array(steps)
+
+    #if type(steps) != type(list()): #handle the case where steps is just a single step
+    #    steps = list(steps)
+    #steps = array(steps)
 
     nTime = atoms.shape[0]
     nAtom = atoms.shape[1]
-    nStep = steps.shape[0]
+    nStep = len(steps)
 
     atoms = atoms.ravel()
     b = basis.ravel()
@@ -66,14 +68,15 @@ def vanHoveSelf(atoms,basis,steps,cutr=10.0,nBin=1000,norm=False):
     rbins = [i*dr for i in range(nBin)]
     bins = zeros(nStep*nBin)
     weave.inline(vhSelfRefCode,['atoms','nTime','nAtom','steps','nStep','b','bins','nBin','dr'])
-    print sum(bins)
 
     bins.shape = [nStep,nBin]
     atoms.shape = [nTime,nAtom,3]
+    for i in range(nStep):
+        bins[i][0]=0.0
 
     if norm: #apply 4pir^2 correction
         for i in range(nStep):
-            bins[i] = [bins[i][k]*4*pi*rbins[k]**2 for k in range(nBin)]
+            bins[i] = [bins[i][k]*4*pi*r*r for k,r in enumerate(rbins)] #*4*pi*r*r
 
     return rbins,bins
 
@@ -83,7 +86,7 @@ vhDistinctRefCode = """
 double aix,ajx,aiy,ajy,aiz,ajz;
 double c,d,dx,dy,dz;
 double *seta,*setb;
-double cmin;
+double dmin;
 
 int stepSize;
 for(int s=0; s<nStep; s++){ //loop over step size
@@ -105,7 +108,7 @@ for(int s=0; s<nStep; s++){ //loop over step size
         ajy = setb[j*3+1];
         ajz = setb[j*3+2];
 
-        cmin=100000.;
+        dmin=100000.;
         //Minimum image distance
         for(int t1=-1; t1<2; t1++){
         for(int t2=-1; t2<2; t2++){
@@ -114,11 +117,11 @@ for(int s=0; s<nStep; s++){ //loop over step size
             dy=aiy-ajy+t1*b[1]+t2*b[4]+t3*b[7];
             dz=aiz-ajz+t1*b[2]+t2*b[5]+t3*b[8];
             d = sqrt(dx*dx + dy*dy + dz*dz);
-            if(d <= cmin)
-                cmin=d;
+            if(d <= dmin)
+                dmin=d;
         }}}
-        if( cmin < nBin*dr )
-            bins[ s*nBin + (int)(cmin/dr) ]+=c;
+        if( dmin < nBin*dr )
+            bins[ s*nBin + (int)(dmin/dr) ]+=c;
 
 }}}}
 """
@@ -165,7 +168,7 @@ vhTotalRefCode = """
 double aix,ajx,aiy,ajy,aiz,ajz;
 double c,d,dx,dy,dz;
 double *seta,*setb;
-double cmin;
+double dmin;
 
 int stepSize;
 for(int s=0; s<nStep; s++){ //loop over step size
@@ -187,7 +190,7 @@ for(int s=0; s<nStep; s++){ //loop over step size
         ajy = setb[j*3+1];
         ajz = setb[j*3+2];
 
-        cmin=100000.;
+        dmin=100000.;
         //Minimum image distance
         for(int t1=-1; t1<2; t1++){
         for(int t2=-1; t2<2; t2++){
@@ -196,11 +199,11 @@ for(int s=0; s<nStep; s++){ //loop over step size
             dy=aiy-ajy+t1*b[1]+t2*b[4]+t3*b[7];
             dz=aiz-ajz+t1*b[2]+t2*b[5]+t3*b[8];
             d = sqrt(dx*dx + dy*dy + dz*dz);
-            if(d <= cmin)
-                cmin=d;
+            if(d <= dmin)
+                dmin=d;
         }}}
-        if( cmin < nBin*dr )
-            bins[ s*nBin + (int)(cmin/dr) ]+=c;
+        if( dmin < nBin*dr )
+            bins[ s*nBin + (int)(dmin/dr) ]+=c;
 }}}}
 """
 
@@ -241,14 +244,18 @@ def vanHoveTotal(atoms,basis,steps,cutr=10.0,nBin=1000,norm=False):
 
 
 if __name__ == "__main__":
-    utils.usage(["<dump.dat or OUTCAR>","<comma seperated step sizes [e.g. 1,2,3]>","<\'s\'-self \'d\'-distinct or \'t\'-total'>, default total"],2,3)
+    utils.usage(["<dump.dat or OUTCAR>","<comma seperated step sizes [e.g. 1,2,3]>","<\'s\'-self \'d\'-distinct or \'t\'-total'>, default total"],2,4)
 
     RMAX = 10.0
+
+    norm = False #an arbitrary normalization is applied
+    if "-norm" in sys.argv:
+        norm = True
+        sys.argv.remove("-norm")
 
     inputFile = sys.argv[1]
     steps = map(int,sys.argv[2].split(","))
     vhType = "total"
-
     if len(sys.argv)==4:
         if sys.argv[3][0] in ['s','S']:
             vhType = "self"
@@ -276,16 +283,24 @@ if __name__ == "__main__":
 
     nBin = 1000
     cutr = 10.0
-    norm = True #an arbitrary normalization is applied
     if vhType == "total":
         rbins,bins = vanHoveTotal(atomsTime,basis,steps,cutr=cutr,nBin=nBin,norm=norm)
-        ylab = "$G(r,t) / V_{shell}(r)$"
+        if norm:
+            ylab = r"$G(r,t) / V_{shell}(r)$"
+        else:
+            ylab = r"$(G(r,t)$"
     elif vhType == "self":
         rbins,bins = vanHoveSelf(atomsTime,basis,steps,cutr=cutr,nBin=nBin,norm=norm)
-        ylab = "$4\pi r^2 $*$ \, G_s(r,t)$"
+        if norm:
+            ylab = r"$G_s(r,t) \, $*$ 4\pi r^2 $"
+        else:
+            ylab = r"$G_s(r,t)$"
     elif vhType == "distinct":
         rbins,bins = vanHoveDistinct(atomsTime,basis,steps,cutr=cutr,nBin=nBin,norm=norm)
-        ylab = r"$G_d(r,t) / V_{shell}(r)$"
+        if norm:
+            ylab = r"$G_d(r,t) / V_{shell}(r)$"
+        else:
+            ylab = r"$G_d(r,t)$"
 
     xlab = "$r \; (\AA)$"
     nBin = len(rbins)
