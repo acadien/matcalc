@@ -97,13 +97,10 @@ def ISFSelf(atoms,basis,steps=None,nqVecs=1,qmax=3.32,nStep=250):#qmax (first pe
 
 ISFFullSphereRefCode="""
 //Calculate Fourier Density at each time step
-double *qxs,*qys,*qzs,a,b,a2,b2,qx,qy,qz;
+double a,b,a2,b2,qx,qy,qz;
 double *rhoqcos,*rhoqsin,*seta,*setb;
 double da,db;
 int stepSize;
-qxs = (double*)malloc(sizeof(double)*(int)nqVecs);
-qys = (double*)malloc(sizeof(double)*(int)nqVecs);
-qzs = (double*)malloc(sizeof(double)*(int)nqVecs);
 rhoqcos = (double*)calloc(nTime,sizeof(double));
 rhoqsin = (double*)calloc(nTime,sizeof(double));
 
@@ -257,4 +254,4 @@ if __name__ == "__main__":
     open(outputFile,"w").write(odata)
 
     if plotEnable:
-        pl.show()
+        pr.prshow()
