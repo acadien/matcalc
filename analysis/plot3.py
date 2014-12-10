@@ -131,14 +131,15 @@ if sys.argv[1]=="RMSD":
     op = "RMSD"
     if len(sys.argv)!=5:
         print "Error usage:"
-        print "%s RMSD POSCAR OUTCAR 25"%sys.argv[0].split("/")[-1]
+        print "%s RMSD POSCAR OUTCAR.rmsd 25"%sys.argv[0].split("/")[-1]
         exit(0)
 
     configFile = sys.argv[2]
     poscar = open(configFile,"r").readlines()
-    outcarFile = sys.argv[3]
+    rmsdFile = sys.argv[3]
     ref = int(sys.argv[4])
-    dummy,msd = outcarMeanSquareDisplaceAtom(outcarFile,refStructure=ref)
+    ops = map(float,open(rmsdFile).readlines()[ref].split()[1:])
+    opFlag = False
 
 elif sys.argv[1]=="FILE":
     op = "FILE"
@@ -209,17 +210,15 @@ if rectifyFlag:
     az = np.mod(atoms[:,2],v3[2])
 
 #Set default rcut value for tetrahedral ordering
-if op in ["TET"] and rcut==None:
+if op in ["TET","RMSD"] and rcut==None:
     rcut=3.1
 
 #Get the order parameter and convert to integer format (opsn) for coloring of atoms
 if opFlag:
+    print "here"
     ops,rcut = orderParams[op](np.array(atoms),np.array(basis),l=lval,rcut=rcut)
-else:
+elif ops==None:
     ops = types
-
-if op=="RMSD":
-    ops = np.sqrt(msd.T[-1])
 
 if shell2Flag: 
     bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
@@ -288,8 +287,6 @@ else:
 
 #Color bar formatting
 if op != None:
-    if op=="RMSD":
-        op+="^0.5"
     if op in ["BO","2BO"]:
         op+=",l=%d"%lval
     if shell2Flag:
