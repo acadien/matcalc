@@ -73,12 +73,11 @@ def ISFFullRmsd(atoms,basis,rmsd,steps=None,nqVecs=3,qmax=3.32,nStep=250,criteri
     nTime = atoms.shape[0]
     nAtom = atoms.shape[1]
 
-    if steps == None:
-        steps = sorted(list(set(array([int(10**(t*10.0/nStep-1.0)) for t in range(nStep)]))))
-        steps.remove(0)
-        steps = [t for t in steps if t<nTime]
-        steps = array(steps)
-        nStep = steps.shape[0]
+    steps = sorted(list(set(array([int(10**(t*10.0/nStep-1.0)) for t in range(nStep)]))))
+    steps.remove(0)
+    steps = [t for t in steps if t<nTime]
+    steps = array(steps)
+    nStep = steps.shape[0]
 
     nDel=0
     ltFlag = False
@@ -100,7 +99,7 @@ def ISFFullRmsd(atoms,basis,rmsd,steps=None,nqVecs=3,qmax=3.32,nStep=250,criteri
     atoms = atoms.ravel()
     isfs = zeros(nStep)
     q=qmax
-
+    
     weave.inline(ISFFullSphereRefCode,['nqVecs','steps','nStep','isfs','atoms','nTime','nAtom','q'])
 
     return steps,isfs
