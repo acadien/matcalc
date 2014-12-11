@@ -14,7 +14,7 @@ import itertools,random
 from scipy import weave
 from scipy.weave import converters
 from scipy.integrate import simps
-from numpy import array,zeros,pi,log10,cos,sin,sqrt
+from numpy import *
 import pylab as pl
 #mine
 import utils

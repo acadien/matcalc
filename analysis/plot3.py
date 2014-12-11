@@ -155,12 +155,10 @@ elif sys.argv[1]=="FILE":
     opFlag = False
     ops=list()
     for line in open(opfile,"r"):
-        if line[0]=="#": continue
-        for i in line.split():
-            try:
-                ops.append(sqrt(float(i)))
-            except ValueError:
-                pass
+        pass
+    ops = map(float,line.split()[1:])
+        
+        
 
 elif len(sys.argv) in [2,4]:
     configFile=sys.argv[1]
