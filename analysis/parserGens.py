@@ -2,14 +2,21 @@
 
 #quick and dirty scripts for parsing simple files
 
-def parseEnsemble(ensembleFile):
+def parseEnsemble(ensembleFile,keepAvg=False):
     f = open(ensembleFile,"r")
     f.readline() #eliminate the header
-    for line in f:
-        try: 
-            yield map(float,line.split()[1:])
-        except ValueError:
-            pass
+    if keepAvg:
+        for line in f:
+            try: 
+                yield map(float,line.split())
+            except ValueError:
+                pass
+    else:
+        for line in f:
+            try: 
+                yield map(float,line.split()[1:])
+            except ValueError:
+                pass
 
 def parseOutcarAtoms(byteNums,outcarFile,nAtoms):
     ocar = open(outcarFile,"r")

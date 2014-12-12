@@ -15,7 +15,7 @@ from colors import vizSpec
 #Special case for an idiot.
 if "OUTCAR" in sys.argv:
     print "***"
-    print "You're an idiot Adam. Stop running this program on OUTCAR."
+    print "You're an idiot. Stop running this program on an OUTCAR and run it on some column data instead."
     print "***"
     exit(0)
 
@@ -90,7 +90,7 @@ def usage():
     print "./plot2.py 0 1s25 datafile1     #windowed average of width 25 is applied"
     print "./plot2.py 0x0.5 1x2.0 datafile #scale of 0.5 on x-axis and scale of 2.0 on y-axis"
     print "switches: -3d, -stagger, -sort, -avg, -hist, -hist#bins, -scatter, -noLeg, -saveData, -gauss, -ghost"
-    print "switches: -alpha#val"
+    print "switches: -alpha#val, -title <title>"
     print ""
 
 if __name__=="__main__":

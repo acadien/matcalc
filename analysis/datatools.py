@@ -47,10 +47,10 @@ def gaussSmooth(a,n=9,mode='same'):
     return convolve(a,gWeight,mode=mode)#[center-1:-center-1]
 
 #1D data
-def windowAvg(a,n=11):
+def windowAvg(a,n=11,option='same'):
     #a: the list/array to run the window average over
     #n: the size of the window
-    return convolve(a, ones(n)/n,'same')
+    return convolve(a, ones(n)/n,option)
 
 #This function nabbed from www.scipy.org/Cookbook/SignalSmooth
 #Applies spectral methods (various convolution functions) to a window smoothing
