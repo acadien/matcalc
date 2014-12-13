@@ -11,7 +11,7 @@ import lammpsIO
 import parserGens
 import utils
 
-possibleSuffix = [".rmsd",".cn",".tetra",".rmsd100",".rmsd1000",".rmsd5000",".rmsd10000",".2shelltetra",".2shellcn",".2shellrmsd100"]
+possibleSuffix = [".rmsd",".cn",".tetra",".rmsd50",".rmsd100",".rmsd1000",".rmsd5000",".rmsd10000",".2shelltetra",".2shellcn",".2shellrmsd100",".tetra.avg1000",".tetra.avg5000",".tetra.avg100",".tetra.avg500"]
 
 utils.usage(["<outcar,lamps dump>"],1,1,"Note: Automatically looks for <OUTCAR/dump.suffix> for per atom ensembles. to include in the dump")
 
@@ -33,7 +33,7 @@ if "OUTCAR" in fname:
     #Find the starting locations of atomic data in outcarfile
     grepResults = subprocess.check_output("grep -b POSITION %s"%fname,shell=True).split("\n")
     bytenums=[int(i.split(":")[0]) for i in grepResults if len(i)>2]
-    outcarParsed = parserGens.parseOutcarAtoms(bytenums,open(fname,"r"),nAtoms)
+    outcarParsed = parserGens.parseOutcarAtoms(bytenums,fname,nAtoms)
 
     lammpsIO.writeDump(dumpFilename,basis,types,outcarParsed,ensembles,ensembleHead)
 

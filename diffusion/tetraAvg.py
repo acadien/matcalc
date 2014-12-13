@@ -24,9 +24,24 @@ if windowSize == "all":
     tetraLines = [" ".join(map(str,tetraAvg))+"\n"]
 else:
     windowSize = int(windowSize)
-    tetraAvg = zip(*[datatools.windowAvg(atet,n=windowSize,option='valid') for atet in tetras])
+
+    tetraAvg = zip(*[datatools.wsmooth(atet,windowSize) for atet in tetras])
     tetraLines = [" ".join(map(str,line))+"\n" for line in tetraAvg]
 
+    """
+    tetraAvg = zip(*[datatools.windowAvg(atet,n=windowSize,option='valid') for atet in tetras])
+    tetraPre = list()
+    tetraPost = list()
+    def avg(x):
+        return sum(x)/len(x)
+    for i in range(windowSize/2):
+        print i
+        tetraPre.append(map(avg,tetras[:i]))
+        tetraPost.append(map(avg,tetras[-windowSize+i:]))
+    tetraLines = [" ".join(map(str,line))+"\n" for line in tetraPre] +\
+                 [" ".join(map(str,line))+"\n" for line in tetraAvg] +\
+                 [" ".join(map(str,line))+"\n" for line in tetraPost]
+    """
 out = open(outputFile,"w")
 out.write("AvgTetra TetraPerAtom\n")
 out.writelines(tetraLines)

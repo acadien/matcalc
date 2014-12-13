@@ -20,6 +20,7 @@ def parseEnsemble(ensembleFile,keepAvg=False):
 
 def parseOutcarAtoms(byteNums,outcarFile,nAtoms):
     ocar = open(outcarFile,"r")
+    
     for i,b in enumerate(byteNums):
         ocar.seek(b)
         ocar.readline()
