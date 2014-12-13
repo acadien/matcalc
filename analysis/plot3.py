@@ -64,6 +64,7 @@ shiftFlag = False
 op = None
 rcut = None
 Nconfig = 0
+cfgFlag = False
 lval = 0
 toPop=list()
 minv,maxv = None,None
@@ -91,6 +92,7 @@ for i,v in enumerate(sys.argv):
 
     if v in ["-N","-n"]:
         Nconfig = int(sys.argv[i+1])
+        cfgFlag = True
         toPop.append(i)
         toPop.append(i+1)
 
@@ -160,13 +162,15 @@ elif sys.argv[1]=="FILE":
     #read in the Order Parameter here, don't parse it later... set flag to false
     opFlag = False
     ops=list()
-    for line in open(opfile,"r"):
+    for i,line in enumerate(open(opfile,"r")):
+        if cfgFlag and i-1 >= Nconfig:
+            break
         pass
     ops = map(float,line.split()[1:])
 
 elif len(sys.argv) in [2,4]:
     configFile=sys.argv[1]
-    
+
 elif len(sys.argv)==3:
     op = sys.argv[1]
     if op[:2]=="BO":

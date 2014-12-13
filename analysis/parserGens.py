@@ -67,3 +67,16 @@ def parseLammpsAtoms(byteNums,lammpsFile,nAtoms):
         atomLines.sort()
         ids,ax,ay,az,types  = zip(*atomLines)
         yield zip(ax,ay,az)
+
+def parseLammpsColumns(lammpsFile,nAtoms):
+    f2parse = open(lammpsFile,"r")
+    headerLen = 9
+    seperate = lambda x: map(float,x.split())
+
+    c=0
+    while True:
+        c+=1
+        lmpData = [f2parse.readline() for i in range(nAtoms + headerLen)]
+        if c%10==0:
+            yield map(seperate, lmpData[headerLen:])
+

@@ -227,8 +227,8 @@ def nAtoms(dump):
     return nAtoms
 
 def basis(dump):
-    grepResults = subprocess.check_output("grep -b ITEM:\ BOX\ BOUNDS %s"%dump,shell=True).split("\n")
-    b = [int(i.split(":")[0])+26 for i in grepResults if len(i)>2]
+    grepResults = subprocess.check_output("head -n 10000 %s | grep -b ITEM:\ BOX\ BOUNDS "%dump,shell=True).split("\n")
+    b = [int(i.split(":")[0]) for i in grepResults if len(i)>2]
     return parseBasis(dump,b[0])
 
 #Returns the location of basis in the dump file
