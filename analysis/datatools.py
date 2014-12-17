@@ -64,10 +64,8 @@ def wsmooth(x,window_len=11,window='hanning'):
     if x.size < window_len:
         raise ValueError, "Input vector needs to be bigger than window size."
 
-
     if window_len<3:
         return x
-
 
     if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
         raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"

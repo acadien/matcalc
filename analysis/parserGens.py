@@ -74,10 +74,7 @@ def parseLammpsColumns(lammpsFile,nAtoms):
     headerLen = 9
     seperate = lambda x: map(float,x.split())
 
-    c=0
     while True:
-        c+=1
         lmpData = [f2parse.readline() for i in range(nAtoms + headerLen)]
-        if c%10==0:
-            yield map(seperate, lmpData[headerLen:])
+        yield map(seperate, lmpData[headerLen:])
 
