@@ -48,6 +48,7 @@ def usage():
     print " -upbnd #   : sets an upper bound, trimming atoms with OP above this value"
     print "   -res #   : overrides the default resolution, may take forever to render (suggested ~10)"
     print "   -shift   : shifts atomic positions by 0.5,0.5,0.5 and modulos"
+    print "   -dup     : duplicate the atoms on 2x2x2"
     print ""
 
 if len(sys.argv) < 2:
@@ -55,16 +56,18 @@ if len(sys.argv) < 2:
     exit(0)
 
 #Preprocess Args for flags
+#state should probably be in a class...
 rectifyFlag=True
 opFlag = False
 sliceFlag = False
 histFlag = False
 shell2Flag = False
 shiftFlag = False
+duplicateFlag = False
+cfgFlag = False
 op = None
 rcut = None
 Nconfig = 0
-cfgFlag = False
 lval = 0
 toPop=list()
 minv,maxv = None,None
@@ -97,7 +100,11 @@ for i,v in enumerate(sys.argv):
         toPop.append(i+1)
 
     if v in ["-2sh","-2shell"]:
-        shell2Flag=True
+        shell2Flag = True
+        toPop.append(i)
+
+    if v in ["-dup","-duplicate"]:
+        duplicateFlag = True
         toPop.append(i)
 
     if v in ["-h"]:
@@ -254,9 +261,43 @@ if op in ["TET"]:
 
 if lowBound != None:
     ax,ay,az,ops = zip(*[[x,y,z,o] for x,y,z,o in zip(ax,ay,az,ops) if o > lowBound])
+    nAtom = len(ax)
 
 if upBound != None:
     ax,ay,az,ops = zip(*[[x,y,z,o] for x,y,z,o in zip(ax,ay,az,ops) if o < upBound])
+    nAtom = len(ax)
+
+if duplicateFlag:
+    nCopies = 8
+    cx,cy,cz = 2,2,2
+
+    #duplicate and tile
+    ax = np.array(np.split(np.tile(ax,nCopies),nCopies))
+    ay = np.array(np.split(np.tile(ay,nCopies),nCopies))
+    az = np.array(np.split(np.tile(az,nCopies),nCopies))
+
+    #Shift tiles in x dirn
+    shift = np.array([1]*nAtom)
+    shiftfull = np.array([shift*j*v1[0] for j in range(cx)])
+    for i in range(cy*cz):
+        ax[i*cx+np.array(range(cx))] += shiftfull
+
+    #Shift tiles in y dirn
+    shift=np.array([1]*nAtom)
+    shiftfull=np.array([shift*(j/cx)*v2[1] for j in range(cy*cx)])
+    for i in range(cz):
+        ay[i*cx*cy+np.array(range(cy*cx))] += shiftfull
+
+    #Shift tiles in z dirn
+    shift = np.array([1]*nAtom)
+    shiftfull = np.array([shift*(j/cx/cy)*v3[2] for j in range(cy*cx*cz)])
+    az+=shiftfull
+
+    ax = ax.reshape([nCopies*nAtom])
+    ay = ay.reshape([nCopies*nAtom])
+    az = az.reshape([nCopies*nAtom])
+    nAtom *= nCopies
+    ops = np.tile(ops,nCopies)
 
 #Auto-set the resolution so you don't burn your computer down trying to render this
 if res == None:
