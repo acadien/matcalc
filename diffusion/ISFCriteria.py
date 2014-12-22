@@ -104,6 +104,7 @@ def ISFSelf(atoms,basis,cr,steps=None,nqVecs=1,qmax=3.32,nStep=250,criteria=None
                 atoms = delete(atoms,i-nDel,1)                                          
                 nAtom -= 1                                                              
                 nDel +=1     
+    print "nAtom=%d atoms meet criteria %s"%(nAtom,criteria)
 
     atoms = atoms.ravel()
     isfs = zeros(nStep)
@@ -177,7 +178,7 @@ def ISFFull(atoms,basis,cr,steps=None,nqVecs=3,qmax=3.32,nStep=250,criteria=None
     for i,r in enumerate(cr):                                                         
         if ltFlag:                                                                      
             if r>cutoff:                                                                
-                atoms = delete(atoms,i-nDel,1)                                          
+                atoms = delete(atoms,i-nDel,1)                                 
                 nAtom -= 1                                                              
                 nDel +=1                                                                
         else:                                                                           
@@ -185,6 +186,7 @@ def ISFFull(atoms,basis,cr,steps=None,nqVecs=3,qmax=3.32,nStep=250,criteria=None
                 atoms = delete(atoms,i-nDel,1)                                          
                 nAtom -= 1                                                              
                 nDel +=1     
+    print "nAtom=%d atoms meet criteria %s"%(nAtom,criteria)
 
     atoms = atoms.ravel()
     isfs = zeros(nStep)
