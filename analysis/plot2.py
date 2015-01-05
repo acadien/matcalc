@@ -89,7 +89,7 @@ def usage():
     print "./plot2.py 0 1 datafile1 0 2 datafile2 datafile3"
     print "./plot2.py 0 1s25 datafile1     #windowed average of width 25 is applied"
     print "./plot2.py 0x0.5 1x2.0 datafile #scale of 0.5 on x-axis and scale of 2.0 on y-axis"
-    print "switches: -3d, -stagger, -sort, -avg, -hist, -hist#bins, -scatter, -noLeg, -saveData, -gauss, -ghost"
+    print "switches: -3d, -stagger, -sort, -avg, -hist, -hist#bins, -scatter, -noLeg, -saveData, -gauss, -ghost -logx -logy"
     print "switches: -alpha#val, -title <title>"
     print ""
 
@@ -106,7 +106,7 @@ if __name__=="__main__":
     #Pre-parse for switches
     nbins=80
     alpha=1.0 #transparency
-    switches={"-3d":False,"-stagger":False,"-sort":False,"-avg":False,"-hist":False,"-scatter":False, "-noLeg":False, "-saveData":False, "-gauss":False, "-ghost":False, "-h":False,"-alpha":None}
+    switches={"-3d":False,"-stagger":False,"-sort":False,"-avg":False,"-hist":False,"-scatter":False, "-noLeg":False, "-saveData":False, "-gauss":False, "-ghost":False, "-h":False,"-alpha":None,"-logx":False,"-logy":False}
     for i in range(len(sys.argv)-1,-1,-1):
         if "-hist" in sys.argv[i]: #special case hist with nbins proceding
             try:
@@ -337,7 +337,10 @@ if __name__=="__main__":
         if yScaleEnable:
             ydata=[y*yScale for y in ydata]
             ydataSmooth=[y*yScale for y in ydataSmooth]
-
+        if switches["-logx"]:
+            xdata=np.log(xdata)
+        if switches["-logy"]:
+            ydata=np.log(ydata)
         if switches["-stagger"]:
             m=min(ydata)
             if i==0:

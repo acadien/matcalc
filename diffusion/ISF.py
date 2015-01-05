@@ -81,11 +81,15 @@ def ISFSelf(atoms,basis,steps=None,nqVecs=1,qmax=3.32,nStep=250):#qmax (first pe
     nAtom = atoms.shape[1]
 
     if steps == None:
-        steps = sorted(list(set(array([int(10**(t*10.0/nStep-1.0)) for t in range(nStep)]))))
-        steps.remove(0)
-        steps = [t for t in steps if t<nTime]
-        steps = array(steps)
-        nStep = len(steps)
+        if linEnable:
+            nStep = 1000
+            steps = map(float,range(nStep))
+        else:
+            steps = sorted(list(set(array([int(10**(t*10.0/nStep-1.0)) for t in range(nStep)]))))
+            steps.remove(0)
+            steps = [t for t in steps if t<nTime]
+            steps = array(steps)
+            nStep = len(steps)
     atoms = atoms.ravel()
 
     isfs = zeros(nStep)
@@ -173,6 +177,7 @@ if __name__ == "__main__":
 
     plotEnable = True
     logtEnable = False
+    linEnable = False
     scale = None #units in seconds
     nStep = 250
     if "-noPlot" in sys.argv:
@@ -191,7 +196,11 @@ if __name__ == "__main__":
         nStep = int(sys.argv[i+1])
         sys.argv.pop(i)
         sys.argv.pop(i)
-
+    if "-linear" in sys.argv:
+        linEnable = True
+        i = sys.argv.index("-linear")
+        sys.argv.pop(i)
+        
     inputFile = sys.argv[1]
     #steps = map(int,sys.argv[2].split(","))
     isfType = "total"
@@ -244,6 +253,9 @@ if __name__ == "__main__":
         steps=log10(steps)
     
     outputFile = inputFile + ".isf" + isfType[0].upper()
+    if linEnable:
+        outputFile += "_lin"
+
     odata = header
     for b in range(len(steps)):
         odata += str(steps[b])+" "+str(isfs[b])+"\n"

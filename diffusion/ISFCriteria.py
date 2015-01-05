@@ -293,7 +293,7 @@ if __name__ == "__main__":
         steps=log10(steps)
 
     #Write Data
-    outputFile = inputFile + ".isf" + isfType[0].upper() + "_" + criteria
+    outputFile = criteFile + ".isf" + isfType[0].upper() + "_" + criteria
     odata = header
     for b in range(len(steps)):
         odata += str(steps[b])+" "+str(isfs[b])+"\n"
