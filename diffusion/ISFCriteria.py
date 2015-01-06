@@ -21,7 +21,7 @@ import utils
 import parserGens,lammpsIO,outcarIO
 from rootMeanSquareDist import unwrap
 from vanHove import vanHoveSelf
-
+from neighbors import secondShell, neighbors
 
 ISFSelfSphereRefCode = """
 double *qxs,*qys,*qzs,a,b,a2,b2,qx,qy,qz;
@@ -202,7 +202,8 @@ if __name__ == "__main__":
 -noPlot: turns off plotting duh\n\
 -logt  : turns on log of the time steps\n\
 -scale #: the time scale (how much time per step in seconds)\n\
--nStep #: number of steps on the time scale (100 small, 500 big)\
+-nStep #: number of steps on the time scale (100 small, 500 big)\n\
+-2sh   : applies 2 shell averaging before criterion are set\
 "
     utils.usage(["<dump.dat or OUTCAR>","<\'s\'-self or \'t\'-total', deflt: t>","<criteria>","<ensemble file>"],4,8,flags)
     
@@ -283,23 +284,16 @@ if __name__ == "__main__":
 
         configIterator = parserGens.parseLammpsAtoms(atomByteNums,lmpFile,nAtom)
         atomsTime = [array(atoms) for atoms in configIterator]
-
+    bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
     
     if len(crTime)+1 == nAtom:
         crTime=crTime[1:] #chop off the average if necessary
 
-    
     if sh2Enable:
-        def sh2Avg(neighb2sh,vals):
-            ns = map(len,neighb2sh)
-            return [sum([vals[j] for j in neighbs2sh[i]])/ns[i] if ns[i]>0 else vals[i] for i in range(len(neighb2sh))]
- 
         rcut = 3.1
-        nTime = len(atoms)
-        for t in range(nTime):
-            neighbs = secondShell( neighbors(atoms[t],bounds,rcut) )
-            crTime[t] = sh2Avg(neighbs,crTime[t])
-
+        neighbs = secondShell( neighbors(array(atomsTime[-1]),bounds,rcut) )
+        ns = map(len,neighbs)
+        crTime = [sum([crTime[j] for j in neighbs[i]])/ns[i] if ns[i]>0 else crTime[i] for i in range(len(neighbs))]
 
     if isfType == "total":
         steps,isfs = ISFFull(atomsTime,basis,crTime,nqVecs=3,nStep=nStep,criteria=criteria)
@@ -313,6 +307,8 @@ if __name__ == "__main__":
 
     #Write Data
     outputFile = criteFile + ".isf" + isfType[0].upper() + "_" + criteria
+    if sh2Enable:
+        outputFile += "_2sh"
     odata = header
     for b in range(len(steps)):
         odata += str(steps[b])+" "+str(isfs[b])+"\n"
