@@ -89,13 +89,13 @@ def ISFSelf(atoms,basis,cr,steps=None,nqVecs=1,qmax=3.32,nStep=250,criteria=None
 
     nDel=0                                                                              
     ltFlag = False                                                                      
-    if "lt" in criteria:                                                                
-        ltFlag=True                                                                     
-    cutoff = float(criteria[2:])                                                        
+    if "lt" in criteria:
+        ltFlag=True
+    cutoff = float(criteria[2:])
                 
-    for i,r in enumerate(cr):                                                         
-        if ltFlag:                                                                      
-            if r>cutoff:                                                                
+    for i,r in enumerate(cr):
+        if ltFlag:
+            if r>cutoff:
                 atoms = delete(atoms,i-nDel,1)                                          
                 nAtom -= 1                                                              
                 nDel +=1                                                                
@@ -212,6 +212,7 @@ if __name__ == "__main__":
     #Parse Flags
     plotEnable = True
     logtEnable = False
+    sh2Enable = False
     scale = None #units in seconds
     nStep = 250
     if "-noPlot" in sys.argv:
@@ -229,6 +230,10 @@ if __name__ == "__main__":
         i = sys.argv.index("-nStep")
         nStep = int(sys.argv[i+1])
         sys.argv.pop(i)
+        sys.argv.pop(i)
+    if "-2sh" in sys.argv:
+        i = sys.argv.index("-2sh")
+        sh2Enable = True
         sys.argv.pop(i)
 
     #Parse Args
@@ -279,8 +284,22 @@ if __name__ == "__main__":
         configIterator = parserGens.parseLammpsAtoms(atomByteNums,lmpFile,nAtom)
         atomsTime = [array(atoms) for atoms in configIterator]
 
+    
     if len(crTime)+1 == nAtom:
         crTime=crTime[1:] #chop off the average if necessary
+
+    
+    if sh2Enable:
+        def sh2Avg(neighb2sh,vals):
+            ns = map(len,neighb2sh)
+            return [sum([vals[j] for j in neighbs2sh[i]])/ns[i] if ns[i]>0 else vals[i] for i in range(len(neighb2sh))]
+ 
+        rcut = 3.1
+        nTime = len(atoms)
+        for t in range(nTime):
+            neighbs = secondShell( neighbors(atoms[t],bounds,rcut) )
+            crTime[t] = sh2Avg(neighbs,crTime[t])
+
 
     if isfType == "total":
         steps,isfs = ISFFull(atomsTime,basis,crTime,nqVecs=3,nStep=nStep,criteria=criteria)
