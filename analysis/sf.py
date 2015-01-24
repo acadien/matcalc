@@ -34,13 +34,12 @@ def sfq0(rdfX,rdfY,ndens,Lmax=20.0,qbins=1024,damped=None):
     qs=[i*dq+minq for i in range(qbins)]
     qs[0]=1E-10
 
-    maxR = max(rdfX)
     rdfY=np.array(rdfY)
     rdfX=np.array(rdfX)
     dx = rdfX[1]-rdfX[0]
 
     #Extend the h(r) to get a better estimate near q0
-    grExtx,grExty = rdfExtend(rdfX,rdfY,ndens,rmax=50.0,Niter=25,T=1000.0,rm=2.5,eps=-1,damped=True)
+    cr,grExtx,grExty = rdfExtend(rdfX,rdfY,ndens,rmax=50.0,Niter=25,T=1000.0,rm=2.5,eps=-1,damped=0.1)
 
     sf1=list()
     for i,q in enumerate(qs):

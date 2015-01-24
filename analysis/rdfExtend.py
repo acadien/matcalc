@@ -23,9 +23,10 @@ def calc_qpr_rltcut(icut,dens,hrx,hry,cr,qr,qrp):
 
 def calc_qpr_rgtcut(icut,dens,hrx,hry,cr,qr,qrp):
     N=len(qr)
+    qrpLast = np.array(qrp)
     for i,r in enumerate(hrx[icut:]):
         i+=icut
-        qrp[i] = -r*cr[i] + 2*pi*dens*integ(hrx[:N-i],qr[:N-i]*qrp[i:]) 
+        qrp[i] = -r*cr[i] + 2*pi*dens*integ(hrx[:N-i],qr[:N-i]*qrpLast[i:]) 
     return qrp
 
 def calc_qr(icut,dens,hrx,hry,cr,qr,qrp):
@@ -35,16 +36,18 @@ def calc_qr(icut,dens,hrx,hry,cr,qr,qrp):
 
 def calc_hr_rgtcut(icut,dens,hrx,hry,cr,qr,qrp):
     ti = np.array(range(len(hrx)-icut))+icut
+    hryLast = np.array(hry)
     for i,r in enumerate(hrx[icut:]):
         i+=icut
-        hry[i] = (-qrp[i] + 2*pi*dens*integ(hrx[icut:],qr[icut:]*(r-hrx[icut:])*hry[np.abs(i-ti)]))/r
+        hry[i] = (-qrp[i] + 2*pi*dens*integ(hrx[icut:],qr[icut:]*(r-hrx[icut:])*hryLast[np.abs(i-ti)]))/r
     return hry
 
 def calc_hr(icut,dens,hrx,hry,cr,qr,qrp):
     ti = np.array(range(len(hrx)))
+    hryLast= np.array(hry)
     for i,r in enumerate(hrx):
         if r==0: continue
-        hry[i] = (-qrp[i] + 2*pi*dens*integ(hrx,qr*(r-hrx)*hry[np.abs(i-ti)]))/r
+        hry[i] = (-qrp[i] + 2*pi*dens*integ(hrx,qr*(r-hrx)*hryLast[np.abs(i-ti)]))/r
     return hry
 
 def calc_cr_rgtcut(icut,dens,hrx,hry,cr,qr,qrp,phi,beta,PY):
@@ -87,23 +90,39 @@ def rdfExtend(rdfX,rdfY,ndens,rmax=50.0,Niter=5,T=100.0,rm=2.5,eps=-1,damped=Tru
     qr = np.array([0.0 for i in hry])
     qrp = np.array([0.0 for i in hry])
 
+    hrlast = np.array(hry)
+
+    Lmax=10.0
+    qbins=1024
+    minq,maxq,dq=0,Lmax,Lmax/qbins
+    qs=[i*dq+minq for i in range(qbins)]
+    qs[0]=1E-10
+
+    import pylab as pl
     for k in range(Niter):
         qrp = calc_qpr_rltcut(icut,ndens,hrx,hry,cr,qr,qrp)
         qrp = calc_qpr_rgtcut(icut,ndens,hrx,hry,cr,qr,qrp)
-        qrp = superSmooth(hrx,qrp,sigma=0.1)
         qr  = calc_qr        (icut,ndens,hrx,hry,cr,qr,qrp)
         hry = calc_hr_rgtcut (icut,ndens,hrx,hry,cr,qr,qrp)
         cr  = calc_cr_rgtcut (icut,ndens,hrx,hry,cr,qr,qrp,phi,beta,PY)
+
+        err = np.power((hrlast-hry),2).sum()
+        print "step %d, error %f"%(k,err)
+        if err > 1:
+            break
+        else:
+            temp = np.array(hry)
+            calc_hr(len(hrx),ndens,hrx,temp,cr,qr,qrp)
+            grExtended = np.array([i+1.0 for i in hry])
+            sfExt=list()
+            for i,q in enumerate(qs):
+                sfExt += [1 + 4*pi*ndens * integrate.simps((grExtended-1.0)*np.sin(q*hrx)*hrx/q ,dx=hrx[1]-hrx[0])]
+            pl.plot(qs,sfExt)
+        hrlast = np.array(hry)
+    pl.show()
+        
+    qrp = superSmooth(hrx,qrp,sigma=0.1)
     calc_hr(len(hrx),ndens,hrx,hry,cr,qr,qrp)
     grExtended = np.array([i+1.0 for i in hry])
 
-    f= open("/home/acadien/Dropbox/ozsf%d.dat"%rrcut,"w")
-    a=map(lambda x:"%f %f\n"%(x[0],x[1]),zip(hrx,grExtended))
-    f.writelines(a)
-    f.close()
-    f= open("/home/acadien/Dropbox/qrpsf%d.dat"%rrcut,"w")
-    a=map(lambda x:"%f %f\n"%(x[0],x[1]),zip(hrx,qrp))
-    f.writelines(a)
-    f.close()
-
-    return hrx,grExtended
+    return cr,hrx,grExtended
