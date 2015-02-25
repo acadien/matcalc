@@ -169,6 +169,7 @@ if __name__ == "__main__":
 -logt  : turns on log of the time steps\n\
 -scale #: the time scale (how much time per step in seconds)\n\
 -nStep #: number of steps on the time scale (100 small, 500 big)\
+-linear\
 "
     utils.usage(["<dump.dat or OUTCAR>","<\'s\'-self \'d\'-distinct or \'t\'-total'>, default total"],2,6,flags)
     
@@ -248,7 +249,7 @@ if __name__ == "__main__":
 
     scale /= 1E-12 #picosecond conversion
     steps = [i*scale for i in steps]
-    
+
     if logtEnable:
         steps=log10(steps)
     

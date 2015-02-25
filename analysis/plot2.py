@@ -454,7 +454,7 @@ if __name__=="__main__":
             for x,y in zip(avgx,avgy):
                 data+=str(x)+" "+str(y)+"\n"
             open("plot2.data","w").write(data)
-    
+
     if not switches["-noLeg"]:
         pl.legend(loc=0)
     

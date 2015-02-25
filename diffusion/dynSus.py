@@ -21,21 +21,28 @@ logTime = list()
 isfs = list()
 for isfSline in open(isfsFile,"r").readlines():
     try:
-        t,i = map(float,isfSline.split())
+        a = map(float,isfSline.split())
+        t = a.pop(0)
+        i = sum(a)/len(a)
     except ValueError:
         continue
     logTime.append(t)
     isfs.append(i)
 
+import pylab as pl
+pl.semilogx(logTime,isfs)
+pr.prshow()
+exit(0)
 N = len(logTime)
 m = max(logTime)
-linTime = [i*m/N for i in range(N)]
-linISFs = interp1d(logTime,isfs,linTime)
+linTime = logTime#[float(i)*m/N for i in range(N)]
+linISFs = isfs#interp1d(logTime,isfs,linTime)
 
 T = m/N
 xf = np.linspace(0,0.5/T, N/2)
-yf = fftpack.fft(isfs)
+yf = fftpack.fft(linISFs)
 
-import pylab as pl
-pl.plot(xf, np.imag(yf[:N/2])*xf/N)
-pl.show()
+pl.semilogx(xf, yf[:N/2])
+#pl.semilogx(xf, np.imag(yf[:len(isfs)/2])*xf/len(isfs))
+pr.prshow()
+

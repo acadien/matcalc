@@ -74,13 +74,13 @@ def rdfExtend(rdfX,rdfY,ndens,rmax=50.0,Niter=5,T=100.0,rm=2.5,eps=-1,damped=Tru
     #rm and eps are parameters for the LJ (used as the PY closure)
     #T is the temperature for the energy, effects smoothing near the transition point
     #PY selects the Percus Yevick Closure for C(r), if false, the HNC criterion are used.
-    rdfX=list([r for r in rdfX])
-    rdfY=list(rdfY[:len(rdfX)])
+    rdfX=list(rdfX)
+    rdfY=list(rdfY)
 
     drx = rdfX[1]-rdfX[0]
     n = int(np.ceil(rmax/drx))
     hrx = np.array([i*drx for i in range(n)])
-    hry = np.array([j-1.0 for j in rdfY + [1.0 for i in hrx[len(rdfY):]]])
+    hry = np.array([(j-1.0) for d,j in enumerate(rdfY + [1.0 for i in hrx[len(rdfY):]])])
 
     phi=[eps*((rm/r)**12-2*(rm/r)**6) if r>0 else eps*((rm/1E-10)**12-2*(rm/1E-10)**6) for r in hrx]
     beta = 1.0/8.6173324e-05/T
@@ -117,12 +117,12 @@ def rdfExtend(rdfX,rdfY,ndens,rmax=50.0,Niter=5,T=100.0,rm=2.5,eps=-1,damped=Tru
             sfExt=list()
             for i,q in enumerate(qs):
                 sfExt += [1 + 4*pi*ndens * integrate.simps((grExtended-1.0)*np.sin(q*hrx)*hrx/q ,dx=hrx[1]-hrx[0])]
-            pl.plot(qs,sfExt)
+            #pl.plot(qs,sfExt)
         hrlast = np.array(hry)
-    pl.show()
+    #pl.show()
         
     qrp = superSmooth(hrx,qrp,sigma=0.1)
     calc_hr(len(hrx),ndens,hrx,hry,cr,qr,qrp)
     grExtended = np.array([i+1.0 for i in hry])
-
+    
     return cr,hrx,grExtended

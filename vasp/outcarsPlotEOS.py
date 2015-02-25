@@ -156,6 +156,14 @@ for phase in phases:
 for i in toremove:
     phases.remove(i)
 
+d=open("temp.dat","w")
+for phase in phases:
+    d.write(phase+"\n")
+    for en,v,p,et in zip(Venergies[phase],Vvolumes[phase],Vpressures[phase],Venthalpies[phase]):
+        d.write(" ".join(map(str,[en,v,p,et]))+"\n")
+    d.write("\n")
+d.close()
+
 #LAMMPS Data
 Lvolumes={}
 Lpressures={}
