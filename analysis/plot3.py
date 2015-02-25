@@ -49,6 +49,8 @@ def usage():
     print "   -res #   : overrides the default resolution, may take forever to render (suggested ~10)"
     print "   -shift   : shifts atomic positions by 0.5,0.5,0.5 and modulos"
     print "   -dup     : duplicate the atoms on 2x2x2"
+    print "   -nobox   : turns off the bounding box"
+    print "   -cmap <mayaviColorMap>: select the colormap"
     print ""
 
 if len(sys.argv) < 2:
@@ -64,6 +66,7 @@ histFlag = False
 shell2Flag = False
 shiftFlag = False
 duplicateFlag = False
+boxFlag = True
 cfgFlag = False
 op = None
 rcut = None
@@ -74,6 +77,7 @@ minv,maxv = None,None
 lowBound = None
 upBound = None
 res = None
+cmap = None
 for i,v in enumerate(sys.argv):
 
     if v in ["-rectify","-Rectify"]:
@@ -138,6 +142,15 @@ for i,v in enumerate(sys.argv):
     if v in ["-shift"]:
         toPop.append(i)
         shiftFlag = True
+
+    if v in ["-nobox"]:
+        toPop.append(i)
+        boxFlag = False
+
+    if v in ["-cmap"]:
+        toPop.append(i)
+        toPop.append(i+1)
+        cmap = sys.argv[i+1]
 
 sys.argv = [sys.argv[i] for i in range(len(sys.argv)) if i not in toPop]
 
@@ -323,16 +336,18 @@ if histFlag:
 
 #fig=mlab.figure(bgcolor=(0.8,0.8,0.8))
 fig=mlab.figure(bgcolor=(1,1,1),fgcolor=(0.2,0.2,0.2))
+if cmap==None:
+    cmap = 'jet'
 
 #Only plot with coloring if there is some variance in the OP
 if mxop - mnop > 1E-10:
     #spectral
-    mp3d = mlab.points3d(ax,ay,az,ops,colormap='jet',scale_factor=1.9,scale_mode='none',resolution=res)
+    mp3d = mlab.points3d(ax,ay,az,ops,colormap=cmap,scale_factor=1.9,scale_mode='none',resolution=res,line_width=0)
 
     if n==None:
         n=min(len(set(ops)),10)
 else:
-    mp3d = mlab.points3d(ax,ay,az,[mnop]*len(az),colormap='jet',scale_factor=1.9,scale_mode='none',resolution=res)
+    mp3d = mlab.points3d(ax,ay,az,[mnop]*len(az),colormap=cmap,scale_factor=1.9,scale_mode='none',resolution=res)
     n=2
 
 #Color bar formatting
@@ -351,13 +366,14 @@ if op != None:
 
 mlab.text(0.01,0.01,configFile,width=0.2)
 
-#Stupid surrounding box code, sooooo ugly...
-z=[0,0,0]
-mlab.plot3d([0,v1[0],v1[0]+v2[0],v2[0],0,v3[0]],[0,v1[1],v1[1]+v2[1],v2[1],0,v3[1]],[0,v1[2],v1[2]+v2[2],v2[2],0,v3[2]],color=(0,0,0),line_width=0.5)
-mlab.plot3d([v3[0],v3[0]+v1[0],v3[0]+v2[0]+v1[0],v3[0]+v2[0],v3[0]],[v3[1],v3[1]+v1[1],v3[1]+v2[1]+v1[1],v3[1]+v2[1],v3[1]],[v3[2],v3[2]+v1[2],v3[2]+v2[2]+v1[2],v3[2]+v2[2],v3[2]],color=(0,0,0),line_width=0.5)
-mlab.plot3d([v1[0],v1[0]+v3[0]],[v1[1],v1[1]+v3[1]],[v1[2],v1[2]+v3[2]],color=(0,0,0),line_width=0.5)
-mlab.plot3d([v2[0],v2[0]+v3[0]],[v2[1],v2[1]+v3[1]],[v2[2],v2[2]+v3[2]],color=(0,0,0),line_width=0.5)
-mlab.plot3d([v1[0]+v2[0],v1[0]+v2[0]+v3[0]],[v1[1]+v2[1],v1[1]+v2[1]+v3[1]],[v1[2]+v2[2],v1[2]+v2[2]+v3[2]],color=(0,0,0),line_width=0.5)
+if boxFlag:
+    #Stupid surrounding box code, sooooo ugly...
+    z=[0,0,0]
+    mlab.plot3d([0,v1[0],v1[0]+v2[0],v2[0],0,v3[0]],[0,v1[1],v1[1]+v2[1],v2[1],0,v3[1]],[0,v1[2],v1[2]+v2[2],v2[2],0,v3[2]],color=(0,0,0),line_width=0.5)
+    mlab.plot3d([v3[0],v3[0]+v1[0],v3[0]+v2[0]+v1[0],v3[0]+v2[0],v3[0]],[v3[1],v3[1]+v1[1],v3[1]+v2[1]+v1[1],v3[1]+v2[1],v3[1]],[v3[2],v3[2]+v1[2],v3[2]+v2[2]+v1[2],v3[2]+v2[2],v3[2]],color=(0,0,0),line_width=0.5)
+    mlab.plot3d([v1[0],v1[0]+v3[0]],[v1[1],v1[1]+v3[1]],[v1[2],v1[2]+v3[2]],color=(0,0,0),line_width=0.5)
+    mlab.plot3d([v2[0],v2[0]+v3[0]],[v2[1],v2[1]+v3[1]],[v2[2],v2[2]+v3[2]],color=(0,0,0),line_width=0.5)
+    mlab.plot3d([v1[0]+v2[0],v1[0]+v2[0]+v3[0]],[v1[1]+v2[1],v1[1]+v2[1]+v3[1]],[v1[2]+v2[2],v1[2]+v2[2]+v3[2]],color=(0,0,0),line_width=0.5)
 
 pl.ion() #turn on interactive plotting
 

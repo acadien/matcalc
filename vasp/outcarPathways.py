@@ -10,7 +10,7 @@ from scipy.weave import converters
 #mine
 import outcarIO
 import meanSquareDist
-
+from struct_tools import dist
 #Calculates mean squared distance
 
 def usage():
@@ -66,6 +66,11 @@ def outcarPaths(outcarfile):
                      extra_compile_args=compiler_args,\
                      support_code=headers,\
                      libraries=libs)
+
+    
+    distances=[dist(atoms[0,i],atoms[-1,i]) for i in range(Natom)]
+    print distances 
+    exit(0)
     atoms.shape=(Ntime,Natom,3)
 
     fig=pl.figure()
