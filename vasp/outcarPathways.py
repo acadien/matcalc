@@ -7,6 +7,7 @@ from scipy import array,zeros
 import pylab as pl
 from scipy import weave
 from scipy.weave import converters
+import numpy as np
 #mine
 import outcarIO
 import meanSquareDist
@@ -67,18 +68,22 @@ def outcarPaths(outcarfile):
                      support_code=headers,\
                      libraries=libs)
 
-    
-    distances=[dist(atoms[0,i],atoms[-1,i]) for i in range(Natom)]
-    print distances 
-    exit(0)
     atoms.shape=(Ntime,Natom,3)
 
+    distances=[dist(atoms[0,i],atoms[-1,i]) for i in range(Natom)]
+
+    dmax = distances.index(max(distances))
+    atoms = np.swapaxes(atoms,0,1)
+    hoppers = array([atoms[i] for i in range(Natom) if distances[i]>1.5])
+    nHoppers = hoppers.shape[0]
+    
     fig=pl.figure()
     ax=fig.add_subplot(111,projection='3d')
-    for i in range(Natom):
-        ax.plot(atoms[:,i,0],atoms[:,i,1],atoms[:,i,2])
-
-    pl.suptitle(outcarfile)
+    for i in range(nHoppers):
+        #if i==dmax:
+        ax.plot(hoppers[i,6000:,0],hoppers[i,6000:,1],hoppers[i,6000:,2])
+    #pl.xticks(["" for i in pl.xticks()])
+    #pl.suptitle(outcarfile)
     pl.show()
 
 if __name__=="__main__":
