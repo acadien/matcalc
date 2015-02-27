@@ -74,14 +74,14 @@ def outcarPaths(outcarfile):
 
     dmax = distances.index(max(distances))
     atoms = np.swapaxes(atoms,0,1)
-    hoppers = array([atoms[i] for i in range(Natom) if distances[i]>1.5])
+    hoppers = array([atoms[i] for i in range(Natom) if distances[i]>5.0])
     nHoppers = hoppers.shape[0]
     
     fig=pl.figure()
     ax=fig.add_subplot(111,projection='3d')
     for i in range(nHoppers):
-        #if i==dmax:
-        ax.plot(hoppers[i,6000:,0],hoppers[i,6000:,1],hoppers[i,6000:,2])
+        if i==dmax:
+            ax.plot(hoppers[i,6000:,0],hoppers[i,6000:,1],hoppers[i,6000:,2])
     #pl.xticks(["" for i in pl.xticks()])
     #pl.suptitle(outcarfile)
     pl.show()
