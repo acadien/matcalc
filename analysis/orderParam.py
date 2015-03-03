@@ -165,6 +165,49 @@ def coordinationNumber(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
         
     return cns,rcut
 
+def abraham(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
+    atoms = array(atoms)
+    basis = array(basis)    
+    atoms = rectify(atoms,basis)
+
+    #Generate g(r)
+    rvals,gr = rdf_periodic(atoms,basis,cutoff=6.0)
+    
+    #Smoothed g(r)
+    sgr=windowAvg(gr,n=25).tolist()
+    #derivative of smoothed-g(r)
+    dsgr = windowAvg(windowAvg([(sgr[i+1]-sgr[i])/(rvals[1]-rvals[0]) for i in range(len(sgr)-1)],n=50),n=20).tolist()
+
+    first_neg = [i for i,v in enumerate(dsgr) if v<0][0]
+    first_peak = sgr.index(max(sgr[:first_neg]))
+    rindex = first_neg + [i for i,v in enumerate(dsgr[first_neg:]) if v>=0][0]
+    rmin = rvals[rindex]
+    gmin = sgr[rindex]
+    rmax = rvals[first_peak-2]
+    gmax = sgr[first_peak-2]
+    #pl.plot(rvals,gr)
+    #pl.plot(rvals,sgr)
+    #pl.plot([rmin,rmin],[0,gmin],c="black",lw=3)
+    #pl.plot([rmax,rmax],[0,gmax],c="red",lw=3)
+    #pl.show()
+    #exit(0)
+    return gmin/gmax
+    """
+
+    #l: not used
+    if neighbs==None:
+        if rcut==None:
+            rcut = generateRCut(atoms,basis,debug=debug)
+            print "Using RDF to generate r-cutoff=",rcut
+        else:
+            "Using r-cutoff=",rcut
+
+        bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
+        neighbs = neighbors(atoms,bounds,rcut,style="full")
+        #neighbs = voronoiNeighbors(atoms,basis,[1]*len(atoms),style="full")
+    cns = map(len,neighbs)
+    """
+
 def radangDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     atoms = array(atoms)
     basis = array(basis)    
