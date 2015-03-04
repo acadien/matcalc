@@ -4,15 +4,16 @@ import plotRemote as pr
 
 import sys
 import pylab as pl
+import subprocess
 #from numpy import *
 #mine
 import procarIO
 
 
 def usage():
-    print "procarPlot.py <PROCAR File> <Value=avg or kp> <Interp = gauss or point>"
+    print "procarPlot.py <PROCAR File> <Value=avg or kp> <Interp = gauss or point> <OUTCAR for e-fermi>"
 
-if len(sys.argv)!=4:
+if len(sys.argv) not in [4,5]:
     usage()
     exit(0)
 procarfile=sys.argv[1]
@@ -31,6 +32,16 @@ if interp=='gauss':
     olabels,kpoints,ws,energy,occupancy,enGrid,ocGrid=procarIO.read(procarfile)
 else:
     olabels,kpoints,ws,energy,occupancy,enGrid,ocGrid=procarIO.read(procarfile,sigma=0)
+
+efermi=None
+if len(sys.argv)==5:
+    ocar = sys.argv[4]
+    print "tac %s | grep fermi | head"%ocar
+    efermi = subprocess.check_output("tac %s | head -n 2000 | grep fermi"%ocar,shell=True).split()[2]
+    efermi = float(efermi)
+
+if efermi!=None:
+    pl.plot([efermi,efermi],[0,7],ls="--",c="black",lw=3)
 
 Norbs=len(olabels)
 porb='q'
@@ -51,9 +62,9 @@ if yvals=='avg':
         if orb!=porb:
             if orb=='t': temp='total'
             else: temp=orb
-            pl.plot(enGrid,ocGrid[i],label=temp,color=c)
+            pl.plot(enGrid,ocGrid[i],label=temp,color=c,lw=2)
         else:
-            pl.plot(enGrid,ocGrid[i],color=c)
+            pl.plot(enGrid,ocGrid[i],color=c,lw=2)
         porb=orb
 
     pl.xlabel("Energy (in eV)")
@@ -79,9 +90,9 @@ elif yvals=='kp':
             if orb!=porb:
                 if orb=='t': temp='total'
                 else: temp=orb
-                pl.plot(energy[kp],occupancy[kp,:,i],label=temp,color=c)
+                pl.plot(energy[kp],occupancy[kp,:,i],label=temp,color=c,lw=2)
             else:
-                pl.plot(energy[kp],occupancy[kp,:,i],color=c)
+                pl.plot(energy[kp],occupancy[kp,:,i],color=c,lw=2)
             porb=orb
         pl.xlabel("Energy (in eV)")
         pl.ylabel("DOS")
