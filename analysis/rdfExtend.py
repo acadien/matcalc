@@ -157,8 +157,8 @@ def rdfExtend(rdfX,rdfY,ndens,rmax=50.0,Niter=5,T=300.0,rm=2.5,epsilon=-1E-10,da
         hry = calc_hr_rgtcut (icut,ndens,hrx,hry,cr,qr,qrp)
         cr  = calc_cr (icut,ndens,hrx,hry,cr,qr,qrp,phi,beta,PY)
         
-        hry2 = calc_hr (icut,ndens,hrx,hry,cr,qr,qrp)
-        sq = calcSqh(ndens,hrx,hry2,qs)
+        #hry2 = calc_hr (icut,ndens,hrx,hry,cr,qr,qrp)
+        sq = calcSq(ndens,hrx,hry,qs)
         #pl.plot(hrx,hry,label=str(k),c=vizSpec(float(k)/kbreak))
         pl.plot(qs,sq,label=str(k),c=vizSpec(float(k)/kbreak))
         err = np.power((hrlast-hry),2).sum()

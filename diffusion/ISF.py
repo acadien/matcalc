@@ -47,13 +47,13 @@ while( qlen < nqVecs ){
 
 double c,d,dx,dy,dz;
 double *seta,*setb;
-double norm = 1.0/nAtom/nTime/nqVecs;
+double norm = 1.0/nTime/nqVecs/nAtom;
 int stepSize;
 for(int s=0; s<nStep; s++){ //loop over step size
   stepSize = steps[s];
   
   c=0.0;
-  for(int t=0; t<nTime-stepSize; t++){ //loop over time steps
+  for(int t=0; t<nTime-stepSize; t+=stepSize){ //loop over time steps
     for(int q=0;q<nqVecs;q++){
       qx = qxs[q];
       qy = qys[q];
@@ -70,7 +70,7 @@ for(int s=0; s<nStep; s++){ //loop over step size
 
         isfs[s] += cos(dx*qx + dy*qy + dz*qz);
    }}}
-   isfs[s] *= norm;
+   isfs[s] *= norm*stepSize;
 }
 """
 
@@ -253,7 +253,7 @@ if __name__ == "__main__":
     if logtEnable:
         steps=log10(steps)
     
-    outputFile = inputFile + ".isf" + isfType[0].upper()
+    outputFile = inputFile + ".isf" + isfType[0].upper() + "stepped"
     if linEnable:
         outputFile += "_lin"
 

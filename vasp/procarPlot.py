@@ -11,7 +11,7 @@ import procarIO
 
 
 def usage():
-    print "procarPlot.py <PROCAR File> <Value=avg or kp> <Interp = gauss or point> <OUTCAR for e-fermi>"
+    print "procarPlot.py <PROCAR File> <Value=avg or kp> <Interp = gauss or point> <OUTCAR for e-fermi or just e-fermi>"
 
 if len(sys.argv) not in [4,5]:
     usage()
@@ -35,10 +35,12 @@ else:
 
 efermi=None
 if len(sys.argv)==5:
-    ocar = sys.argv[4]
-    print "tac %s | grep fermi | head"%ocar
-    efermi = subprocess.check_output("tac %s | head -n 2000 | grep fermi"%ocar,shell=True).split()[2]
-    efermi = float(efermi)
+    try:
+        efermi=float(sys.argv[4])
+    except ValueError:
+        ocar = sys.argv[4]
+        efermi = subprocess.check_output("tac %s | head -n 2000 | grep fermi"%ocar,shell=True).split()[2]
+        efermi = float(efermi)
 
 if efermi!=None:
     pl.plot([efermi,efermi],[0,7],ls="--",c="black",lw=3)
