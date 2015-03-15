@@ -61,6 +61,8 @@ if yvals=='avg':
             c='red'
         elif orb=='t':
             c='black'
+            for z in zip(enGrid,ocGrid[i]):
+                print "%f %f\n"%(z[0],z[1])
         if orb!=porb:
             if orb=='t': temp='total'
             else: temp=orb
