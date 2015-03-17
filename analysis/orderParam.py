@@ -185,28 +185,8 @@ def abraham(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     gmin = sgr[rindex]
     rmax = rvals[first_peak-2]
     gmax = sgr[first_peak-2]
-    #pl.plot(rvals,gr)
-    #pl.plot(rvals,sgr)
-    #pl.plot([rmin,rmin],[0,gmin],c="black",lw=3)
-    #pl.plot([rmax,rmax],[0,gmax],c="red",lw=3)
-    #pl.show()
-    #exit(0)
+
     return gmin/gmax
-    """
-
-    #l: not used
-    if neighbs==None:
-        if rcut==None:
-            rcut = generateRCut(atoms,basis,debug=debug)
-            print "Using RDF to generate r-cutoff=",rcut
-        else:
-            "Using r-cutoff=",rcut
-
-        bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
-        neighbs = neighbors(atoms,bounds,rcut,style="full")
-        #neighbs = voronoiNeighbors(atoms,basis,[1]*len(atoms),style="full")
-    cns = map(len,neighbs)
-    """
 
 def radangDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     atoms = array(atoms)
@@ -300,24 +280,6 @@ def structureFactor0(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
 
     return 0
 
-"""
-def structureFactor0(rdfX,rdfY,nDensity,l=None,neighbs=None,rcut=None,debug=False):
-    rdfX=array(rdfX)
-    rdfY=array(rdfY)
-    hr = rdfY-1.0
-    from scipy import fftpack
-    sp = fftpack.rfft(hr*rdfX*rdfX)
-    print sp
-    freq = fftpack.fftfreq(len(hr),d=(rdfX[1]-rdfX[0]))
-
-    import pylab as pl
-    pl.plot(freq,((sp.real/288.)**2+(sp.imag/288)**2)**0.5+1.0)
-    pl.plot(freq,sp.real/288.+1.0,freq,sp.imag/288+1.0)
-    pl.show()
-    exit(0)
-    return [integrate.simps((rdfY-1.0),rdfX)*nDensity+1]
-"""
-    
 #translational order parameter, l=neighbor shell
 def translational(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     #l: not used
@@ -450,7 +412,6 @@ def tetrahedral(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     nNeighbs = array(map(accumulateLen,neighbs))
     nAtoms = atoms.shape[0]
     atoms.shape = nAtoms*3
-    #neighbs2 = map(list,neighbs)
     neighbs = concatenate(map(array,neighbs))
 
     tets=zeros(nAtoms)    
@@ -458,28 +419,5 @@ def tetrahedral(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     b.shape=9
     weave.inline(tetraCode,['tets','atoms','nAtoms','neighbs','nNeighbs','b'])
     atoms.shape=[nAtoms,3]
-
-    """
-    third=1./3.
-    tets2=zeros(len(atoms))
-    basis.shape=[3,3]
-    for i,ineighbs in enumerate(neighbs2):
-        iatom=atoms[i]
-
-        if len(ineighbs)<3:
-            tets.append(0)
-            continue
-
-        Sg=0
-        for v,j in enumerate(ineighbs):
-            jatom=minImageAtom(iatom,atoms[j],basis)
-
-            for k in ineighbs[v+1:]:
-                katom=minImageAtom(iatom,atoms[k],basis)
-
-                a = ang(iatom,jatom,katom)
-                Sg+=(cos(a)+third)**2
-        tets2[i] = 1 - 3.*Sg/8.
-    """
 
     return tets,rcut
