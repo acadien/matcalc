@@ -230,6 +230,7 @@ if __name__ == "__main__":
         configIterator = parserGens.parseOutcarAtoms(atomByteNums,ocarFile,nAtom)
         atomsTime = [array(atoms) for atoms in configIterator]
         atomsTime = unwrap(atomsTime,basis)
+        atomsTime = atomsTime[2000:]
     else:
         lmpFile = inputFile
         atomByteNums = lammpsIO.atomsBytes(lmpFile)

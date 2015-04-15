@@ -54,7 +54,7 @@ def sumgauss(xcenter,ycenter,xgrid,ygrid,sigma):
     return gaussFunctions.gauss1D(xgrid,ygrid,ycenter,xcenter,sigma)
 
 #read(The unread procar file, the width of gaussians (0=points), ngPnts=number of grid points)
-def read(procarFilename,sigma=0.1,ngPnts=1000):
+def read(procarFilename,sigma=0.02,ngPnts=1000):
     kpoints=list()
     weights=list()
 

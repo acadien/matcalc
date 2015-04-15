@@ -45,7 +45,7 @@ for(int s=0; s<nStep; s++){ //loop over step size
   stepSize = steps[s];
   
   c=0.0;
-  for(int t=0; t<nTime-stepSize; t++){ //loop over time steps
+  for(int t=0; t<nTime-stepSize; t+=stepSize){ //loop over time steps
     for(int q=0;q<nqVecs;q++){
       qx = qxs[q];
       qy = qys[q];
@@ -63,7 +63,7 @@ for(int s=0; s<nStep; s++){ //loop over step size
         isfsen[s*nAtom+i] += cos(dx*qx + dy*qy + dz*qz);
   }}}
   for( int i=0; i<nAtom; i++)
-    isfsen[s*nAtom+i] *= norm;
+    isfsen[s*nAtom+i] *= norm*stepSize;
 }
 """
 

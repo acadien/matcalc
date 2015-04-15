@@ -17,7 +17,7 @@ double *seta,*setb;
 
 //first you need to unwrap the periodic boundary conditions in certain cases to ensure continuity
 for(int i=0;i<nTime-1;i++){
-  seta=&(atoms[i*nAtom*3]);
+  seta=&(atoms[(i  )*nAtom*3]);
   setb=&(atoms[(i+1)*nAtom*3]);
 
   for(int j=0;j<nAtom;j++){
@@ -50,15 +50,11 @@ for(int i=0;i<nTime-1;i++){
       dy = minDof1*b[1] + minDof2*b[4] + minDof3*b[7];
       dz = minDof1*b[2] + minDof2*b[5] + minDof3*b[8];
 
-      atoms[((i+1)*nAtom+j)*3]   += dx;
-      atoms[((i+1)*nAtom+j)*3+1] += dy;
-      atoms[((i+1)*nAtom+j)*3+2] += dz;
-      /*
       for(int k=i+1; k<nTime;k++){
         atoms[(k*nAtom+j)*3]   += dx;
         atoms[(k*nAtom+j)*3+1] += dy;
         atoms[(k*nAtom+j)*3+2] += dz;
-      }*/
+      }
     }
   }
 }
@@ -262,73 +258,67 @@ def unwrap(atoms,basis):
         exit(0)
 
     weave.inline(undoPBCcode,['atoms','nTime','nAtom','b','debug'])
-#    print debug;
-#    exit(0)
     atoms.shape=(nTime,nAtom,3)
     return atoms
 
-
-
-
-#garbage below, save for posterity
-
-
-
-"""
-rmsdCode = ""
+############################################################################################
+#['atoms','nTime','nAtom','steps','nStep','rmsd']
+rmsdCorrCode = """
 double c,d,atomd;
 double *seta,*setb;
-int dt;
 
-for(dt=1;dt<nTime;dt++){
+int stepSize,k;
 
-  c=0.0;
+for(int s=0; s<nStep; s++){ //Loop over steps (rmsd[step] = )
+  stepSize = steps[s];
 
-  for(int i=0;i<nTime-dt;i++){
+  c = 0.0;
+  k = 0;
+  for(int i=0; i < nTime-stepSize; i+=stepSize){ //Loop over time by step size
+  
+    seta=&(atoms[(i         )*(int)nAtom*3]);
+    setb=&(atoms[(i+stepSize)*(int)nAtom*3]);
 
-    seta=&(atoms[i*nAtom*3]);
-    setb=&(atoms[(i+dt)*nAtom*3]);
-
-    for(int j=0;j<(int)nAtom;j++){
-      atomd=0
+    for(int j=0;j<nAtom;j++){
+      atomd = 0;
       for(int dof=0;dof<3;dof++){       //loop over each Degree of Freedom
-
         d = seta[j*3+dof]-setb[j*3+dof];
-        if( d > lengths[dof]/2.0 ) d -= lengths[dof];  //Lower PBC
-        if( d <-lengths[dof]/2.0 ) d += lengths[dof];  //Upper PBC
-
-        c += d*d;
         atomd += d*d;
       }
-      rmsdByAtom[(dt-1)*nAtom + j] = sqrt(atomd)
+      c += sqrt(atomd);
+      k++;
     }
   }
-
-  rmsd[dt-1] = sqrt(c/(nAtom*(nTime-dt)));
-
+  rmsd[s] = c/k;
 }
-""
-
-#Calculates the RMSD, doesn't take into big atomic jumps due to PBC
-def rootMeanSquareDist(atoms,nAtom,nTime,lengths,byAtom=False):
-    nAtom=int(nAtom)
-    atoms=array(atoms).ravel() #atoms is an nTime x nAtom x 3 array... now flattened
-    delT=array(range(1,nTime+1))
-    rmsd=zeros(len(delT))
-    rmsdByAtom=zeros(len(delT)*nAtom)
-
-#    compiler_args=['-march=native -O3 -fopenmp']
-#    headers=r""#include <omp.h>""
-#    libs=['gomp']
-
-    weave.inline(rmsdCode,['atoms','nTime','nAtom','lengths','rmsd','rmsdByAtom'])
-#                     extra_compile_args=compiler_args,\
-#                     support_code=headers,\
-#                     libraries=libs)
-
-    rmsdByAtom.shape=[len(delT),nAtom]
-
-    if byAtom:
-        return delt,rmsd,rmsdByAtom
-    return delT,rmsd
 """
+
+#Calculates the RMSD enforcing periodic boundary conditions
+#ref is an index into the atoms array
+def rootMeanSquareCorrelate(atoms,basis,steps=None):
+    atoms = array(atoms)
+    basis = array(basis)
+    nTime = atoms.shape[0]
+    nAtom = atoms.shape[1]
+
+    if steps==None:
+        nStep=1000
+        delTime = max( int(nTime/(nStep*10)) , 1)
+        steps = array(range(1,nTime/10,delTime))
+        nStep = steps.shape[0]
+        print nStep
+    else:
+        nStep = len(steps)
+        steps = array(steps)
+
+    atoms=atoms.ravel()       #atoms is an nTime x nAtom x 3 array... now flattened
+    b = basis.ravel()
+    rmsd=zeros(nStep)
+    debug = zeros(4)
+
+    weave.inline(undoPBCcode,['atoms','nTime','nAtom','b','debug'])
+
+    #do this after undoing PBC to ensure refAtoms are in same state as atoms set.
+    weave.inline(rmsdCorrCode,['atoms','nTime','nAtom','steps','nStep','rmsd'])
+
+    return steps,rmsd

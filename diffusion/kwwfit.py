@@ -25,11 +25,7 @@ cutoff = 1.0
 if len(sys.argv)==3:
     cutoff=float(sys.argv[2])
 
-
-p2 = sys.argv[3]
-a1,b1 = parseISF(p2)
 icut = sum([1 for i in time if i<cutoff])
-print a1,b1
 
 #Fitting
 beta,a,tao = optimize.curve_fit(kww,time[icut:],isfs[icut:])[0]
@@ -38,9 +34,11 @@ print "Beta = %f\n A = %f\n tao = %f\n"%(beta,a,tao)
 #Plotting
 #pl.plot(time[:icut],isfs[:icut])
 pl.scatter(time,isfs,marker="x",lw=2,c="black",alpha=0.8)
-longTime = range(2,10**5)
+#longTime = [i/100. for i in range(cut*100,10**6)]
+longTime = list(time)+range(int(time[-1]),int(time[-1])*100)
 pl.plot(longTime,kww(longTime,beta,a,tao))
 
-pl.plot(a1,b1,c="red")
+data=map(lambda x: " ".join(map(str,x))+"\n",zip(longTime,kww(longTime,beta,a,tao)))
+open(sys.argv[1]+".kww","w").writelines(data)
 
 pl.show()

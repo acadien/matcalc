@@ -12,26 +12,27 @@ if len(sys.argv) not in [3,4]:
     usage()
     exit(0)
 
+"""
 parseHop= lambda x: map(float,x.split()) 
 hoppedfile = sys.argv[1]
-try:
-    atom,jump50,jump100,jump200,jump500,jump1000 = zip(*map(parseHop,open(hoppedfile,"r").readlines()))
-except ValueError:
-    atom,jump50,jump100,jump200,jump500,jump1000 = zip(*map(parseHop,open(hoppedfile,"r").readlines()[1:]))
-atomsJumped200 = array([i for i,j in enumerate(jump200) if j>0])
+#try:
+#    atom,jump50,jump100,jump500,jump1000,jump5000,jump10000 = zip(*map(parseHop,open(hoppedfile,"r").readlines()))
+#except ValueError:
+atom,jump50,jump100,jump500,jump1000,jump5000,jump10000 = zip(*map(parseHop,open(hoppedfile,"r").readlines()[1:]))
+atomsJumped500 = array([i for i,j in enumerate(jump500) if j>0])
 
 rmsdFile = sys.argv[2]
 if rmsdFile[-4:]!="rmsd": exit(0)
 
 #use jump50, 50ts for 2.5A seems to be a good param for capturing hops/flow.
-rmsdAvg=list()
 rmsdPerAtom=list()
 for i,line in enumerate(open(rmsdFile,"r").readlines()):
     if i==0:
         continue
     line = map(lambda x: float(x),line.split())
     rmsdAvg.append(line[0])
-    rmsdPerAtom.append(array(line[1:])[atomsJumped200])
+    print atomsJumped500
+    rmsdPerAtom.append(array(line[1:])[atomsJumped500])
 rmsdPerAtom=array(rmsdPerAtom)
 
 ##Parsing the orderParam file (can be RMSD, TOP, CN)
@@ -42,7 +43,28 @@ if len(sys.argv)==4:
         line = line.split()
         if len(line)<20:
             continue
-        atomOP.append(array(map(float,line[1:]))[atomsJumped200])
+        atomOP.append(array(map(float,line[1:]))[atomsJumped500])
+atomOP=array(atomOP)
+"""
+rmsdFile = sys.argv[2]
+rmsdAvg=list()
+rmsdPerAtom=list()
+for i,line in enumerate(open(rmsdFile,"r").readlines()):
+    if i==0:
+        continue
+    line = map(lambda x: float(x),line.split())
+    rmsdAvg.append(line[0])
+    rmsdPerAtom.append(array(line[1:]))
+rmsdPerAtom=array(rmsdPerAtom)
+
+atomOP = []
+if len(sys.argv)==4:
+    opFile=sys.argv[3]
+    for i,line in enumerate(open(opFile,"r")):
+        line = line.split()
+        if len(line)<20:
+            continue
+        atomOP.append(array(map(float,line[1:])))
 atomOP=array(atomOP)
 
 import matplotlib as mpl
@@ -89,14 +111,14 @@ def colorLine(x, y, c=None, cmap=plt.get_cmap('cool'),alpha=0.4):
 atomOP=swapaxes(atomOP,0,1)
 for i,rmsd in enumerate(rmsdPerAtom.swapaxes(0,1)):
     if len(atomOP)==0:            
-        grid[i].plot(coarseGrain(rmsd,100),label = str(atomsJumped200[i]))
+        grid[i].plot(coarseGrain(rmsd,100),label = str(atomsJumped500[i]))
     else:
         cgy,cgv = coarseGrain(rmsd,100),coarseGrain(atomOP[i],100)
         cgx=linspace(0.0,len(rmsd)-1,len(cgy))
         grid[i].add_collection(colorLine(cgx,cgy,c=cgv))
     grid[i].set_xlim([0,cgx[-1]])
     grid[i].set_ylim([0,mxx])
-    grid[i].text(0.5,0.8,str(atomsJumped200[i]),horizontalalignment='center',verticalalignment='center',transform=grid[i].transAxes)
+    grid[i].text(0.5,0.8,str(i),horizontalalignment='center',verticalalignment='center',transform=grid[i].transAxes)
     
 plt.tight_layout()
 plt.show()
