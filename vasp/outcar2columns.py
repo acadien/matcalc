@@ -48,7 +48,7 @@ for ocf,outputFile in zip(outcarFiles,outputFiles):
 
     #Temperature & Kinetic Energy
     grepResults = shellExec("grep temperature %s"%ocf)
-    kinEnergies = [float(i.split()[4])/natom for i in grepResults if "K)" in i]
+    kinEnergies = [float(i.split()[-4])/natom for i in grepResults if "K)" in i]
     temperatures = [float(i.split()[-2]) for i in grepResults if "K)" in i]
 
     #Cohesive Energy
