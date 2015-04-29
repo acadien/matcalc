@@ -212,7 +212,7 @@ if __name__ == "__main__":
 
     if scale == None:
         if "OUTCAR" in inputFile:
-            scale = 5E-15 #5fs (potim=5)
+            scale = outcarIO.timestep(inputFile)*1E-15# 5E-15 #5fs (potim=5)
         else:
             scale = 0.001E-12 #0.001ps (default for units = metal)
 
@@ -230,7 +230,7 @@ if __name__ == "__main__":
         configIterator = parserGens.parseOutcarAtoms(atomByteNums,ocarFile,nAtom)
         atomsTime = [array(atoms) for atoms in configIterator]
         atomsTime = unwrap(atomsTime,basis)
-        atomsTime = atomsTime[2000:]
+        atomsTime = atomsTime[500:]
     else:
         lmpFile = inputFile
         atomByteNums = lammpsIO.atomsBytes(lmpFile)
@@ -254,7 +254,7 @@ if __name__ == "__main__":
     if logtEnable:
         steps=log10(steps)
     
-    outputFile = inputFile + ".isf" + isfType[0].upper() + "stepped"
+    outputFile = inputFile + ".isf" + isfType[0].upper()
     if linEnable:
         outputFile += "_lin"
 

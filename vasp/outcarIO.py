@@ -191,7 +191,8 @@ def nSteps(outcarFile):
 #Returns the size of the timestep in an outcar
 def timestep(outcarFile):
     grepR = subprocess.check_output("grep POTIM %s"%outcarFile,shell=True).split("\n")
-    ts = float(grepR[0].split()[2])
+    grepR = [i for i in grepR if len(i)>0]
+    ts = float(grepR[-1].split()[2])
     return ts
 
 #Returns the number of atoms in the simulation
