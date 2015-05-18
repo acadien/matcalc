@@ -60,7 +60,7 @@ charter.py CN dumpfile.dat -N 25,36 -rcut 6.5
 parser.add_argument('op',choices=orderParams.keys(),help="Order Parameter selection.")
 parser.add_argument('fileNames',nargs='*',help="A list of POSCAR files (space delim)")
 parser.add_argument('-rcut',help='Radius Cutoff distance when selecting neighbors, if not provided the first shell minimum is used.',type=float)
-parser.add_argument('-lval',dest='lval',help='l-value, used in BO (Ql) calculation',type=int)
+parser.add_argument('-lval',dest='lval',help='l-value, used in BO (Ql) calculation',type=float)
 parser.add_argument('-gval',dest='lval',help='g-value, used in BA (g) calculation',type=int)
 parser.add_argument('-nosave','-S',dest='saveFlag',action='store_false',help='turn off saving to file',default='true')
 parser.add_argument('-noplot','-P',dest='plotFlag',action='store_false',help='turn off plotting',default='true')

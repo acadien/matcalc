@@ -230,7 +230,7 @@ nAtom = len(ax)
 v1,v2,v3=basis
 
 if shiftFlag:    
-    atoms = [[a[0]+v1[0]/2.,a[1]+v2[1]/2.,a[2]+v3[2]/2.] for a in atoms]
+    atoms = [[a[0]+v1[0]/2.,a[1]+v2[1]/2.,a[2]+v3[2]/2.55] for a in atoms]
     rectifyFlag = True
 
 if rectifyFlag:
@@ -342,7 +342,7 @@ if cmap==None:
 #Only plot with coloring if there is some variance in the OP
 if mxop - mnop > 1E-10:
     #spectral
-    mp3d = mlab.points3d(ax,ay,az,ops,colormap=cmap,scale_factor=1.9,scale_mode='none',resolution=res,line_width=0)
+    mp3d = mlab.points3d(ax,ay,az,[1-i for i in ops],colormap=cmap,scale_factor=1.9,scale_mode='none',resolution=res,line_width=0)
 
     if n==None:
         n=min(len(set(ops)),10)

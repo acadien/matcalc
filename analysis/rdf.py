@@ -297,7 +297,7 @@ def adf(atoms,neighbs,basis,cutoff,nbins=360,angtype='deg'):
     b.shape=[3,3]
     atoms.shape=[len(atoms)/3,3]    
     abins = [(i+0.5)*180./nbins for i in range(nbins)]
-    bins /= nbins
+    #bins /= nbins
 
     return [abins,bins]
     

@@ -173,7 +173,6 @@ if __name__ == "__main__":
 "
     utils.usage(["<dump.dat or OUTCAR>","<\'s\'-self \'d\'-distinct or \'t\'-total'>, default total"],2,6,flags)
     
-
     RMAX = 10.0
 
     plotEnable = True

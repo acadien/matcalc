@@ -188,6 +188,7 @@ def sfq(atoms,basis,nqbins=290,qcut=7.5):
     rmodul = map(lambda x: sqrt(sum(x*x)),recip)
     qmin = min(rmodul)
     qRads = np.linspace(qmin,qcut,nqbins)
+
     sf = np.zeros([nqbins])
     sfsg = np.zeros([nqbins])
     nqVecs = 200
@@ -198,19 +199,19 @@ def sfq(atoms,basis,nqbins=290,qcut=7.5):
     basis.shape=9
 
     #Call the code
-    headers=r"""#include <math.h> 
-                #include <stdio.h>"""
-    weave.inline(SFbyQCodeGrid,['atoms','natoms','qRads','nqbins','nqVecs','sf','basis','sfsg','qstep'],support_code=headers)
+    #headers=r"""#include <math.h> 
+    #            #include <stdio.h>"""
+    weave.inline(SFbyQCodeGrid,['atoms','natoms','qRads','nqbins','nqVecs','sf','basis','qstep'])#,support_code=headers)
     atoms.shape=[natoms,3]
     basis.shape=[3,3]
 
-    import pylab as pl
-    pl.plot(qRads,sf,label='tsf')
-    pl.plot(qRads,sfsg,label='sfsg')
-    pl.legend(loc=0)
-    open("blah.SF","w").writelines(["% lf % lf % lf\n"%(q,qc,qs) for q,qc,qs in zip(qRads,sf,sfsg)])
-    pl.show()
-
+    #import pylab as pl
+    #pl.plot(qRads,sf,label='tsf')
+    #pl.plot(qRads,sfsg,label='sfsg')
+    #pl.legend(loc=0)
+    #open("blah.SF","w").writelines(["% lf % lf % lf\n"%(q,qc,qs) for q,qc,qs in zip(qRads,sf,sfsg)])
+    #pl.show()
+    #print qRads
     return qRads,sf
 
 #number of points = Nz*(Nz-1)+2
@@ -384,7 +385,7 @@ def sfq2(atoms,basis,nr=100,rcut=12.0,nqbins=100,qcut=4.0):
     basis.shape=[3,3]
 
     import pylab as pl
-    pl.plot(qvals,qbinsCOS)
+    pl.plot(qvals,qbinsCOS*qbinsCOS)
     pl.plot(qvals,qbinsSIN)
 
 
@@ -394,7 +395,7 @@ def sfq2(atoms,basis,nr=100,rcut=12.0,nqbins=100,qcut=4.0):
     #pl.plot(sfx,sfy)
     pl.show()
 
-    return qvals,qbins
+    return qvals,qbinsCOS
 
 #############################################################################################
 

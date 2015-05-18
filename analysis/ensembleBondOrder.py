@@ -59,7 +59,7 @@ if outcarFlag:
         qAvg = sum(q)/len(q)
         qs = " ".join(map(str,q))
         bondOrderOut.write(str(qAvg)+" "+qs+"\n")
-        print i
+        #print i
 
 if lammpsFlag:
     nAtoms = lammpsIO.nAtoms(filename)
@@ -84,4 +84,4 @@ if lammpsFlag:
         qAvg = sum(q)/len(q)
         qs = " ".join(map(str,q))
         bondOrderOut.write(str(qAvg)+" "+qs+"\n")
-        print i
+        #print i

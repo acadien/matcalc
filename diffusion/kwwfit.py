@@ -21,7 +21,7 @@ def kww(t,beta,a,tao):
     return a*np.exp(- (t/tao)**beta)
 
 time,isfs = parseISF(sys.argv[1])
-cutoff = 1.0
+cutoff = 2.0
 if len(sys.argv)==3:
     cutoff=float(sys.argv[2])
 
@@ -37,6 +37,9 @@ pl.scatter(time,isfs,marker="x",lw=2,c="black",alpha=0.8)
 #longTime = [i/100. for i in range(cut*100,10**6)]
 longTime = list(time)+range(int(time[-1]),int(time[-1])*100)
 pl.plot(longTime,kww(longTime,beta,a,tao))
+
+#for j in zip(longTime,kww(longTime,beta,a,tao)):
+#    print " ".join(map(str,j))
 
 data=map(lambda x: " ".join(map(str,x))+"\n",zip(longTime,kww(longTime,beta,a,tao)))
 open(sys.argv[1]+".kww","w").writelines(data)

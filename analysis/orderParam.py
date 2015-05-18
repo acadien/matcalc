@@ -14,7 +14,7 @@ import plotRemote as pr
 from neighbors import neighbors,nNearestNeighbors,full2half,voronoiNeighbors,secondShell
 from struct_tools import *
 from rdf import *
-from sf import sf,sfq,sfq0
+from sf import sf,sfq,sfq0,sfq2
 
 #Maps atomic coordinates back into the basis, assumes an orthogonal basis set
 def rectify(atoms,basis):
@@ -35,7 +35,7 @@ def bondOrientation(atoms,basis,l,neighbs=None,rcut=None,debug=False):
         
         if rcut==None:
             rcut = generateRCut(atoms,basis,debug=debug)
-            print "Automatically generating r-cutoff=",rcut
+            #print "Automatically generating r-cutoff=",rcut
         
         neighbs = neighbors(atoms,bounds,rcut)
 
@@ -65,7 +65,7 @@ def bondOrientation2sh(atoms,basis,l,neighbs=None,rcut=None,debug=False):
 
         if rcut==None:
             rcut = generateRCut(atoms,basis,debug=debug)
-            print "Automatically generating r-cutoff=",rcut
+            #print "Automatically generating r-cutoff=",rcut
 
         neighbs = secondShell( neighbors(atoms,bounds,rcut) )
 
@@ -154,7 +154,7 @@ def coordinationNumber(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     if neighbs==None:
         if rcut==None:
             rcut = generateRCut(atoms,basis,debug=debug)
-            print "Using RDF to generate r-cutoff=",rcut
+            #print "Using RDF to generate r-cutoff=",rcut
         else:
             "Using r-cutoff=",rcut
 
@@ -197,9 +197,9 @@ def radangDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     if neighbs==None:
         if rcut==None:
             rcut = generateRCut(atoms,basis,debug=debug)
-            print "Using RDF to generate r-cutoff=",rcut
-        else:
-            print "Using r-cutoff=",rcut
+            #print "Using RDF to generate r-cutoff=",rcut
+        #else:
+        #    print "Using r-cutoff=",rcut
 
         bounds=[[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
         neighbs = neighbors(atoms,bounds,rcut,style="full")
@@ -226,9 +226,9 @@ def angleDistribution(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
 
     if rcut==None:
         rcut = generateRCut(atoms,basis,debug=debug)
-        print "Using RDF to generate r-cutoff=",rcut
-    else:
-        print "Using r-cutoff=",rcut
+    #    print "Using RDF to generate r-cutoff=",rcut
+    #else:
+    #    print "Using r-cutoff=",rcut
 
     if neighbs==None:
         bounds = [[0,basis[0][0]],[0,basis[1][1]],[0,basis[2][2]]]
@@ -242,19 +242,19 @@ def structureFactor(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     basis = array(basis)    
     atoms = rectify(atoms,basis)
 
-    if rcut==None:
-        rcut = min(sum([basis[0][0],basis[1][1],basis[2][2]])/6, 10.0)
-        print "Automatically generating r-cutoff=",rcut
+    #if rcut==None:
+    #    rcut = min(sum([basis[0][0],basis[1][1],basis[2][2]])/6, 10.0)
+    #    print "Automatically generating r-cutoff=",rcut
 
     if l==None:
         l=12.0
 
-    rbins,rdist = rdf_periodic(atoms,basis,cutoff=rcut)
-    Nr=len(rbins)
-    density = atoms.shape[0] / volume(basis)
+    #rbins,rdist = rdf_periodic(atoms,basis,cutoff=rcut)
+    #Nr=len(rbins)
+    #density = atoms.shape[0] / volume(basis)
 
-    #qbins,qvals = sfq(rbins,rdist,density,Lmax=l,qbins=2048,damped=False)
-    qbins,qvals = sfq(atoms,basis,nqbins=300,qcut=7.5)
+    #qbins,qvals = sf(rbins,rdist,density,Lmax=l,qbins=2048,damped=False)
+    qbins,qvals = sfq(atoms,basis,nqbins=290,qcut=l)
     return qbins,qvals
 
 def structureFactor0(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
@@ -266,7 +266,7 @@ def structureFactor0(atoms,basis,l=None,neighbs=None,rcut=None,debug=False):
     if rcut==None:
         rcut = sum([basis[0][0],basis[1][1],basis[2][2]])/6
         if rcut<20.0: rcut = 10.0
-        print "Automatically generating r-cutoff=",rcut
+    #    print "Automatically generating r-cutoff=",rcut
 
     if l==None:
         l=6.0
